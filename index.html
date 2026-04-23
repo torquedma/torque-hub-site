@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Torque Hub — Money-Making Trucks & Equipment</title>
+  <meta name="description" content="Torque Hub helps buyers find money-making work trucks, trailers, and equipment from real dealers. Browse inventory, get financing, and connect directly with sellers." />
+  <meta name="robots" content="index,follow" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Torque Hub — Money-Making Trucks & Equipment" />
+  <meta property="og:description" content="Find work trucks, trailers, and equipment that are ready to make money." />
+  <meta property="og:url" content="https://torque.hub/" />
+  <meta property="og:site_name" content="Torque Hub" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="canonical" href="https://torque.hub/" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Torque Hub",
+      "alternateName": "Torque Hub powered by Torque DMA",
+      "url": "https://torque.hub/",
+      "description": "Torque Hub connects buyers and sellers of money-making commercial trucks, trailers, and equipment.",
+      "brand": {
+        "@type": "Brand",
+        "name": "Torque DMA"
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel-2: #1f2937;
+      --panel-3: #0b1220;
+      --line: rgba(255,255,255,0.08);
+      --text: #f8fafc;
+      --muted: #cbd5e1;
+      --soft: #94a3b8;
+      --blue: #2563eb;
+      --blue-2: #1d4ed8;
+      --green: #16a34a;
+      --green-2: #15803d;
+      --gold: #fbbf24;
+      --shadow: 0 20px 50px rgba(0,0,0,0.28);
+      --radius: 18px;
+      --radius-sm: 12px;
+      --max: 1280px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: "Barlow", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(37,99,235,0.16), transparent 26%),
+        radial-gradient(circle at top right, rgba(22,163,74,0.10), transparent 18%),
+        linear-gradient(180deg, #08101d 0%, #0f172a 38%, #0a1220 100%);
+      min-height: 100vh;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+    .container { width: min(var(--max), calc(100% - 32px)); margin: 0 auto; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(14px);
+      background: rgba(8, 16, 29, 0.82);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      min-height: 76px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .brand-logo {
+      width: 58px;
+      height: 58px;
+      object-fit: contain;
+      display: block;
+      flex-shrink: 0;
+      filter: drop-shadow(0 10px 18px rgba(0,0,0,0.25));
+    }
+
+    .brand-copy {
+      min-width: 0;
+    }
+
+    .brand-title {
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: 28px;
+      font-weight: 900;
+      line-height: 0.95;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      margin-top: 4px;
+      white-space: nowrap;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .nav-links a {
+      padding: 11px 14px;
+      border-radius: 999px;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 14px;
+      transition: 0.2s ease;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+      background: rgba(255,255,255,0.04);
+    }
+
+    .nav-links .cta {
+      background: linear-gradient(135deg, var(--blue), var(--blue-2));
+      color: white;
+      box-shadow: 0 10px 25px rgba(37,99,235,0.35);
+    }
+
+    .nav-links .cta:hover {
+      background: linear-gradient(135deg, #3b82f6, var(--blue));
+    }
+
+    .hero {
+      padding: 56px 0 28px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.12fr 0.88fr;
+      gap: 28px;
+      align-items: stretch;
+    }
+
+    .hero-copy,
+    .hero-panel {
+      background: linear-gradient(180deg, rgba(17,24,39,0.86), rgba(15,23,42,0.96));
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      box-shadow: var(--shadow);
+    }
+
+    .hero-copy {
+      padding: 34px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-copy::before {
+      content: "";
+      position: absolute;
+      inset: auto -60px -60px auto;
+      width: 220px;
+      height: 220px;
+      background: radial-gradient(circle, rgba(37,99,235,0.24), transparent 62%);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(251,191,36,0.28);
+      background: rgba(251,191,36,0.10);
+      color: #fde68a;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--gold);
+      box-shadow: 0 0 0 6px rgba(251,191,36,0.13);
+    }
+
+    h1 {
+      margin: 18px 0 14px;
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: clamp(48px, 8vw, 84px);
+      line-height: 0.92;
+      text-transform: uppercase;
+      letter-spacing: -0.02em;
+    }
+
+    h1 span {
+      color: #60a5fa;
+    }
+
+    .hero-copy p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.6;
+      max-width: 760px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 28px 0 22px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 15px 20px;
+      border-radius: 14px;
+      font-family: "Barlow Condensed", sans-serif;
+      font-weight: 800;
+      font-size: 17px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border: 1px solid transparent;
+      transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--blue), var(--blue-2));
+      color: white;
+      box-shadow: 0 12px 24px rgba(37,99,235,0.28);
+    }
+    .btn-secondary {
+      background: rgba(255,255,255,0.04);
+      border-color: rgba(255,255,255,0.12);
+      color: white;
+    }
+    .btn-green {
+      background: linear-gradient(135deg, var(--green), var(--green-2));
+      color: white;
+      box-shadow: 0 12px 24px rgba(22,163,74,0.24);
+    }
+
+    .hero-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 20px;
+    }
+
+    .metric {
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.035);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .metric strong {
+      display: block;
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: 28px;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .metric span {
+      color: var(--soft);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .hero-panel {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .panel-kicker {
+      color: #93c5fd;
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .featured-card {
+      border-radius: 20px;
+      overflow: hidden;
+      background: #0b1220;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .featured-image {
+      aspect-ratio: 16 / 10;
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      display: grid;
+      place-items: center;
+      color: var(--soft);
+      font-size: 15px;
+    }
+
+    .featured-body {
+      padding: 18px;
+    }
+
+    .featured-title {
+      margin: 0;
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: 34px;
+      line-height: 0.95;
+      text-transform: uppercase;
+    }
+
+    .featured-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 10px 0 14px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .featured-price {
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: 42px;
+      font-weight: 900;
+      color: #60a5fa;
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+
+    .featured-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .quick-links {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .quick-card {
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.035);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .quick-card h3 {
+      margin: 0 0 8px;
+      font-size: 16px;
+      font-family: "Barlow Condensed", sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .quick-card p {
+      margin: 0;
+      color: var(--soft);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .section {
+      padding: 30px 0;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: flex-end;
+      margin-bottom: 18px;
+    }
+
+    .section-title {
+      margin: 0;
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: clamp(34px, 5vw, 52px);
+      line-height: 0.95;
+      text-transform: uppercase;
+    }
+
+    .section-sub {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 16px;
+      max-width: 760px;
+    }
+
+    .chip-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 6px 0 22px;
+    }
+
+    .chip {
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .inventory-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(17,24,39,0.9), rgba(11,18,32,0.95));
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .inventory-media {
+      aspect-ratio: 16 / 11;
+      background: linear-gradient(135deg, #1f2937, #0b1220);
+      display: grid;
+      place-items: center;
+      color: var(--soft);
+      font-size: 14px;
+      position: relative;
+    }
+
+    .badge {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      background: rgba(37,99,235,0.9);
+      color: white;
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .inventory-body {
+      padding: 18px;
+    }
+
+    .inventory-title {
+      margin: 0 0 10px;
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: 30px;
+      line-height: 0.95;
+      text-transform: uppercase;
+    }
+
+    .inventory-copy {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    .specs {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .spec {
+      padding: 12px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.035);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .spec-label {
+      display: block;
+      font-size: 11px;
+      color: var(--soft);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+
+    .spec-value {
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .inventory-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .price {
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: 40px;
+      line-height: 1;
+      font-weight: 900;
+      color: #60a5fa;
+    }
+
+    .location {
+      color: var(--soft);
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .dealer-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .dealer-card {
+      padding: 22px;
+    }
+
+    .dealer-card h3 {
+      margin: 0 0 8px;
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: 28px;
+      line-height: 0.95;
+      text-transform: uppercase;
+    }
+
+    .dealer-card p {
+      margin: 0 0 12px;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 15px;
+    }
+
+    .dealer-meta {
+      display: grid;
+      gap: 8px;
+      color: var(--soft);
+      font-size: 14px;
+      margin-bottom: 14px;
+    }
+
+    .cta-band {
+      padding: 34px;
+      border-radius: 26px;
+      background: linear-gradient(135deg, rgba(37,99,235,0.18), rgba(22,163,74,0.13));
+      border: 1px solid rgba(255,255,255,0.08);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: center;
+      box-shadow: var(--shadow);
+    }
+
+    .cta-band h2 {
+      margin: 0 0 8px;
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: clamp(34px, 5vw, 54px);
+      line-height: 0.95;
+      text-transform: uppercase;
+    }
+
+    .cta-band p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.6;
+      max-width: 700px;
+    }
+
+    footer {
+      padding: 30px 0 60px;
+    }
+
+    .footer-card {
+      background: linear-gradient(180deg, rgba(17,24,39,0.86), rgba(11,18,32,0.96));
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 26px;
+      box-shadow: var(--shadow);
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr;
+      gap: 22px;
+    }
+
+    .footer-card h3 {
+      margin: 0 0 10px;
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: 28px;
+      line-height: 0.95;
+      text-transform: uppercase;
+    }
+
+    .footer-card p,
+    .footer-card li,
+    .footer-card a {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.65;
+    }
+
+    .footer-card ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .footer-card li + li { margin-top: 8px; }
+
+    .mobile-sticky {
+      position: fixed;
+      left: 14px;
+      right: 14px;
+      bottom: 14px;
+      display: none;
+      gap: 10px;
+      z-index: 120;
+      background: rgba(8,16,29,0.92);
+      border: 1px solid rgba(255,255,255,0.10);
+      backdrop-filter: blur(12px);
+      border-radius: 18px;
+      padding: 10px;
+      box-shadow: var(--shadow);
+    }
+
+    .mobile-sticky a { flex: 1; }
+
+    @media (max-width: 1100px) {
+      .hero-grid,
+      .cta-band,
+      .footer-card {
+        grid-template-columns: 1fr;
+      }
+      .inventory-grid,
+      .dealer-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 760px) {
+      .nav {
+        min-height: 72px;
+        align-items: flex-start;
+        padding: 12px 0;
+      }
+      .nav-links {
+        display: none;
+      }
+      .hero {
+        padding-top: 26px;
+      }
+      .hero-copy,
+      .hero-panel,
+      .cta-band,
+      .footer-card,
+      .card {
+        border-radius: 20px;
+      }
+      .hero-copy,
+      .hero-panel,
+      .cta-band,
+      .footer-card {
+        padding: 22px;
+      }
+      .hero-metrics,
+      .quick-links,
+      .specs,
+      .inventory-grid,
+      .dealer-grid {
+        grid-template-columns: 1fr;
+      }
+      .section {
+        padding: 22px 0;
+      }
+      .mobile-sticky {
+        display: flex;
+      }
+      body {
+        padding-bottom: 86px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container nav">
+      <a class="brand" href="#top" aria-label="Torque Hub home">
+        <img class="brand-logo" src="/logo.png" alt="Torque DMA logo" />
+        <div class="brand-copy">
+          <div class="brand-title">Torque Hub</div>
+          <div class="brand-sub">Powered by Torque DMA</div>
+        </div>
+      </a>
+
+      <nav class="nav-links" aria-label="Primary navigation">
+        <a href="#inventory">Inventory</a>
+        <a href="#dealers">Dealers</a>
+        <a href="#financing">Financing</a>
+        <a href="#sell">Sell With Us</a>
+        <a class="cta" href="#inventory">Browse Inventory</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <div class="eyebrow">Work trucks. trailers. equipment.</div>
+          <h1>Torque Hub <span>Money-Making Trucks &amp; Equipment.</span></h1>
+          <p>
+            Torque Hub is the public-facing inventory and lead platform powered by Torque DMA.
+          </p>
+
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#inventory">Browse Inventory</a>
+            <a class="btn btn-green" href="#financing">Get Financing</a>
+            <a class="btn btn-secondary" href="#sell">Sell Your Equipment</a>
+          </div>
+        </div>
+
+        <aside class="hero-panel" aria-label="Featured inventory panel">
+          <div class="panel-kicker">Featured inventory</div>
+
+          <article class="featured-card" id="featured-card">
+            <div class="featured-image" id="featured-image" style="position:relative;overflow:hidden">
+              <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#64748b">Loading...</div>
+            </div>
+            <div class="featured-body">
+              <h2 class="featured-title" id="featured-title">Available Now</h2>
+              <div class="featured-meta" id="featured-meta"></div>
+              <div class="featured-price" id="featured-price"></div>
+              <div class="specs" style="margin-bottom: 16px;" id="featured-specs"></div>
+              <div class="featured-actions">
+                <a class="btn btn-primary" href="#" id="featured-view">View Listing</a>
+                <a class="btn btn-secondary" href="#" id="featured-call">Call Dealer Now</a>
+              </div>
+              <div class="featured-actions" style="margin-top: 10px;">
+                <a class="btn btn-green" href="https://www.vehiclenetwork.net/finance" target="_blank">Get Financing</a>
+                <button class="btn btn-secondary" onclick="nextFeatured()">Next Unit ›</button>
+              </div>
+            </div>
+          </article>
+
+          <div class="quick-links">
+            <div class="quick-card">
+              <h3>See it fast</h3>
+              <p>Hit the listing page, check the key specs, and make the decision without getting buried in clutter.</p>
+            </div>
+            <div class="quick-card">
+              <h3>Call direct</h3>
+              <p>The best units should always push the buyer toward a real phone call, not just another scroll.</p>
+            </div>
+            <div class="quick-card">
+              <h3>Finance next</h3>
+              <p>Keep motivated buyers moving with a financing path that supports the sale instead of slowing it down.</p>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section" id="inventory">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Available trucks & equipment</h2>
+            <p class="section-sub">Built to convert calls and leads first. Every listing should feel like a money page, not a dead-end inventory dump.</p>
+          </div>
+          <a class="btn btn-secondary" href="#">View All Inventory</a>
+        </div>
+
+        <div class="chip-row" aria-label="Inventory categories">
+          <div class="chip">Box Trucks</div>
+          <div class="chip">Dump Trucks</div>
+          <div class="chip">Flatbeds</div>
+          <div class="chip">Skid Steers</div>
+          <div class="chip">Trailers</div>
+          <div class="chip">Telehandlers</div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+          <input type="text" id="inv-search" placeholder="Search year, make, model, stock..." oninput="applyFilters()" style="flex:1;min-width:200px;padding:10px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#f8fafc;font-size:14px;font-family:inherit;outline:none">
+          <select id="dealer-filter" onchange="applyFilters()" style="padding:10px 14px;background:rgba(17,24,39,0.9);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#f8fafc;font-size:14px;font-family:inherit;outline:none;cursor:pointer">
+            <option value="">All Dealers</option>
+            <option value="Davenport Motors">Davenport Motors</option>
+            <option value="Fat Daddy's Truck Sales">Fat Daddy's Truck Sales</option>
+            <option value="Wilson Trailer Sales & Service">Wilson Trailer Sales & Service</option>
+            <option value="HGR's Truck and Trailer">HGR's Truck and Trailer</option>
+          </select>
+          <select id="condition-filter" onchange="applyFilters()" style="padding:10px 14px;background:rgba(17,24,39,0.9);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#f8fafc;font-size:14px;font-family:inherit;outline:none;cursor:pointer">
+            <option value="">New & Used</option>
+            <option value="New">New Only</option>
+            <option value="Used">Used Only</option>
+          </select>
+          <select id="sort-filter" onchange="applyFilters()" style="padding:10px 14px;background:rgba(17,24,39,0.9);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#f8fafc;font-size:14px;font-family:inherit;outline:none;cursor:pointer">
+            <option value="featured">Featured First</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+            <option value="year-desc">Year: Newest</option>
+          </select>
+        </div>
+        <div class="chip-row">
+          <div class="chip active" onclick="setCat('',this)" style="cursor:pointer">All</div>
+          <div class="chip" onclick="setCat('Trucks',this)" style="cursor:pointer">Trucks</div>
+          <div class="chip" onclick="setCat('Trailers',this)" style="cursor:pointer">Trailers</div>
+          <div class="chip" onclick="setCat('Construction',this)" style="cursor:pointer">Construction</div>
+          <div class="chip" onclick="setCat('Farm',this)" style="cursor:pointer">Farm</div>
+          <div class="chip" onclick="setCat('Other',this)" style="cursor:pointer">Other</div>
+        </div>
+        <div id="inventory-grid" class="inventory-grid">
+          <div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#64748b">
+            <div style="width:36px;height:36px;border:3px solid rgba(255,255,255,0.08);border-top-color:#2563eb;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px"></div>
+            Loading inventory from all dealers...
+          </div>
+        </div>
+        <div id="pagination" style="display:flex;gap:8px;justify-content:center;margin-top:24px;flex-wrap:wrap"></div>
+      </div>
+    </section>
+
+    <section class="section" id="financing">
+      <div class="container">
+        <div class="cta-band">
+          <div>
+            <h2>Need financing?</h2>
+            <p>Don’t let a buyer cool off. Push the next step while the unit is still fresh in their mind. Financing should be part of the funnel, not an afterthought.</p>
+          </div>
+          <a class="btn btn-green" href="https://www.vehiclenetwork.net/finance" target="_blank" rel="noopener noreferrer">Apply for Financing</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="dealers">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Featured dealers</h2>
+            <p class="section-sub">Torque Hub works best when every dealer gets more than a listing. The system is built to amplify inventory, drive calls, and capture leads.</p>
+          </div>
+        </div>
+
+        <div class="dealer-grid" id="dealer-grid"></div>
+      </div>
+    </section>
+
+    <section class="section" id="sell">
+      <div class="container">
+        <div class="cta-band">
+          <div>
+            <h2>Are you a dealer?</h2>
+            <p>Torque Hub is designed to feed buyers from content into calls and leads. If you want more traffic on your commercial inventory without building the whole machine yourself, this is where the conversation starts.</p>
+          </div>
+          <a class="btn btn-primary" href="mailto:hello@torque.hub?subject=Dealer%20Partnership%20Inquiry">Partner With Torque DMA</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-card">
+      <div>
+        <h3>Torque Hub</h3>
+        <p>Torque Hub is the public inventory and lead layer powered by Torque DMA. The social content grabs attention. The site turns that attention into calls and leads.</p>
+      </div>
+      <div>
+        <h3>Explore</h3>
+        <ul>
+          <li><a href="#inventory">Browse Inventory</a></li>
+          <li><a href="#dealers">Featured Dealers</a></li>
+          <li><a href="#financing">Financing</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Powered by</h3>
+        <ul>
+          <li>Torque DMA</li>
+          <li>Money-Making Trucks & Equipment</li>
+          <li><a href="https://www.vehiclenetwork.net/finance" target="_blank" rel="noopener noreferrer">Finance Link</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <div class="mobile-sticky" aria-label="Mobile quick actions">
+    <a class="btn btn-primary" href="#inventory">Browse</a>
+    <a class="btn btn-green" href="#financing">Finance</a>
+  </div>
+
+<style>
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .chip { cursor: pointer; transition: all 0.2s; }
+  .chip.active, .chip:hover { background: rgba(37,99,235,0.7); border-color: rgba(37,99,235,0.5); color: #fff; }
+</style>
+<script>
+const DEALERS = [
+  { key: "Davenport Motors", name: "Davenport Motors", feedUrl: "https://davenportmotors.net/.netlify/functions/inventory", phone: "252-809-2172", tel: "2528092172", location: "Plymouth, NC", desc: "Pre-DEF work trucks, dump trucks, and construction equipment from Eastern NC." },
+  { key: "Fat Daddy's Truck Sales", name: "Fat Daddy's Truck Sales", feedUrl: "https://fatdaddystrucksales.netlify.app/.netlify/functions/inventory", phone: "919-759-5434", tel: "9197595434", location: "Goldsboro, NC", desc: "Old school pre-DEF work trucks. Box trucks, flatbeds, dump trucks ready to earn." },
+  { key: "Wilson Trailer Sales & Service", name: "Wilson Trailer Sales & Service", feedUrl: "https://wilson-trailer-sales.netlify.app/.netlify/functions/inventory", phone: "252-429-8805", tel: "2524298805", location: "Wilson, NC", desc: "Full-service trailer dealership. Hoppers, dumps, dry vans, reefers, livestock trailers." },
+  { key: "HGR's Truck and Trailer", name: "HGR's Truck & Trailer Sales", feedUrl: "https://torquehub.netlify.app/.netlify/functions/hgr-inventory", phone: "800-230-8920", tel: "8002308920", location: "Hope Mills, NC", desc: "Race trailers, enclosed trailers, cargo trailers, and specialty hauling setups." }
+];
+
+let ALL_INV = [], heroItems = [], heroIdx = 0, heroTimer = null, currentCat = '', currentPage = 1;
+const PAGE_SIZE = 12;
+
+async function loadAll() {
+  const results = await Promise.allSettled(
+    DEALERS.filter(d => d.feedUrl).map(d =>
+      fetch(d.feedUrl).then(r => r.json()).then(items =>
+        items.filter(u => !u.sold).map(u => ({ ...u, _dealer: d }))
+      ).catch(() => [])
+    )
+  );
+  ALL_INV = results.flatMap(r => r.status === 'fulfilled' ? r.value : []);
+  renderFeatured();
+  renderDealers();
+  applyFilters();
+}
+
+// FEATURED
+function renderFeatured() {
+  heroItems = ALL_INV.filter(u => u.featured && u.photos && u.photos.length);
+  if (!heroItems.length) heroItems = ALL_INV.filter(u => u.photos && u.photos.length).slice(0, 8);
+  showFeatured(0);
+  if (heroItems.length > 1) heroTimer = setInterval(() => showFeatured(heroIdx + 1), 5500);
+}
+
+function showFeatured(i) {
+  if (!heroItems.length) return;
+  heroIdx = (i + heroItems.length) % heroItems.length;
+  const u = heroItems[heroIdx];
+  const d = u._dealer || {};
+  const photo = u.photos && u.photos[0] ? (u.photos[0].url || u.photos[0].dataUrl || '') : '';
+  const title = [u.year, u.make, u.model].filter(Boolean).join(' ');
+
+  const imgEl = document.getElementById('featured-image');
+  if (imgEl) imgEl.innerHTML = photo
+    ? `<img src="${photo}" alt="${title}" style="width:100%;height:100%;object-fit:cover">`
+    : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#64748b">No Photo</div>`;
+
+  const titleEl = document.getElementById('featured-title');
+  if (titleEl) titleEl.textContent = title;
+
+  const metaEl = document.getElementById('featured-meta');
+  if (metaEl) metaEl.innerHTML = [u.condition, u.fuel, u.mileage ? u.mileage + ' mi' : null, d.location].filter(Boolean).map(s => `<span>${s}</span>`).join('');
+
+  const priceEl = document.getElementById('featured-price');
+  if (priceEl) priceEl.textContent = u.price || 'Call for Price';
+
+  const specsEl = document.getElementById('featured-specs');
+  if (specsEl) specsEl.innerHTML = [
+    u.engine ? ['Engine', u.engine] : null,
+    u.drivetrain ? ['Drive', u.drivetrain] : null,
+    ['Dealer', d.name || u.dealer],
+    ['Location', d.location || '']
+  ].filter(Boolean).map(([l, v]) => `<div class="spec"><span class="spec-label">${l}</span><span class="spec-value">${v}</span></div>`).join('');
+
+  const viewEl = document.getElementById('featured-view');
+  if (viewEl) viewEl.href = `vehicle.html?stock=${encodeURIComponent(u.stock)}&dealer=${encodeURIComponent(d.key || u.dealer || '')}`;
+
+  const callEl = document.getElementById('featured-call');
+  if (callEl) { callEl.href = `tel:${d.tel || ''}`; callEl.textContent = `Call ${d.phone || 'Dealer'}`; }
+}
+
+function nextFeatured() {
+  clearInterval(heroTimer);
+  showFeatured(heroIdx + 1);
+  heroTimer = setInterval(() => showFeatured(heroIdx + 1), 5500);
+}
+
+// DEALER GRID
+function renderDealers() {
+  const grid = document.getElementById('dealer-grid');
+  if (!grid) return;
+  grid.innerHTML = DEALERS.map(d => {
+    const count = ALL_INV.filter(u => u.dealer === d.key).length;
+    return `<article class="card dealer-card">
+      <h3>${d.name}</h3>
+      <p>${d.desc}</p>
+      <div class="dealer-meta">
+        <div>📍 ${d.location}</div>
+        <div>📞 ${d.phone}</div>
+        <div style="color:#60a5fa;font-weight:700">${count} units available</div>
+      </div>
+      <a class="btn btn-primary" href="#inventory" onclick="document.getElementById('dealer-filter').value='${d.key.replace(/'/g,"\'")}';applyFilters()">View Inventory</a>
+    </article>`;
+  }).join('');
+}
+
+// FILTERS
+function setCat(cat, el) {
+  currentCat = cat;
+  currentPage = 1;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  applyFilters();
+}
+
+function applyFilters() {
+  const q = (document.getElementById('inv-search') || {value:''}).value.toLowerCase();
+  const dealer = (document.getElementById('dealer-filter') || {value:''}).value;
+  const cond = (document.getElementById('condition-filter') || {value:''}).value;
+  const sort = (document.getElementById('sort-filter') || {value:'featured'}).value;
+
+  let filtered = ALL_INV.filter(u => {
+    const matchQ = !q || `${u.year} ${u.make} ${u.model} ${u.stock} ${u.dealer}`.toLowerCase().includes(q);
+    const matchD = !dealer || u.dealer === dealer;
+    const matchC = !cond || u.condition === cond;
+    const matchCat = !currentCat || (u.category || '').includes(currentCat);
+    return matchQ && matchD && matchC && matchCat;
+  });
+
+  if (sort === 'featured') filtered.sort((a, b) => (b.featured || 0) - (a.featured || 0));
+  else if (sort === 'price-asc') filtered.sort((a, b) => pp(a.price) - pp(b.price));
+  else if (sort === 'price-desc') filtered.sort((a, b) => pp(b.price) - pp(a.price));
+  else if (sort === 'year-desc') filtered.sort((a, b) => (parseInt(b.year) || 0) - (parseInt(a.year) || 0));
+
+  renderInventory(filtered);
+}
+
+function pp(p) { return parseFloat(String(p || '').replace(/[^0-9.]/g, '')) || 0; }
+
+function renderInventory(items) {
+  const grid = document.getElementById('inventory-grid');
+  const pg = document.getElementById('pagination');
+  if (!grid) return;
+
+  const total = items.length;
+  const pages = Math.ceil(total / PAGE_SIZE);
+  currentPage = Math.min(currentPage, pages || 1);
+  const slice = items.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  if (!slice.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#64748b">No listings found. Try adjusting your filters.</div>`;
+    if (pg) pg.innerHTML = '';
+    return;
+  }
+
+  grid.innerHTML = slice.map(u => {
+    const d = u._dealer || DEALERS.find(x => x.key === u.dealer) || {};
+    const photo = u.photos && u.photos.length ? (u.photos[0].url || u.photos[0].dataUrl || '') : '';
+    const title = [u.year, u.make, u.model].filter(Boolean).join(' ') || 'Unit Available';
+    const vdpUrl = `vehicle.html?stock=${encodeURIComponent(u.stock)}&dealer=${encodeURIComponent(d.key || u.dealer || '')}`;
+    const specs = [
+      u.fuel ? ['Fuel', u.fuel] : null,
+      u.mileage ? ['Miles', u.mileage] : null,
+      u.engine ? ['Engine', u.engine] : null,
+      ['Dealer', d.name || u.dealer || '']
+    ].filter(Boolean);
+
+    return `<article class="card">
+      <div class="inventory-media" style="position:relative">
+        ${u.featured ? '<span class="badge">Featured</span>' : ''}
+        ${photo
+          ? `<img src="${photo}" alt="${title}" loading="lazy" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0">`
+          : `<div style="color:#64748b;font-size:14px">No Photo</div>`}
+      </div>
+      <div class="inventory-body">
+        <h3 class="inventory-title">${title}</h3>
+        <p class="inventory-copy">${d.location || u.dealer || ''}</p>
+        <div class="specs">
+          ${specs.map(([l, v]) => `<div class="spec"><span class="spec-label">${l}</span><span class="spec-value">${v}</span></div>`).join('')}
+        </div>
+        <div class="inventory-bottom">
+          <div>
+            <div class="price">${u.price || 'Call'}</div>
+            <div class="location">${d.phone || ''}</div>
+          </div>
+          <div class="featured-actions">
+            <a class="btn btn-primary" href="${vdpUrl}">View</a>
+            <a class="btn btn-secondary" href="tel:${d.tel || ''}">Call</a>
+          </div>
+        </div>
+      </div>
+    </article>`;
+  }).join('');
+
+  if (pg) {
+    if (pages <= 1) { pg.innerHTML = ''; return; }
+    pg.innerHTML = Array.from({length: pages}, (_, i) =>
+      `<button onclick="currentPage=${i+1};applyFilters()" style="padding:9px 16px;border-radius:9px;border:1px solid rgba(255,255,255,0.08);background:${i+1===currentPage?'rgba(37,99,235,0.8)':'rgba(255,255,255,0.05)'};color:#f8fafc;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">${i+1}</button>`
+    ).join('');
+  }
+}
+
+loadAll();
+</script>
+
+</body>
+</html>
