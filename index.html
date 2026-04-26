@@ -9,10 +9,13 @@
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Torque Hub — Money-Making Trucks & Equipment" />
   <meta property="og:description" content="Find work trucks, trailers, and equipment that are ready to make money." />
-  <meta property="og:url" content="https://torque.hub/" />
-  <meta property="og:site_name" content="Torque Hub" />
+  <meta property="og:url" content="https://hub.torquedma.com/" />
+  <meta property="og:image" content="https://hub.torquedma.com/torque-logo.png" />
   <meta name="twitter:card" content="summary_large_image" />
-  <link rel="canonical" href="https://torque.hub/" />
+  <meta name="twitter:image" content="https://hub.torquedma.com/torque-logo.png" />
+  <meta property="og:site_name" content="Torque Hub" />
+  
+  <link rel="canonical" href="https://hub.torquedma.com/" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800;900&display=swap" rel="stylesheet" />
@@ -22,7 +25,7 @@
       "@type": "Organization",
       "name": "Torque Hub",
       "alternateName": "Torque Hub powered by Torque DMA",
-      "url": "https://torque.hub/",
+      "url": "https://hub.torquedma.com/",
       "description": "Torque Hub connects buyers and sellers of money-making commercial trucks, trailers, and equipment.",
       "brand": {
         "@type": "Brand",
@@ -227,6 +230,23 @@
       color: #60a5fa;
     }
 
+    .next-unit-link { margin-top: 10px; background: transparent; border: none; color: #94a3b8; font-family: "Barlow", sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; padding: 0; display: block; }
+    .next-unit-link:hover { color: #fff; }
+    .hero-hook { margin-top: 10px; font-weight: 700; color: #4ade80; font-size: 15px; }
+    .featured-urgency { font-size: 14px; color: #4ade80; font-weight: 700; margin: 8px 0 12px; }
+    
+    .cta-band-inner { display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; }
+    .cta-band-inner h2 { margin: 0 0 6px; font-size: 24px; font-weight: 900; }
+    .cta-band-inner p { color: #94a3b8; font-size: 15px; max-width: 480px; }
+    .finance-why { margin: 40px 0; }
+    .finance-why h2 { font-size: 24px; font-weight: 900; margin-bottom: 14px; text-transform: uppercase; }
+    .why-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .why-grid div { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); padding: 14px 16px; border-radius: 12px; font-weight: 600; font-size: 14px; color: #cbd5e1; }
+    .final-cta { text-align: center; margin: 60px 0 20px; }
+    .final-cta h2 { font-size: 36px; font-weight: 900; text-transform: uppercase; margin-bottom: 10px; }
+    .final-cta p { color: #94a3b8; margin-bottom: 20px; font-size: 16px; }
+    .btn-large { min-height: 56px !important; font-size: 17px !important; padding: 0 32px !important; }
+    @media (max-width: 700px) { .why-grid { grid-template-columns: 1fr; } }
     .hero-copy p {
       margin: 0;
       color: var(--muted);
@@ -275,20 +295,6 @@
       box-shadow: 0 12px 24px rgba(22,163,74,0.24);
     }
 
-    .hero-metrics {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-      margin-top: 20px;
-    }
-
-    .metric {
-      padding: 16px;
-      border-radius: 18px;
-      background: rgba(255,255,255,0.035);
-      border: 1px solid rgba(255,255,255,0.06);
-    }
-
     .metric strong {
       display: block;
       font-family: "Barlow Condensed", sans-serif;
@@ -328,13 +334,20 @@
     }
 
     .featured-image {
-      aspect-ratio: 16 / 10;
+      aspect-ratio: 4 / 5;
       background: linear-gradient(135deg, #1e293b, #0f172a);
       display: grid;
       place-items: center;
       color: var(--soft);
       font-size: 15px;
+      border-radius: 14px 14px 0 0;
+      overflow: hidden;
     }
+    .featured-image img { width: 100%; height: 100%; object-fit: contain; background: #050b14; animation: featuredFade 0.28s ease; }
+    @keyframes featuredFade { from { opacity: 0; transform: scale(0.985); } to { opacity: 1; transform: scale(1); } }
+    .featured-card { max-width: 520px; margin: 0 auto; }
+    @media (max-width: 1100px) { .featured-card { max-width: 460px; } }
+    @media (max-width: 760px) { .featured-card { max-width: 100%; } }
 
     .featured-body {
       padding: 18px;
@@ -732,7 +745,7 @@
   <header class="topbar">
     <div class="container nav">
       <a class="brand" href="#top" aria-label="Torque Hub home">
-        <img class="brand-logo" src="/logo.png" alt="Torque DMA logo" />
+        <img class="brand-logo" src="/torque-logo.png" alt="Torque Hub logo" />
         <div class="brand-copy">
           <div class="brand-title">Torque Hub</div>
           <div class="brand-sub">Powered by Torque DMA</div>
@@ -744,7 +757,7 @@
         <a href="#dealers">Dealers</a>
         <a href="#financing">Financing</a>
         <a href="#sell">Sell With Us</a>
-        <a class="cta" href="#inventory">Browse Inventory</a>
+        <a class="cta" href="/finance.html?src=nav">Get Financing</a>
       </nav>
     </div>
   </header>
@@ -753,17 +766,20 @@
     <section class="hero">
       <div class="container hero-grid">
         <div class="hero-copy">
-          <div class="eyebrow">Work trucks. trailers. equipment.</div>
-          <h1>Torque Hub <span>Money-Making Trucks &amp; Equipment.</span></h1>
-          <p>
-            Torque Hub is the public-facing inventory and lead platform powered by Torque DMA.
-          </p>
+          <div class="eyebrow">Torque DMA — Money-Making Trucks &amp; Equipment</div>
+          <h1>Commercial Trucks, Trailers &amp; Equipment <span>Built to Make Money</span></h1>
+          <p class="hero-sub">Find the right truck. Get approved fast. Get to work.</p>
+          <p class="hero-hook">Most buyers start with financing — lock it in before the right unit is gone.</p>
+          <p style="margin-top:8px;font-size:13px;color:#64748b;"><a href="/commercial-truck-financing.html" style="color:#94a3b8">Commercial truck financing</a>, <a href="/equipment-financing.html" style="color:#94a3b8">equipment financing</a>, and <a href="/trailer-financing.html" style="color:#94a3b8">trailer financing</a> — all in one place.</p>
 
           <div class="hero-actions">
-            <a class="btn btn-primary" href="#inventory">Browse Inventory</a>
-            <a class="btn btn-green" href="#financing">Get Financing</a>
-            <a class="btn btn-secondary" href="#sell">Sell Your Equipment</a>
+            <a class="btn btn-green" href="/finance.html?src=homepage">&#128176; Get Financing</a>
+            <a class="btn btn-primary" href="#inventory">&#128666; Browse Inventory</a>
+            <a class="btn btn-secondary" href="#sell">&#128230; Sell Equipment</a>
           </div>
+          <p style="margin-top:8px;color:#4ade80;font-weight:600;font-size:14px;">Get approved fast. Then go get your money-maker.</p>
+          <p style="margin-top:6px;font-size:12px;color:#64748b;">Secure application &bull; Business-use financing &bull; Fast approvals</p>
+          <p style="margin-top:6px;font-size:13px;color:#64748b;">No impact to your credit to apply.</p>
         </div>
 
         <aside class="hero-panel" aria-label="Featured inventory panel">
@@ -778,14 +794,13 @@
               <div class="featured-meta" id="featured-meta"></div>
               <div class="featured-price" id="featured-price"></div>
               <div class="specs" style="margin-bottom: 16px;" id="featured-specs"></div>
+              <p class="featured-urgency">Financing available — secure this unit before it's gone.</p>
               <div class="featured-actions">
                 <a class="btn btn-primary" href="#" id="featured-view">View Listing</a>
+                <a class="btn btn-green" href="/finance.html?src=featured" id="featured-finance">&#128176; Get Approved</a>
                 <a class="btn btn-secondary" href="#" id="featured-call">Call Dealer Now</a>
               </div>
-              <div class="featured-actions" style="margin-top: 10px;">
-                <a class="btn btn-green" href="https://www.vehiclenetwork.net/finance" target="_blank">Get Financing</a>
-                <button class="btn btn-secondary" onclick="nextFeatured()">Next Unit ›</button>
-              </div>
+              <button class="next-unit-link" onclick="nextFeatured()">Next featured unit ›</button>
             </div>
           </article>
 
@@ -807,25 +822,32 @@
       </div>
     </section>
 
-    <section class="section" id="inventory">
+    <!-- MID-PAGE INTERRUPT -->
+  <div class="container">
+    <section class="cta-band">
+      <div class="cta-band-inner">
+        <div>
+          <h2>Get Approved Before You Shop</h2>
+          <p>Know your budget. Move faster. Lock in the right truck without hesitation.</p>
+        </div>
+        <a class="btn btn-green btn-large" href="/finance.html?src=interrupt" style="flex-shrink:0">Start Financing</a>
+      </div>
+    </section>
+  </div>
+
+  <section class="section" id="inventory">
       <div class="container">
         <div class="section-header">
           <div>
             <h2 class="section-title">Available trucks & equipment</h2>
             <p class="section-sub">Built to convert calls and leads first. Every listing should feel like a money page, not a dead-end inventory dump.</p>
           </div>
-          <a class="btn btn-secondary" href="#">View All Inventory</a>
+          <a class="btn btn-secondary" href="#inventory" onclick="currentCat='';document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));document.querySelector('.chip').classList.add('active');applyFilters();">View All Inventory</a>
         </div>
 
-        <div class="chip-row" aria-label="Inventory categories">
-          <div class="chip">Box Trucks</div>
-          <div class="chip">Dump Trucks</div>
-          <div class="chip">Flatbeds</div>
-          <div class="chip">Skid Steers</div>
-          <div class="chip">Trailers</div>
-          <div class="chip">Telehandlers</div>
-        </div>
 
+
+        <p style="margin-bottom:12px;color:#4ade80;font-weight:600;font-size:14px;">Inventory moves fast — lock in financing before the right unit is gone.</p>
         <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
           <input type="text" id="inv-search" placeholder="Search year, make, model, stock..." oninput="applyFilters()" style="flex:1;min-width:200px;padding:10px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#f8fafc;font-size:14px;font-family:inherit;outline:none">
           <select id="dealer-filter" onchange="applyFilters()" style="padding:10px 14px;background:rgba(17,24,39,0.9);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#f8fafc;font-size:14px;font-family:inherit;outline:none;cursor:pointer">
@@ -847,6 +869,7 @@
             <option value="year-desc">Year: Newest</option>
           </select>
         </div>
+        <div style="font-size:12px;color:#94a3b8;margin-bottom:8px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">Browse by Category</div>
         <div class="chip-row">
           <div class="chip active" onclick="setCat('',this)" style="cursor:pointer">All</div>
           <div class="chip" onclick="setCat('Trucks',this)" style="cursor:pointer">Trucks</div>
@@ -872,7 +895,7 @@
             <h2>Need financing?</h2>
             <p>Don’t let a buyer cool off. Push the next step while the unit is still fresh in their mind. Financing should be part of the funnel, not an afterthought.</p>
           </div>
-          <a class="btn btn-green" href="https://www.vehiclenetwork.net/finance" target="_blank" rel="noopener noreferrer">Apply for Financing</a>
+          <a class="btn btn-green" href="/finance.html?src=homepage">Apply for Financing</a>
         </div>
       </div>
     </section>
@@ -897,11 +920,33 @@
             <h2>Are you a dealer?</h2>
             <p>Torque Hub is designed to feed buyers from content into calls and leads. If you want more traffic on your commercial inventory without building the whole machine yourself, this is where the conversation starts.</p>
           </div>
-          <a class="btn btn-primary" href="mailto:hello@torque.hub?subject=Dealer%20Partnership%20Inquiry">Partner With Torque DMA</a>
+          <a class="btn btn-primary" href="mailto:hello@torquedma.com?subject=Dealer%20Partnership%20Inquiry">Partner With Torque DMA</a>
         </div>
       </div>
     </section>
-  </main>
+  <!-- WHY FINANCE HERE -->
+  <div class="container">
+    <section class="finance-why">
+      <h2>Why Buyers Use Torque Hub Financing</h2>
+      <div class="why-grid">
+        <div>&#9889; Move faster when the right unit shows up</div>
+        <div>🤝 Get matched with the right lender</div>
+        <div>&#128666; Work trucks, trailers, and equipment</div>
+        <div>&#10003; All credit situations considered</div>
+      </div>
+    </section>
+  </div>
+
+  <!-- FINAL CLOSER -->
+  <div class="container">
+    <section class="final-cta">
+      <h2>Ready to Get Rolling?</h2>
+      <p>Get approved now and move on the right truck with confidence.</p>
+      <a class="btn btn-green btn-large" href="/finance.html?src=bottom">&#128176; Get Approved Now</a>
+    </section>
+  </div>
+
+</main>
 
   <footer>
     <div class="container footer-card">
@@ -922,28 +967,29 @@
         <ul>
           <li>Torque DMA</li>
           <li>Money-Making Trucks & Equipment</li>
-          <li><a href="https://www.vehiclenetwork.net/finance" target="_blank" rel="noopener noreferrer">Finance Link</a></li>
+          <li><a href="/finance.html?src=homepage">Finance Link</a></li>
         </ul>
       </div>
     </div>
   </footer>
 
   <div class="mobile-sticky" aria-label="Mobile quick actions">
-    <a class="btn btn-primary" href="#inventory">Browse</a>
-    <a class="btn btn-green" href="#financing">Finance</a>
+    <a class="btn btn-green" href="/finance.html?src=mobile">&#128176; Get Approved</a>
+    <a class="btn btn-primary" href="#inventory">Inventory</a>
   </div>
 
 <style>
   @keyframes spin { to { transform: rotate(360deg); } }
   .chip { cursor: pointer; transition: all 0.2s; }
-  .chip.active, .chip:hover { background: rgba(37,99,235,0.7); border-color: rgba(37,99,235,0.5); color: #fff; }
+  .chip:hover { background: rgba(37,99,235,0.7); border-color: rgba(37,99,235,0.5); color: #fff; }
+    .chip.active { background: linear-gradient(135deg, #2563eb, #1d4ed8); border-color: rgba(37,99,235,0.6); color: #fff; box-shadow: 0 8px 20px rgba(37,99,235,0.35); }
 </style>
 <script>
 const DEALERS = [
   { key: "Davenport Motors", name: "Davenport Motors", feedUrl: "https://davenportmotors.net/.netlify/functions/inventory", phone: "252-809-2172", tel: "2528092172", location: "Plymouth, NC", desc: "Pre-DEF work trucks, dump trucks, and construction equipment from Eastern NC." },
   { key: "Fat Daddy's Truck Sales", name: "Fat Daddy's Truck Sales", feedUrl: "https://fatdaddystrucksales.netlify.app/.netlify/functions/inventory", phone: "919-759-5434", tel: "9197595434", location: "Goldsboro, NC", desc: "Old school pre-DEF work trucks. Box trucks, flatbeds, dump trucks ready to earn." },
   { key: "Wilson Trailer Sales & Service", name: "Wilson Trailer Sales & Service", feedUrl: "https://wilson-trailer-sales.netlify.app/.netlify/functions/inventory", phone: "252-429-8805", tel: "2524298805", location: "Wilson, NC", desc: "Full-service trailer dealership. Hoppers, dumps, dry vans, reefers, livestock trailers." },
-  { key: "HGR's Truck and Trailer", name: "HGR's Truck & Trailer Sales", feedUrl: "https://torque-hub-site.netlify.app/.netlify/functions/hgr-inventory", phone: "800-230-8920", tel: "8002308920", location: "Hope Mills, NC", desc: "Race trailers, enclosed trailers, cargo trailers, and specialty hauling setups." }
+  { key: "HGR's Truck and Trailer", name: "HGR's Truck & Trailer Sales", feedUrl: "https://torquehub.netlify.app/.netlify/functions/hgr-inventory", phone: "800-230-8920", tel: "8002308920", location: "Hope Mills, NC", desc: "Race trailers, enclosed trailers, cargo trailers, and specialty hauling setups." }
 ];
 
 let ALL_INV = [], heroItems = [], heroIdx = 0, heroTimer = null, currentCat = '', currentPage = 1;
@@ -964,10 +1010,47 @@ async function loadAll() {
 }
 
 // FEATURED
+function featuredScore(u) {
+  let score = 0;
+  if (u.featured) score += 100;
+  if (u.photos && u.photos.length) score += 25;
+  if (u.price) score += 15;
+  if (u.description) score += 10;
+  if (u.engine) score += 8;
+  if (u.mileage) score += 8;
+  if (u.stock) score += 5;
+  const priceNum = parseFloat(String(u.price || "").replace(/[^0-9.]/g, "")) || 0;
+  if (priceNum >= 5000 && priceNum <= 40000) score += 20;
+  if (priceNum > 40000 && priceNum <= 90000) score += 12;
+  const text = `${u.year || ""} ${u.make || ""} ${u.model || ""} ${u.category || ""} ${u.description || ""}`.toLowerCase();
+  if (text.includes("dump")) score += 15;
+  if (text.includes("box")) score += 12;
+  if (text.includes("flatbed")) score += 12;
+  if (text.includes("rollback")) score += 12;
+  if (text.includes("race")) score += 10;
+  if (text.includes("trailer")) score += 10;
+  if (text.includes("skid")) score += 10;
+  if (text.includes("loader")) score += 10;
+  return score;
+}
+
+function trackFeaturedAction(action, unit) {
+  console.log("featured_action", {
+    action,
+    stock: unit && unit.stock,
+    title: unit ? [unit.year, unit.make, unit.model].filter(Boolean).join(" ") : "",
+    price: unit && unit.price,
+    timestamp: new Date().toISOString()
+  });
+}
+
 function renderFeatured() {
-  heroItems = ALL_INV.filter(u => u.featured && u.photos && u.photos.length);
-  if (!heroItems.length) heroItems = ALL_INV.filter(u => u.photos && u.photos.length).slice(0, 8);
+  heroItems = ALL_INV
+    .filter(u => !u.sold && u.photos && u.photos.length)
+    .sort((a, b) => featuredScore(b) - featuredScore(a))
+    .slice(0, 8);
   showFeatured(0);
+  if (heroTimer) clearInterval(heroTimer);
   if (heroItems.length > 1) heroTimer = setInterval(() => showFeatured(heroIdx + 1), 5500);
 }
 
@@ -977,11 +1060,14 @@ function showFeatured(i) {
   const u = heroItems[heroIdx];
   const d = u._dealer || {};
   const photo = u.photos && u.photos[0] ? (u.photos[0].url || u.photos[0].dataUrl || '') : '';
+  const next = heroItems[(heroIdx + 1) % heroItems.length];
+  const nextPhoto = next && next.photos && next.photos[0] ? (next.photos[0].url || next.photos[0].dataUrl || '') : '';
+  preloadImage(nextPhoto);
   const title = [u.year, u.make, u.model].filter(Boolean).join(' ');
 
   const imgEl = document.getElementById('featured-image');
   if (imgEl) imgEl.innerHTML = photo
-    ? `<img src="${photo}" alt="${title}" style="width:100%;height:100%;object-fit:cover">`
+    ? `<img src="${photo}" alt="${title}" loading="eager">`
     : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#64748b">No Photo</div>`;
 
   const titleEl = document.getElementById('featured-title');
@@ -1002,10 +1088,23 @@ function showFeatured(i) {
   ].filter(Boolean).map(([l, v]) => `<div class="spec"><span class="spec-label">${l}</span><span class="spec-value">${v}</span></div>`).join('');
 
   const viewEl = document.getElementById('featured-view');
-  if (viewEl) viewEl.href = `vehicle.html?stock=${encodeURIComponent(u.stock)}&dealer=${encodeURIComponent(d.key || u.dealer || '')}`;
+  if (viewEl) {
+    viewEl.href = `vehicle.html?stock=${encodeURIComponent(u.stock)}&dealer=${encodeURIComponent(d.key || u.dealer || '')}`;
+    viewEl.onclick = () => trackFeaturedAction("view_listing", u);
+  }
 
   const callEl = document.getElementById('featured-call');
-  if (callEl) { callEl.href = `tel:${d.tel || ''}`; callEl.textContent = `Call ${d.phone || 'Dealer'}`; }
+  if (callEl) {
+    callEl.href = `tel:${d.tel || ''}`;
+    callEl.textContent = `Call ${d.phone || 'Dealer'}`;
+    callEl.onclick = () => trackFeaturedAction("call_dealer", u);
+  }
+
+  const finEl = document.getElementById('featured-finance');
+  if (finEl) {
+    finEl.href = financeUrl(u, 'featured');
+    finEl.onclick = () => trackFeaturedAction("finance_click", u);
+  }
 }
 
 function nextFeatured() {
@@ -1014,12 +1113,18 @@ function nextFeatured() {
   heroTimer = setInterval(() => showFeatured(heroIdx + 1), 5500);
 }
 
+const featuredCard = document.getElementById("featured-card");
+if (featuredCard) {
+  featuredCard.addEventListener("mouseenter", () => { if (heroTimer) clearInterval(heroTimer); });
+  featuredCard.addEventListener("mouseleave", () => { if (heroItems.length > 1) heroTimer = setInterval(() => showFeatured(heroIdx + 1), 5500); });
+}
+
 // DEALER GRID
 function renderDealers() {
   const grid = document.getElementById('dealer-grid');
   if (!grid) return;
   grid.innerHTML = DEALERS.map(d => {
-    const count = ALL_INV.filter(u => u.dealer === d.key).length;
+    const count = ALL_INV.filter(u => (u._dealer && u._dealer.key === d.key) || u.dealer === d.key).length;
     return `<article class="card dealer-card">
       <h3>${d.name}</h3>
       <p>${d.desc}</p>
@@ -1050,7 +1155,7 @@ function applyFilters() {
 
   let filtered = ALL_INV.filter(u => {
     const matchQ = !q || `${u.year} ${u.make} ${u.model} ${u.stock} ${u.dealer}`.toLowerCase().includes(q);
-    const matchD = !dealer || u.dealer === dealer;
+    const matchD = !dealer || u.dealer === dealer || (u._dealer && u._dealer.key === dealer);
     const matchC = !cond || u.condition === cond;
     const matchCat = !currentCat || (u.category || '').includes(currentCat);
     return matchQ && matchD && matchC && matchCat;
@@ -1064,7 +1169,20 @@ function applyFilters() {
   renderInventory(filtered);
 }
 
+function preloadImage(src) {
+  if (!src) return;
+  const img = new Image();
+  img.src = src;
+}
+
 function pp(p) { return parseFloat(String(p || '').replace(/[^0-9.]/g, '')) || 0; }
+
+function financeUrl(u, src = "inventory") {
+  const title = [u.year, u.make, u.model].filter(Boolean).join(" ");
+  const unitSlug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  const priceNum = parseFloat(String(u.price || "").replace(/[^0-9.]/g, "")) || "";
+  return `/finance.html?stock=${encodeURIComponent(u.stock || "")}&unit=${encodeURIComponent(unitSlug)}&price=${priceNum}&src=${encodeURIComponent(src)}`;
+}
 
 function renderInventory(items) {
   const grid = document.getElementById('inventory-grid');
@@ -1114,6 +1232,7 @@ function renderInventory(items) {
           </div>
           <div class="featured-actions">
             <a class="btn btn-primary" href="${vdpUrl}">View</a>
+            <a class="btn btn-green" href="${financeUrl(u, 'inventory')}" style="padding:9px 10px;font-size:11px">Finance</a>
             <a class="btn btn-secondary" href="tel:${d.tel || ''}">Call</a>
           </div>
         </div>
