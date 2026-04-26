@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title id="page-title">Unit Details — Torque Hub</title>
+  <meta name="description" id="page-desc" content="Browse work trucks, trailers, and equipment from real NC dealers at Torque Hub powered by Torque DMA." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" id="canonical-url" href="https://hub.torquedma.com/vehicle.html" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" id="og-title" content="Unit Details — Torque Hub" />
+  <meta property="og:description" id="og-desc" content="Browse work trucks, trailers, and equipment from real NC dealers." />
+  <meta property="og:image" id="og-image" content="https://hub.torquedma.com/torque-logo.png" />
+  <meta property="og:url" id="og-url" content="https://hub.torquedma.com/vehicle.html" />
+  <meta property="og:site_name" content="Torque Hub" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" id="twitter-image" content="https://hub.torquedma.com/torque-logo.png" />
+
+  <!-- Schema.org - populated by JS -->
+  <script type="application/ld+json" id="schema-data">{}</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800;900&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg: #0a0f1a;
+      --panel: #111827;
+      --panel-2: #1a2235;
+      --line: rgba(255,255,255,0.07);
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --soft: #64748b;
+      --orange: #f97316;
+      --orange-2: #ea6f0f;
+      --green: #16a34a;
+      --shadow: 0 20px 50px rgba(0,0,0,0.35);
+      --radius: 16px;
+      --max: 1180px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: "Barlow", sans-serif; color: var(--text); background: var(--bg); min-height: 100vh; overflow-x: hidden; }
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+    .container { width: min(var(--max), calc(100% - 32px)); margin: 0 auto; }
+
+    /* NAV */
+    .topbar { position: sticky; top: 0; z-index: 100; backdrop-filter: blur(16px); background: rgba(10,15,26,0.92); border-bottom: 1px solid var(--line); }
+    .nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 64px; }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-logo { width: 44px; height: 44px; object-fit: contain; }
+    .brand-title { font-family: "Barlow Condensed", sans-serif; font-size: 22px; font-weight: 900; text-transform: uppercase; }
+    .brand-sub { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.14em; margin-top: 2px; }
+    .nav-right { display: flex; align-items: center; gap: 8px; }
+    .nav-back { color: var(--muted); font-size: 14px; font-weight: 600; padding: 8px 14px; border-radius: 9px; border: 1px solid var(--line); transition: 0.2s; }
+    .nav-back:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+    .nav-cta { background: #16a34a; color: #fff; font-size: 13px; font-weight: 700; padding: 9px 16px; border-radius: 9px; text-transform: uppercase; letter-spacing: 0.06em; box-shadow: 0 4px 14px rgba(22,163,74,0.3); }
+
+    /* BREADCRUMB */
+    .breadcrumb { padding: 14px 0; font-size: 13px; color: var(--soft); }
+    .breadcrumb a { color: var(--muted); }
+    .breadcrumb a:hover { color: var(--orange); }
+    .breadcrumb span { margin: 0 6px; }
+
+    /* SOLD BANNER */
+    .sold-banner { background: rgba(220,38,38,0.12); border: 1px solid rgba(220,38,38,0.3); border-radius: 12px; padding: 14px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; }
+    .sold-banner-text { font-weight: 700; color: #fca5a5; }
+    .sold-banner-sub { font-size: 13px; color: var(--muted); }
+
+    /* MAIN LAYOUT */
+    .vdp-grid { display: grid; grid-template-columns: 1fr 340px; gap: 24px; align-items: start; padding: 0 0 48px; }
+
+    /* HEADLINE STRIP */
+    .vdp-headline { margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+    .vdp-headline-title { font-family: "Barlow Condensed", sans-serif; font-size: clamp(24px, 4vw, 36px); font-weight: 900; text-transform: uppercase; line-height: 1.05; margin-bottom: 6px; }
+    .vdp-headline-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 14px; color: var(--muted); font-weight: 600; }
+    .vdp-headline-price { font-family: "Barlow Condensed", sans-serif; font-size: 26px; font-weight: 900; color: var(--orange); }
+    .vdp-headline-sep { color: var(--soft); }
+
+    /* GALLERY */
+    .gallery { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+    .gallery-main { position: relative; aspect-ratio: 4/3; background: var(--panel-2); overflow: hidden; cursor: pointer; }
+    .gallery-main img { width: 100%; height: 100%; object-fit: contain; background: #050b14; transition: transform 0.3s; }
+    .gallery-main:hover img { transform: scale(1.02); }
+    .gallery-counter { position: absolute; bottom: 12px; right: 12px; background: rgba(0,0,0,0.7); color: #fff; font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 8px; }
+    .gallery-arrow { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.6); border: none; color: #fff; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; z-index: 2; transition: background 0.2s; }
+    .gallery-arrow:hover { background: rgba(0,0,0,0.9); }
+    .gallery-prev { left: 12px; }
+    .gallery-next { right: 12px; }
+    .gallery-thumbs { display: flex; gap: 6px; padding: 10px; overflow-x: auto; scrollbar-width: thin; }
+    .gallery-thumbs::-webkit-scrollbar { height: 4px; }
+    .gallery-thumbs::-webkit-scrollbar-track { background: transparent; }
+    .gallery-thumbs::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+    .thumb { width: 72px; height: 54px; border-radius: 8px; overflow: hidden; flex-shrink: 0; cursor: pointer; opacity: 0.55; transition: opacity 0.2s; border: 2px solid transparent; }
+    .thumb.active { opacity: 1; border-color: var(--orange); }
+    .thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* SPECS CARD */
+    .specs-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin-top: 20px; }
+    .card-head { padding: 14px 18px; border-bottom: 1px solid var(--line); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+    .specs-grid { display: grid; grid-template-columns: 1fr 1fr; }
+    .spec-row { padding: 12px 18px; border-bottom: 1px solid var(--line); }
+    .spec-row:last-child, .spec-row:nth-last-child(2):nth-child(odd) { border-bottom: none; }
+    .spec-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--soft); margin-bottom: 3px; }
+    .spec-val { font-size: 14px; font-weight: 700; color: var(--text); }
+
+    /* DESCRIPTION */
+    .desc-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin-top: 20px; }
+    .desc-body { padding: 18px; font-size: 14px; line-height: 1.8; color: var(--muted); white-space: pre-line; }
+
+    /* BEST FOR */
+    .bestfor-card { background: linear-gradient(135deg, rgba(249,115,22,0.08), rgba(249,115,22,0.03)); border: 1px solid rgba(249,115,22,0.2); border-radius: var(--radius); padding: 18px; margin-top: 20px; }
+    .bestfor-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--orange); margin-bottom: 12px; }
+    .bestfor-items { display: flex; flex-wrap: wrap; gap: 8px; }
+    .bestfor-item { background: rgba(249,115,22,0.1); border: 1px solid rgba(249,115,22,0.2); color: var(--text); font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 8px; }
+
+    /* SIMILAR */
+    .similar-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin-top: 20px; }
+    .similar-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 14px; }
+    .sim-item { background: var(--panel-2); border-radius: 10px; overflow: hidden; cursor: pointer; transition: transform 0.2s; }
+    .sim-item:hover { transform: translateY(-2px); }
+    .sim-img { aspect-ratio: 4/3; overflow: hidden; }
+    .sim-img img { width: 100%; height: 100%; object-fit: cover; }
+    .sim-body { padding: 8px 10px; }
+    .sim-title { font-size: 12px; font-weight: 700; line-height: 1.3; margin-bottom: 4px; }
+    .sim-price { font-size: 13px; font-weight: 700; color: var(--orange); }
+
+    /* SIDEBAR */
+    .sidebar { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 80px; }
+
+    /* PRICE CARD */
+    .price-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; }
+    .price-kicker { font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+    .price-title { font-family: "Barlow Condensed", sans-serif; font-size: 22px; font-weight: 900; text-transform: uppercase; line-height: 1.1; margin-bottom: 4px; }
+    .price-stock { font-size: 12px; color: var(--soft); margin-bottom: 16px; }
+    .price-amount { font-family: "Barlow Condensed", sans-serif; font-size: 42px; font-weight: 900; letter-spacing: -0.02em; color: var(--orange); margin-bottom: 4px; line-height: 1; }
+    .price-amount.call { font-size: 24px; color: var(--muted); }
+    .price-divider { border: none; border-top: 1px solid var(--line); margin: 16px 0; }
+    .cta-stack { display: flex; flex-direction: column; gap: 10px; }
+    .btn { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 50px; border-radius: 12px; font-weight: 800; font-size: 14px; text-transform: uppercase; letter-spacing: 0.07em; border: none; cursor: pointer; font-family: inherit; transition: all 0.18s; width: 100%; }
+    .btn-call { background: var(--orange); color: #fff; box-shadow: 0 8px 24px rgba(249,115,22,0.3); font-size: 16px; }
+    .btn-call:hover { background: var(--orange-2); transform: translateY(-1px); }
+    .btn-lead { background: rgba(255,255,255,0.07); color: var(--text); border: 1px solid var(--line); }
+    .btn-lead:hover { background: rgba(255,255,255,0.12); }
+    .btn-finance { background: var(--green); color: #fff; box-shadow: 0 10px 28px rgba(22,163,74,0.35); font-size: 15px; }
+    .btn-finance:hover { background: #15803d; transform: translateY(-1px); }
+
+    /* DEALER CARD */
+    .dealer-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+    .dealer-body { padding: 18px; }
+    .dealer-name { font-size: 16px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+    .dealer-addr { font-size: 13px; color: var(--muted); line-height: 1.7; margin-bottom: 14px; }
+    .dealer-btns { display: flex; gap: 8px; }
+    .dealer-btn { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 40px; border-radius: 9px; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; border: 1px solid var(--line); color: var(--text); background: rgba(255,255,255,0.04); transition: 0.2s; }
+    .dealer-btn:hover { background: rgba(255,255,255,0.1); }
+
+    /* LEAD FORM */
+    .lead-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+    .lead-body { padding: 18px; }
+    .lead-title { font-size: 14px; font-weight: 700; margin-bottom: 14px; color: var(--text); }
+    .form-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+    .form-field label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--soft); }
+    .form-field input, .form-field textarea { padding: 10px 12px; background: rgba(255,255,255,0.04); border: 1px solid var(--line); border-radius: 9px; color: var(--text); font-size: 14px; font-family: inherit; outline: none; transition: border-color 0.2s; }
+    .form-field input:focus, .form-field textarea:focus { border-color: var(--orange); }
+    .form-field textarea { resize: vertical; min-height: 80px; }
+    .form-success { display: none; text-align: center; padding: 20px; color: #4ade80; font-weight: 700; font-size: 14px; }
+
+    /* STATES */
+    .loading-state { text-align: center; padding: 80px 20px; color: var(--muted); }
+    .loading-spinner { width: 40px; height: 40px; border: 3px solid var(--line); border-top-color: var(--orange); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .error-state { text-align: center; padding: 80px 20px; }
+    .error-state h2 { font-size: 22px; margin-bottom: 10px; }
+    .error-state p { color: var(--muted); margin-bottom: 20px; }
+    .back-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: 0 24px; border-radius: 12px; background: var(--orange); color: #fff; font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: 0.07em; }
+
+    /* MOBILE BAR */
+    .mobile-bar { display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; background: rgba(10,15,26,0.97); backdrop-filter: blur(12px); border-top: 1px solid var(--line); padding: 10px 16px; gap: 10px; }
+    .mobile-bar .btn { flex: 1; min-height: 46px; font-size: 13px; }
+
+    /* FINANCE NOTE */
+    .finance-note { font-size: 13px; color: var(--muted); margin-bottom: 4px; font-style: italic; }
+
+    /* FINANCE BLOCK */
+    .finance-block { background: rgba(22,163,74,0.06); border: 1px solid rgba(22,163,74,0.2); border-radius: var(--radius); padding: 18px; margin-top: 20px; }
+    .finance-block h3 { font-size: 15px; font-weight: 700; color: #4ade80; margin-bottom: 10px; }
+    .finance-block ul { padding-left: 18px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 5px; }
+    .finance-block ul li { font-size: 14px; color: var(--muted); }
+    .finance-block .btn-finance { min-height: 42px; font-size: 13px; }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+      .vdp-grid { grid-template-columns: 1fr; }
+      .sidebar { position: static; }
+      .similar-grid { grid-template-columns: repeat(2, 1fr); }
+      .mobile-bar { display: flex; }
+      body { padding-bottom: 76px; }
+    }
+    @media (max-width: 500px) {
+      .specs-grid { grid-template-columns: 1fr; }
+      .similar-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="container">
+    <nav class="nav">
+      <a class="brand" href="/">
+        <img src="/torque-logo.png" alt="Torque Hub" class="brand-logo" onerror="this.style.display='none'">
+        <div>
+          <div class="brand-title">Torque Hub</div>
+          <div class="brand-sub">Powered by Torque DMA</div>
+        </div>
+      </a>
+      <div class="nav-right">
+        <a href="/" class="nav-back">← All Inventory</a>
+        <a href="/finance.html?src=vdp_nav" class="nav-cta btn" style="min-height:auto;padding:9px 16px;border-radius:9px;font-size:13px">Get Financing</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<div class="container">
+  <div class="breadcrumb">
+    <a href="/">Torque Hub</a>
+    <span>›</span>
+    <a href="/#inventory">Inventory</a>
+    <span>›</span>
+    <span id="bc-title">Loading...</span>
+  </div>
+</div>
+
+<div id="vdp-loading" class="container loading-state">
+  <div class="loading-spinner"></div>
+  <div>Loading listing details...</div>
+</div>
+
+<div id="vdp-error" class="container error-state" style="display:none">
+  <h2>Unit Not Found</h2>
+  <p>This listing may no longer be available or may have been sold.</p>
+  <a href="/" class="back-btn">Browse All Inventory</a>
+</div>
+
+<div id="vdp" style="display:none">
+  <div class="container">
+    <div id="sold-banner" class="sold-banner" style="display:none">
+      <div>
+        <div class="sold-banner-text">🚫 This unit has been sold</div>
+        <div class="sold-banner-sub">Check out similar available units below.</div>
+      </div>
+    </div>
+
+    <div class="vdp-grid">
+      <!-- LEFT COLUMN -->
+      <div>
+        <!-- Headline Strip -->
+        <div class="vdp-headline" id="vdp-headline" style="display:none">
+          <div class="vdp-headline-title" id="hl-title"></div>
+          <div class="vdp-headline-meta">
+            <span class="vdp-headline-price" id="hl-price"></span>
+            <span class="vdp-headline-sep" id="hl-sep" style="display:none">&bull;</span>
+            <span id="hl-dealer"></span>
+            <span class="vdp-headline-sep" id="hl-loc-sep" style="display:none">&bull;</span>
+            <span id="hl-location"></span>
+          </div>
+        </div>
+
+        <!-- Gallery -->
+        <div class="gallery">
+          <div class="gallery-main" id="gallery-main">
+            <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--soft)">No photos available</div>
+            <button class="gallery-arrow gallery-prev" id="gallery-prev" onclick="galleryNav(-1)" style="display:none">‹</button>
+            <button class="gallery-arrow gallery-next" id="gallery-next" onclick="galleryNav(1)" style="display:none">›</button>
+            <div class="gallery-counter" id="gallery-counter" style="display:none">1 / 1</div>
+          </div>
+          <div class="gallery-thumbs" id="gallery-thumbs"></div>
+        </div>
+
+        <!-- Specs -->
+        <div class="specs-card">
+          <div class="card-head">Unit Details</div>
+          <div class="specs-grid" id="specs-grid"></div>
+        </div>
+
+        <!-- Best For -->
+        <div class="bestfor-card" id="bestfor-card" style="display:none">
+          <div class="bestfor-title">Perfect For</div>
+          <div class="bestfor-items" id="bestfor-items"></div>
+        </div>
+
+        <!-- Finance Block -->
+        <div class="finance-block" id="finance-block">
+          <h3>💵 Financing Available</h3>
+          <ul>
+            <li>Fast approvals</li>
+            <li>Work trucks &amp; equipment</li>
+            <li>All credit situations considered</li>
+          </ul>
+          <a class="btn btn-finance" id="finance-block-btn" href="/finance.html">Apply Now →</a>
+        </div>
+
+        <!-- Description -->
+        <div class="desc-card" id="desc-card" style="display:none">
+          <div class="card-head">Description</div>
+          <div class="desc-body" id="desc-body"></div>
+        </div>
+
+        <!-- Similar Units -->
+        <div class="similar-card" id="similar-card" style="display:none">
+          <div class="card-head">Similar Units Available</div>
+          <div class="similar-grid" id="similar-grid"></div>
+        </div>
+      </div>
+
+      <!-- RIGHT SIDEBAR -->
+      <div class="sidebar">
+        <!-- Price + CTA -->
+        <div class="price-card">
+          <div class="price-kicker">Available Now</div>
+          <div class="price-title" id="s-title">Loading...</div>
+          <div class="price-stock" id="s-stock"></div>
+          <div class="price-amount" id="s-price"></div>
+          <div id="price-urgency" style="display:none;font-size:13px;color:#4ade80;font-weight:600;margin-top:6px;">Get approved before this unit sells.</div>
+          <hr class="price-divider">
+          <div class="finance-note" id="finance-note">Financing available for this unit — get approved before it's gone.</div>
+          <div style="font-size:12px;color:var(--soft);text-align:center;margin-bottom:8px;font-weight:600;">Secure application &bull; Fast approvals &bull; Business-use financing</div>
+          <div class="cta-stack">
+            <a class="btn btn-finance" id="cta-finance" href="/finance.html">💰 Get Pre-Approved Now</a>
+            <a class="btn btn-call" id="cta-call" href="#">📞 Call Dealer Now</a>
+            <button class="btn btn-lead" onclick="scrollToForm()">✉ Send a Message</button>
+          </div>
+        </div>
+
+        <!-- Dealer -->
+        <div class="dealer-card">
+          <div class="dealer-body">
+            <div class="dealer-name" id="d-name"></div>
+            <div class="dealer-addr" id="d-addr"></div>
+            <div class="dealer-btns">
+              <a class="dealer-btn" id="d-call" href="#">Call</a>
+              <a class="dealer-btn" id="d-directions" href="#" target="_blank" rel="noopener">Get Directions</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lead Form -->
+        <div class="lead-card" id="lead-form-card">
+          <div class="lead-body">
+            <div class="lead-title">Questions About This Unit?</div>
+            <div id="form-inner">
+              <div class="form-field">
+                <label>Name</label>
+                <input type="text" id="f-name" placeholder="Your full name">
+              </div>
+              <div class="form-field">
+                <label>Phone</label>
+                <input type="tel" id="f-phone" placeholder="Best number to reach you">
+              </div>
+              <div class="form-field">
+                <label>Email</label>
+                <input type="email" id="f-email" placeholder="Your email address">
+              </div>
+              <div class="form-field">
+                <label>Message</label>
+                <textarea id="f-msg"></textarea>
+              </div>
+              <!-- Hidden tracking fields -->
+              <input type="hidden" id="f-stock" name="stock">
+              <input type="hidden" id="f-dealer" name="dealer">
+              <input type="hidden" id="f-listing-title" name="listing_title">
+              <input type="hidden" id="f-page-url" name="page_url">
+              <input type="hidden" id="f-referrer" name="referrer">
+              <button class="btn btn-call" onclick="submitLead()" style="margin-top:4px">Send Message</button>
+            </div>
+            <div class="form-success" id="form-success">
+              ✓ Message sent! A dealer representative will be in touch shortly.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Mobile Sticky Bar -->
+<div class="mobile-bar" id="mobile-bar" style="display:none">
+  <a class="btn btn-finance" id="mobile-finance" href="/finance.html">💰 Get Approved</a>
+  <a class="btn btn-call" id="mobile-call" href="#">📞 Call Now</a>
+</div>
+
+<script>
+// ─── DEALER CONFIG ──────────────────────────────────────────────────────────
+const DEALERS = {
+  "Davenport Motors": {
+    feedUrl: "https://davenportmotors.net/.netlify/functions/inventory",
+    phone: "252-809-2172", tel: "2528092172",
+    address: "3711 Mackeys Rd\nPlymouth, NC 27962",
+    mapsUrl: "https://maps.google.com/?q=3711+Mackeys+Rd+Plymouth+NC+27962"
+  },
+  "Fat Daddy's Truck Sales": {
+    feedUrl: "https://fatdaddystrucksales.netlify.app/.netlify/functions/inventory",
+    phone: "919-759-5434", tel: "9197595434",
+    address: "4337 Hwy 13 N\nGoldsboro, NC 27534",
+    mapsUrl: "https://maps.google.com/?q=4337+Hwy+13+N+Goldsboro+NC+27534"
+  },
+  "Wilson Trailer Sales & Service": {
+    feedUrl: "https://wilson-trailer-sales.netlify.app/.netlify/functions/inventory",
+    phone: "252-429-8805", tel: "2524298805",
+    address: "1605 Thorne Ave S\nWilson, NC 27893",
+    mapsUrl: "https://maps.google.com/?q=1605+Thorne+Ave+S+Wilson+NC+27893"
+  },
+  "HGR's Truck and Trailer": {
+    feedUrl: "https://hub.torquedma.com/.netlify/functions/hgr-inventory",
+    phone: "800-230-8920", tel: "8002308920",
+    address: "4519 Marracco Dr\nHope Mills, NC 28348",
+    mapsUrl: "https://maps.google.com/?q=4519+Marracco+Dr+Hope+Mills+NC+28348"
+  },
+  "Auto Connection 210 LLC": {
+    feedUrl: null,
+    phone: "910-490-2596", tel: "9104902596",
+    address: "Angier, NC",
+    mapsUrl: "https://maps.google.com/?q=Angier+NC"
+  },
+  "Dick Smith Equipment": {
+    feedUrl: null,
+    phone: "919-734-1191", tel: "9197341191",
+    address: "Goldsboro, NC",
+    mapsUrl: "https://maps.google.com/?q=Goldsboro+NC"
+  },
+  "Impex Heavy Metal": {
+    feedUrl: null,
+    phone: "757-663-4444", tel: "7576634444",
+    address: "Norfolk, VA",
+    mapsUrl: "https://maps.google.com/?q=Norfolk+VA"
+  },
+  "Mid-Atlantic Power & Equipment": {
+    feedUrl: null,
+    phone: "", tel: "",
+    address: "North Carolina",
+    mapsUrl: "https://maps.google.com/?q=North+Carolina"
+  },
+  "Smith's Enterprise": {
+    feedUrl: null,
+    phone: "910-567-2680", tel: "9105672680",
+    address: "Salemburg, NC",
+    mapsUrl: "https://maps.google.com/?q=Salemburg+NC"
+  },
+  "Suttontown Repair Service": {
+    feedUrl: null,
+    phone: "", tel: "",
+    address: "North Carolina",
+    mapsUrl: "https://maps.google.com/?q=North+Carolina"
+  },
+  "Johnson Farm Service": {
+    feedUrl: null,
+    phone: "", tel: "",
+    address: "North Carolina",
+    mapsUrl: "https://maps.google.com/?q=North+Carolina"
+  },
+  "Ironworks Trading Corp": {
+    feedUrl: null,
+    phone: "757-663-4444", tel: "7576634444",
+    address: "Norfolk, VA",
+    mapsUrl: "https://maps.google.com/?q=Norfolk+VA"
+  }
+};
+
+// BEST FOR LOGIC
+function getBestFor(u) {
+  const cat = (u.category || '').toLowerCase();
+  const model = (u.model || '').toLowerCase();
+  const make = (u.make || '').toLowerCase();
+  const desc = (u.description || '').toLowerCase();
+  const items = [];
+
+  if (cat.includes('truck') || make.includes('ford') || make.includes('chevy') || make.includes('gmc') || make.includes('freightliner') || make.includes('international') || make.includes('kenworth') || make.includes('peterbilt') || make.includes('mack')) {
+    if (desc.includes('dump') || model.includes('dump')) { items.push('excavation crews', 'contractors', 'material hauling', 'landscaping'); }
+    else if (desc.includes('box') || model.includes('box') || model.includes('fuso')) { items.push('delivery routes', 'landscaping crews', 'small business logistics', 'equipment hauling'); }
+    else if (desc.includes('flat') || model.includes('flat')) { items.push('contractors', 'farm use', 'material hauling', 'equipment transport'); }
+    else if (desc.includes('semi') || desc.includes('tractor') || u.year && parseInt(u.year) < 2012) { items.push('long haul', 'regional freight', 'owner-operators', 'fleet expansion'); }
+    else { items.push('contractors', 'daily work routes', 'small businesses', 'farm use'); }
+  } else if (cat.includes('trailer')) {
+    if (desc.includes('livestock') || desc.includes('cattle') || desc.includes('hog')) { items.push('cattle ranchers', 'hog farmers', 'livestock transport', 'farm operations'); }
+    else if (desc.includes('dump') || desc.includes('hopper')) { items.push('grain hauling', 'bulk material transport', 'coal hauling', 'aggregate delivery'); }
+    else if (desc.includes('race') || desc.includes('enclosed') && desc.includes('car')) { items.push('race teams', 'car hauling', 'show transport', 'weekend events'); }
+    else if (desc.includes('dry van') || desc.includes('reefer') || desc.includes('refriger')) { items.push('freight carriers', 'food distribution', 'cold chain logistics', 'owner-operators'); }
+    else { items.push('hauling equipment', 'freight transport', 'agricultural use', 'contractors'); }
+  } else if (cat.includes('construction') || cat.includes('equipment')) {
+    items.push('construction crews', 'site work', 'excavation', 'property development');
+  } else if (cat.includes('farm') || cat.includes('agri')) {
+    items.push('farm operations', 'property maintenance', 'rural land work', 'small acreage');
+  } else {
+    items.push('work operations', 'contractors', 'small businesses', 'daily use');
+  }
+
+  return items.slice(0, 5);
+}
+
+// ─── GALLERY ────────────────────────────────────────────────────────────────
+let photos = [], photoIdx = 0;
+
+function initGallery(rawPhotos, videoUrl) {
+  photos = (rawPhotos || []).filter(p => p.url || p.dataUrl);
+  const mainEl = document.getElementById('gallery-main');
+  const thumbsEl = document.getElementById('gallery-thumbs');
+  const prevBtn = document.getElementById('gallery-prev');
+  const nextBtn = document.getElementById('gallery-next');
+  const counter = document.getElementById('gallery-counter');
+
+  if (!photos.length) return;
+
+  // Add video slide if present
+  if (videoUrl) photos = [...photos, { url: '__video__', videoUrl }];
+
+  if (photos.length > 1) {
+    prevBtn.style.display = 'flex';
+    nextBtn.style.display = 'flex';
+    counter.style.display = 'block';
+  }
+
+  thumbsEl.innerHTML = photos.map((p, i) =>
+    p.url === '__video__'
+      ? `<div class="thumb${i===0?' active':''}" onclick="showPhoto(${i})" style="background:#111;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px">▶</div>`
+      : `<div class="thumb${i===0?' active':''}" onclick="showPhoto(${i})"><img src="${p.url||p.dataUrl}" loading="lazy" alt="Photo ${i+1}"></div>`
+  ).join('');
+
+  showPhoto(0);
+}
+
+function showPhoto(i) {
+  photoIdx = (i + photos.length) % photos.length;
+  const p = photos[photoIdx];
+  const mainEl = document.getElementById('gallery-main');
+  const counter = document.getElementById('gallery-counter');
+
+  if (p.url === '__video__') {
+    window.open(p.videoUrl, '_blank');
+    return;
+  }
+
+  const url = p.url || p.dataUrl;
+  const existImg = mainEl.querySelector('img');
+  if (existImg) { existImg.src = url; }
+  else {
+    mainEl.innerHTML = `<img src="${url}" alt="Photo ${photoIdx+1}" loading="eager">
+      <button class="gallery-arrow gallery-prev" onclick="galleryNav(-1)">‹</button>
+      <button class="gallery-arrow gallery-next" onclick="galleryNav(1)">›</button>
+      <div class="gallery-counter" id="gallery-counter">${photoIdx+1} / ${photos.length}</div>`;
+  }
+  if (counter) counter.textContent = `${photoIdx+1} / ${photos.length}`;
+  document.querySelectorAll('.thumb').forEach((t, j) => t.classList.toggle('active', j === photoIdx));
+}
+
+function galleryNav(dir) { showPhoto(photoIdx + dir); }
+
+// ─── RENDER VDP ─────────────────────────────────────────────────────────────
+function render(unit, dealerKey) {
+  const d = DEALERS[dealerKey] || DEALERS[unit.dealer] || {};
+  const title = [unit.year, unit.make, unit.model].filter(Boolean).join(' ') || 'Unit Available';
+  const price = unit.price || 'Call for Price';
+  const isSold = unit.sold === true;
+
+  // Page meta
+  const pageUrl = `https://hub.torquedma.com/vehicle.html?stock=${encodeURIComponent(unit.stock)}&dealer=${encodeURIComponent(dealerKey)}`;
+  document.title = `${title}${price !== 'Call for Price' ? ' — ' + price : ''} | Torque Hub`;
+  document.getElementById('page-title').textContent = document.title;
+  document.getElementById('page-desc').content = `${title} for sale${d.address ? ' in ' + d.address.split('\n')[1] : ' in NC'}. ${price}. Call ${d.phone || 'dealer'} or apply for financing. Torque Hub powered by Torque DMA.`;
+  document.getElementById('canonical-url').href = pageUrl;
+  document.getElementById('og-title').content = document.title;
+  document.getElementById('og-desc').content = document.getElementById('page-desc').content;
+  document.getElementById('og-url').content = pageUrl;
+
+  const firstPhoto = unit.photos && unit.photos.length ? (unit.photos[0].url || unit.photos[0].dataUrl || '') : '';
+  if (firstPhoto) {
+    document.getElementById('og-image').content = firstPhoto;
+    document.getElementById('twitter-image').content = firstPhoto;
+  }
+
+  // Schema.org
+  const isVehicle = !unit.category || unit.category.toLowerCase().includes('truck');
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": isVehicle ? "Vehicle" : "Product",
+    "name": title,
+    "vehicleIdentificationNumber": unit.vin || undefined,
+    "modelDate": unit.year || undefined,
+    "brand": { "@type": "Brand", "name": unit.make || undefined },
+    "model": unit.model || undefined,
+    "fuelType": unit.fuel || undefined,
+    "mileageFromOdometer": unit.mileage ? { "@type": "QuantitativeValue", "value": unit.mileage, "unitCode": "SMI" } : undefined,
+    "vehicleCondition": isSold ? "https://schema.org/UsedCondition" : (unit.condition === "New" ? "https://schema.org/NewCondition" : "https://schema.org/UsedCondition"),
+    "image": firstPhoto || undefined,
+    "url": pageUrl,
+    "offers": {
+      "@type": "Offer",
+      "price": parseFloat(String(price).replace(/[^0-9.]/g, '')) || undefined,
+      "priceCurrency": "USD",
+      "availability": isSold ? "https://schema.org/SoldOut" : "https://schema.org/InStock",
+      "seller": {
+        "@type": "LocalBusiness",
+        "name": dealerKey || unit.dealer,
+        "telephone": d.phone || undefined,
+        "address": d.address ? { "@type": "PostalAddress", "streetAddress": d.address.split('\n')[0], "addressLocality": (d.address.split('\n')[1] || '').split(',')[0], "addressRegion": "NC", "addressCountry": "US" } : undefined
+      }
+    }
+  };
+  document.getElementById('schema-data').textContent = JSON.stringify(schema, (k, v) => v === undefined ? undefined : v);
+
+  // Breadcrumb
+  document.getElementById('bc-title').textContent = title;
+
+  // Headline strip
+  const hlEl = document.getElementById('vdp-headline');
+  if (hlEl) hlEl.style.display = 'block';
+  const hlTitle = document.getElementById('hl-title');
+  if (hlTitle) hlTitle.textContent = title;
+  const hlPrice = document.getElementById('hl-price');
+  if (hlPrice) hlPrice.textContent = price !== 'Call for Price' ? price : 'Call for Price';
+  const hlDealer = document.getElementById('hl-dealer');
+  if (hlDealer) hlDealer.textContent = dealerKey || unit.dealer || '';
+  const hlLocation = document.getElementById('hl-location');
+  const loc = d.address ? d.address.split('\n')[1] || '' : '';
+  if (hlLocation) hlLocation.textContent = loc;
+  document.getElementById('hl-sep').style.display = (price && dealerKey) ? 'inline' : 'none';
+  document.getElementById('hl-loc-sep').style.display = loc ? 'inline' : 'none';
+
+  // Sold banner
+  if (isSold) document.getElementById('sold-banner').style.display = 'flex';
+
+  // Gallery
+  initGallery(unit.photos, unit.video_url);
+
+  // Sidebar price
+  document.getElementById('s-title').textContent = title;
+  document.getElementById('s-stock').textContent = unit.stock ? `Stock # ${unit.stock}` : '';
+  const priceEl = document.getElementById('s-price');
+  priceEl.textContent = price;
+  if (price === 'Call for Price' || price === 'Call') priceEl.classList.add('call');
+  const urgencyEl = document.getElementById('price-urgency');
+  if (urgencyEl && !isSold) urgencyEl.style.display = 'block';
+
+  // CTAs
+  const callHref = `tel:${d.tel || ''}`;
+  document.getElementById('cta-call').href = callHref;
+  document.getElementById('cta-call').textContent = `📞 Call ${d.phone || 'Dealer'}`;
+  document.getElementById('mobile-call').href = callHref;
+  document.getElementById('mobile-call').textContent = `📞 Call ${d.phone || 'Now'}`;
+  document.getElementById('mobile-bar').style.display = 'flex';
+
+  // Finance URLs with context
+  const unitSlug = title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  const priceNum = parseFloat(String(price).replace(/[^0-9.]/g, '')) || '';
+  const financeUrl = `/finance.html?stock=${encodeURIComponent(unit.stock || '')}&unit=${encodeURIComponent(unitSlug)}&price=${priceNum}&src=listing`;
+  document.getElementById('cta-finance').href = financeUrl;
+  document.getElementById('mobile-finance').href = financeUrl;
+  const financeBlockBtn = document.getElementById('finance-block-btn');
+  if (financeBlockBtn) financeBlockBtn.href = financeUrl;
+
+  // Dealer card
+  document.getElementById('d-name').textContent = dealerKey || unit.dealer;
+  document.getElementById('d-addr').textContent = `${d.address || ''}\nCall: ${d.phone || ''}`;
+  document.getElementById('d-call').href = callHref;
+  document.getElementById('d-directions').href = d.mapsUrl || '#';
+
+  // Specs
+  const specs = [
+    unit.year ? ['Year', unit.year] : null,
+    unit.make ? ['Make', unit.make] : null,
+    unit.model ? ['Model', unit.model] : null,
+    unit.condition ? ['Condition', unit.condition] : null,
+    unit.fuel ? ['Fuel', unit.fuel] : null,
+    unit.mileage ? ['Mileage', unit.mileage] : null,
+    unit.engine ? ['Engine', unit.engine] : null,
+    unit.transmission ? ['Transmission', unit.transmission] : null,
+    unit.drivetrain ? ['Drivetrain', unit.drivetrain] : null,
+    unit.vin ? ['VIN', unit.vin] : null,
+    unit.stock ? ['Stock #', unit.stock] : null,
+    unit.subcategory ? ['Type', unit.subcategory] : null,
+  ].filter(Boolean);
+
+  document.getElementById('specs-grid').innerHTML = specs.map(([l, v]) =>
+    `<div class="spec-row"><div class="spec-label">${l}</div><div class="spec-val">${v}</div></div>`
+  ).join('');
+
+  // Best For
+  const bestFor = getBestFor(unit);
+  if (bestFor.length) {
+    document.getElementById('bestfor-card').style.display = 'block';
+    document.getElementById('bestfor-items').innerHTML = bestFor.map(b => `<span class="bestfor-item">✓ ${b}</span>`).join('');
+  }
+
+  // Description
+  if (unit.description) {
+    document.getElementById('desc-card').style.display = 'block';
+    document.getElementById('desc-body').innerHTML = unit.description.replace(/\n/g, '<br>');
+  }
+
+  // Lead form hidden fields
+  document.getElementById('f-msg').value = `I'm interested in the ${title}${unit.stock ? ' (Stock # ' + unit.stock + ')' : ''}. Please contact me.`;
+  document.getElementById('f-stock').value = unit.stock || '';
+  document.getElementById('f-dealer').value = dealerKey || unit.dealer || '';
+  document.getElementById('f-listing-title').value = title;
+  document.getElementById('f-page-url').value = pageUrl;
+  document.getElementById('f-referrer').value = document.referrer || '';
+
+  // Show VDP
+  document.getElementById('vdp-loading').style.display = 'none';
+  document.getElementById('vdp').style.display = 'block';
+}
+
+// ─── SIMILAR UNITS ──────────────────────────────────────────────────────────
+function renderSimilar(currentUnit, allUnits, dealerKey) {
+  const similar = allUnits.filter(u =>
+    !u.sold &&
+    u.stock !== currentUnit.stock &&
+    (u.category === currentUnit.category || u.dealer === currentUnit.dealer)
+  ).slice(0, 6);
+
+  if (!similar.length) return;
+  document.getElementById('similar-card').style.display = 'block';
+  document.getElementById('similar-grid').innerHTML = similar.map(u => {
+    const photo = u.photos && u.photos.length ? (u.photos[0].url || u.photos[0].dataUrl || '') : '';
+    const title = [u.year, u.make, u.model].filter(Boolean).join(' ');
+    const url = `vehicle.html?stock=${encodeURIComponent(u.stock)}&dealer=${encodeURIComponent(dealerKey || u.dealer || '')}`;
+    return `<a class="sim-item" href="${url}">
+      <div class="sim-img">${photo ? `<img src="${photo}" alt="${title}" loading="lazy">` : `<div style="width:100%;height:100%;background:var(--panel);display:flex;align-items:center;justify-content:center;color:var(--soft);font-size:12px">No Photo</div>`}</div>
+      <div class="sim-body">
+        <div class="sim-title">${title}</div>
+        <div class="sim-price">${u.price || 'Call'}</div>
+      </div>
+    </a>`;
+  }).join('');
+}
+
+// ─── LEAD FORM ──────────────────────────────────────────────────────────────
+function scrollToForm() {
+  document.getElementById('lead-form-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  setTimeout(() => document.getElementById('f-name').focus(), 600);
+}
+
+function submitLead() {
+  const name = document.getElementById('f-name').value.trim();
+  const phone = document.getElementById('f-phone').value.trim();
+  const email = document.getElementById('f-email').value.trim();
+  const msg = document.getElementById('f-msg').value.trim();
+  const stock = document.getElementById('f-stock').value;
+  const dealer = document.getElementById('f-dealer').value;
+  const listingTitle = document.getElementById('f-listing-title').value;
+  const pageUrl = document.getElementById('f-page-url').value;
+  const referrer = document.getElementById('f-referrer').value;
+
+  if (!name || (!phone && !email)) {
+    alert('Please enter your name and either a phone number or email address.');
+    return;
+  }
+
+  const subject = encodeURIComponent(`Torque Hub Lead — ${listingTitle}`);
+  const body = encodeURIComponent(
+    `Name: ${name}\nPhone: ${phone || 'N/A'}\nEmail: ${email || 'N/A'}\n\n${msg}\n\n---\nStock #: ${stock}\nDealer: ${dealer}\nListing: ${pageUrl}\nReferrer: ${referrer || 'Direct'}`
+  );
+
+  // Submit to Netlify function for reliable lead tracking
+  fetch('/.netlify/functions/submit-lead', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, phone, email, message: msg, stock, dealer, listingTitle, pageUrl, referrer: referrer || document.referrer || 'Direct' })
+  }).then(r => {
+    if (!r.ok) throw new Error('Submit failed');
+    document.getElementById('form-inner').style.display = 'none';
+    document.getElementById('form-success').style.display = 'block';
+  }).catch(() => {
+    // Fallback to mailto if function fails
+    window.location.href = `mailto:leads@torquedma.com?subject=${subject}&body=${body}`;
+    document.getElementById('form-inner').style.display = 'none';
+    document.getElementById('form-success').style.display = 'block';
+  });
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+async function init() {
+  const params = new URLSearchParams(window.location.search);
+  const stock = params.get('stock');
+  const dealerKey = params.get('dealer');
+
+  if (!stock) {
+    document.getElementById('vdp-loading').style.display = 'none';
+    document.getElementById('vdp-error').style.display = 'block';
+    return;
+  }
+
+  // Try to find in dealer feed
+  const dealerConfig = (dealerKey && DEALERS[dealerKey]) || Object.values(DEALERS).find(d => d.feedUrl);
+  const feedsToTry = dealerKey && DEALERS[dealerKey]
+    ? [{ key: dealerKey, config: DEALERS[dealerKey] }]
+    : Object.entries(DEALERS).map(([k, v]) => ({ key: k, config: v }));
+
+  let unit = null;
+  let foundDealerKey = dealerKey;
+  let allUnitsFromDealer = [];
+
+  for (const { key, config } of feedsToTry) {
+    try {
+      const items = await fetch(config.feedUrl).then(r => r.json());
+      const found = items.find(u => u.stock === stock);
+      if (found) {
+        unit = found;
+        foundDealerKey = key;
+        allUnitsFromDealer = items;
+        break;
+      }
+    } catch (e) { console.warn('Feed error:', key, e.message); }
+  }
+
+  if (!unit) {
+    document.getElementById('vdp-loading').style.display = 'none';
+    document.getElementById('vdp-error').style.display = 'block';
+    return;
+  }
+
+  render(unit, foundDealerKey);
+  renderSimilar(unit, allUnitsFromDealer, foundDealerKey);
+}
+
+init();
+</script>
+</body>
+</html>
