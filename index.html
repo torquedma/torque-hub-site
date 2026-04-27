@@ -753,6 +753,84 @@
       min-height: 78px;
       align-items: flex-end;
     }
+
+    /* Partner Program Dropdown */
+    .nav-dropdown {
+      position: relative;
+    }
+    .nav-dropdown > a {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .nav-dropdown > a::after {
+      content: "";
+      width: 0; height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 4px solid currentColor;
+      opacity: 0.6;
+      margin-top: 1px;
+    }
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      min-width: 220px;
+      background: #111827;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 8px;
+      z-index: 200;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+    .nav-dropdown:hover .dropdown-menu,
+    .nav-dropdown:focus-within .dropdown-menu {
+      display: block;
+    }
+    .dropdown-menu a {
+      display: block;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #cbd5e1;
+      transition: 0.15s;
+      border: none;
+      background: none;
+    }
+    .dropdown-menu a:hover {
+      background: rgba(255,255,255,0.06);
+      color: #f8fafc;
+    }
+    .dropdown-menu .dropdown-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #475569;
+      padding: 6px 14px 4px;
+    }
+    .dropdown-menu .dropdown-desc {
+      font-size: 12px;
+      color: #64748b;
+      font-weight: 400;
+      display: block;
+      margin-top: 1px;
+    }
+    /* Mobile dropdown */
+    @media (max-width: 768px) {
+      .dropdown-menu {
+        position: static;
+        box-shadow: none;
+        border: none;
+        background: rgba(255,255,255,0.03);
+        border-radius: 8px;
+        margin-top: 4px;
+        padding: 4px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -769,7 +847,20 @@
       <nav class="nav-links" aria-label="Primary navigation">
         <a href="#inventory">Inventory</a>
         <a href="#dealers">Dealers</a>
-        <a href="#sell">Sell With Us</a>
+        <div class="nav-dropdown">
+          <a href="#sell">Partner Program</a>
+          <div class="dropdown-menu">
+            <div class="dropdown-label">Join the Network</div>
+            <a href="mailto:dealers@torquedma.com?subject=Dealer%20Partnership%20Inquiry">
+              For Dealers
+              <span class="dropdown-desc">Get inventory exposure, calls, and leads</span>
+            </a>
+            <a href="mailto:lenders@torquedma.com?subject=Commercial%20Lender%20Partnership">
+              For Lenders
+              <span class="dropdown-desc">Receive inbound commercial financing applications</span>
+            </a>
+          </div>
+        </div>
         <a class="cta" href="/finance.html?src=nav">Get Financing</a>
       </nav>
     </div>
