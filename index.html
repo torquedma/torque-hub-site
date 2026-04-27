@@ -195,27 +195,18 @@
     }
 
     .eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      border: 1px solid rgba(251,191,36,0.28);
-      background: rgba(251,191,36,0.10);
-      color: #fde68a;
-      border-radius: 999px;
-      padding: 8px 12px;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em;
+      color: #cbd5e1;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 6px 14px; border-radius: 100px; margin-bottom: 16px;
     }
 
     .eyebrow::before {
-      content: "";
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: var(--gold);
-      box-shadow: 0 0 0 6px rgba(251,191,36,0.13);
+      content: ""; width: 6px; height: 6px; border-radius: 50%;
+      background: #64748b;
+      box-shadow: none;
     }
 
     h1 {
@@ -1048,7 +1039,12 @@
   @keyframes spin { to { transform: rotate(360deg); } }
   .chip { cursor: pointer; transition: all 0.2s; }
   .chip:hover { background: rgba(37,99,235,0.7); border-color: rgba(37,99,235,0.5); color: #fff; }
-    .chip.active { background: linear-gradient(135deg, #2563eb, #1d4ed8); border-color: rgba(37,99,235,0.6); color: #fff; box-shadow: 0 8px 20px rgba(37,99,235,0.35); }
+    .chip.active {
+      background: #334155;
+      border-color: rgba(255,255,255,0.16);
+      color: #fff;
+      box-shadow: none;
+    }
 </style>
 <script>
 const DEALERS = [
@@ -1239,7 +1235,7 @@ function renderDealers() {
       <div class="dealer-meta">
         <div>📍 ${d.location}</div>
         <div>📞 ${d.phone}</div>
-        <div style="color:#60a5fa;font-weight:700">${count} units available</div>
+        <div style="color:#cbd5e1;font-weight:700">${count} units available</div>
       </div>
       <a class="btn btn-primary" href="#inventory" onclick="document.getElementById('dealer-filter').value='${d.key.replace(/'/g,"\'")}';applyFilters()">View Inventory</a>
     </article>`;
