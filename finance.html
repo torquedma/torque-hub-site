@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Get Financing | Torque Hub</title>
+<meta name="description" content="Apply for work truck and equipment financing through Torque Hub. Fast approvals. All credit situations considered.">
+<meta property="og:title" content="Get Financing | Torque Hub">
+<meta property="og:description" content="Fast approvals on work trucks, trailers, and equipment. All credit situations considered.">
+<meta property="og:image" content="https://hub.torquedma.com/torque-logo.png">
+<link rel="canonical" href="https://hub.torquedma.com/finance.html">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;800;900&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: "Barlow", sans-serif; background: #0b111c; color: #fff; min-height: 100vh; }
+a { color: inherit; text-decoration: none; }
+.topbar { position: sticky; top: 0; z-index: 100; background: rgba(15,23,42,0.92); backdrop-filter: blur(14px); border-bottom: 1px solid rgba(255,255,255,0.07); padding: 0 20px; }
+.nav { max-width: 700px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; min-height: 60px; }
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand img { width: 40px; height: 40px; object-fit: contain; }
+.brand-name { font-family: "Barlow Condensed", sans-serif; font-size: 20px; font-weight: 900; text-transform: uppercase; }
+.brand-sub { font-size: 9px; color: #64748b; text-transform: uppercase; letter-spacing: 0.12em; margin-top: 1px; }
+.nav-back { font-size: 13px; font-weight: 600; color: #94a3b8; padding: 7px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.07); transition: 0.2s; }
+.nav-back:hover { color: #fff; background: rgba(255,255,255,0.05); }
+.container { max-width: 700px; margin: 0 auto; padding: 32px 20px 60px; }
+.header { text-align: center; margin-bottom: 24px; }
+.header img { width: 80px; margin-bottom: 12px; }
+.header h1 { font-family: "Barlow Condensed", sans-serif; font-size: 48px; font-weight: 900; text-transform: uppercase; line-height: 1; margin-bottom: 8px; }
+.header h1 span { color: #f8fafc; }
+.header p { color: #cbd5e1; font-size: 16px; }
+.context-box { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); padding: 16px 20px; border-radius: 14px; margin-bottom: 20px; display: none; }
+.context-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: #94a3b8; margin-bottom: 6px; }
+.context-unit { font-family: "Barlow Condensed", sans-serif; font-size: 22px; font-weight: 900; text-transform: uppercase; margin-bottom: 3px; }
+.context-price { font-size: 18px; font-weight: 700; color: #f97316; }
+.benefits { background: #111827; border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 16px 20px; margin-bottom: 24px; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.benefits li { font-size: 15px; color: #cbd5e1; font-weight: 600; }
+.form-card { background: #111827; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; overflow: hidden; margin-bottom: 16px; }
+.form-head { background: rgba(255,255,255,0.04); border-bottom: 1px solid rgba(255,255,255,0.08); padding: 16px 20px; }
+.form-head h2 { font-family: "Barlow Condensed", sans-serif; font-size: 22px; font-weight: 900; text-transform: uppercase; margin-bottom: 2px; }
+.form-head p { font-size: 13px; color: #94a3b8; }
+.form-body { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+input, select { width: 100%; padding: 14px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.05); color: #fff; font-family: "Barlow", sans-serif; font-size: 16px; outline: none; transition: border-color 0.2s; }
+input:focus, select:focus { border-color: #f97316; }
+input::placeholder { color: #64748b; }
+select option { background: #1e293b; }
+.btn-submit { width: 100%; padding: 16px; font-size: 20px; font-weight: 900; font-family: "Barlow Condensed", sans-serif; text-transform: uppercase; letter-spacing: 0.06em; border: none; border-radius: 12px; background: linear-gradient(135deg, #365943, #294434); color: #fff; cursor: pointer; box-shadow: none; transition: all 0.18s; margin-top: 4px; }
+.btn-submit:hover { background: linear-gradient(135deg, #426b51, #365943); transform: translateY(-1px); }
+.btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+.trust { text-align: center; font-size: 12px; color: #64748b; margin-top: 8px; line-height: 1.6; }
+.form-success { display: none; text-align: center; padding: 40px 20px; }
+.form-success h3 { font-family: "Barlow Condensed", sans-serif; font-size: 32px; font-weight: 900; text-transform: uppercase; color: #86efac; margin-bottom: 10px; }
+.form-success p { color: #94a3b8; margin-bottom: 20px; font-size: 15px; }
+.btn-back { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: 0 24px; border-radius: 12px; background: linear-gradient(135deg, #365943, #294434); color: #fff; font-weight: 800; font-size: 14px; text-transform: uppercase; letter-spacing: 0.07em; }
+footer { border-top: 1px solid rgba(255,255,255,0.07); padding: 24px 20px; text-align: center; }
+footer p { font-size: 13px; color: #64748b; }
+footer a { color: #f97316; }
+@media (max-width: 480px) { .header h1 { font-size: 38px; } }
+</style>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FinancialService",
+    "name": "Torque Hub Financing",
+    "description": "Commercial truck financing, equipment financing, and trailer financing for work truck buyers in North Carolina. All credit situations considered. Fast approvals.",
+    "url": "https://hub.torquedma.com/finance.html",
+    "areaServed": [
+      { "@type": "Place", "name": "North Carolina" },
+      { "@type": "Place", "name": "United States" }
+    ],
+    "provider": {
+      "@type": "Organization",
+      "name": "Torque DMA",
+      "url": "https://torquedma.com"
+    },
+    "serviceType": ["Commercial Truck Financing", "Equipment Financing", "Trailer Financing", "Work Truck Financing"]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Does applying affect my credit score?",
+        "acceptedAnswer": { "@type": "Answer", "text": "No. Submitting your application through Torque Hub is intended for initial matching. If a lender needs a hard credit pull, you should be notified before that step." }
+      },
+      {
+        "@type": "Question",
+        "name": "What credit score do I need?",
+        "acceptedAnswer": { "@type": "Answer", "text": "We work with all credit situations including buyers with scores below 600. Credit score is one factor, but income, down payment, and the unit itself also matter." }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I finance a used work truck?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. Financing is available for both new and used trucks, trailers, and equipment depending on the lender and unit condition." }
+      },
+      {
+        "@type": "Question",
+        "name": "How long does approval take?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Most approvals happen within minutes to a few hours. In some cases it may take one business day depending on the lender and documentation needed." }
+      },
+      {
+        "@type": "Question",
+        "name": "Do I need a down payment?",
+        "acceptedAnswer": { "@type": "Answer", "text": "It depends on the lender and your credit profile. Some programs are available with little to no money down. A down payment can improve your rate and terms but is not always required." }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I finance equipment for my business?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. We finance commercial equipment including skid steers, excavators, loaders, forklifts, and agricultural equipment for both established businesses and startups." }
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+
+<header class="topbar">
+  <nav class="nav">
+    <div class="brand">
+      <img src="/torque-logo.png" alt="Torque Hub" onerror="this.style.display='none'">
+      <div>
+        <div class="brand-name">Torque Hub</div>
+        <div class="brand-sub">Powered by Torque DMA</div>
+      </div>
+    </div>
+    <a href="/" class="nav-back">&#8592; All Inventory</a>
+  </nav>
+</header>
+
+<div class="container">
+  <div class="header">
+    <img src="/torque-logo.png" alt="Torque Hub" onerror="this.style.display='none'">
+    <h1 style="color:#f8fafc">Get Approved. Get To Work.</h1>
+    <div style="width:48px;height:3px;background:#f97316;margin:12px auto 14px;border-radius:2px"></div>
+    <p style="font-size:16px;color:#94a3b8;max-width:500px;margin:0 auto;line-height:1.6">Work truck, trailer, and equipment financing built for buyers who are ready to move.</p>
+    <p style="margin-top:10px;font-weight:600;color:#94a3b8;font-size:15px;">Most approvals happen within minutes.</p>
+    <p style="margin-top:8px;font-size:13px;color:#64748b;">Serving buyers across North Carolina and nationwide.</p>
+    <p style="font-size:14px;color:#64748b;margin-top:6px;">Get your financing lined up before the right truck is gone.</p>
+    <p style="font-size:14px;color:#94a3b8;margin-top:14px;font-weight:600;max-width:520px;margin-left:auto;margin-right:auto;line-height:1.6">Built for contractors, owner-operators, farmers, and working crews who need equipment that earns.</p>
+  </div>
+
+  <div id="contextBox" class="context-box">
+    <div class="context-label">Applying For</div>
+    <div class="context-unit" id="contextUnit"></div>
+    <div class="context-price" id="contextPrice"></div>
+  </div>
+
+  <ul class="benefits">
+    <li>&#10004; Fast approvals</li>
+    <li>&#10004; Work truck &amp; equipment financing</li>
+    <li>&#10004; All credit situations considered</li>
+    <li>&#10004; Commercial lender network</li>
+  </ul>
+
+  <div class="form-card">
+    <div class="form-head">
+      <h2>Start Your Application</h2>
+      <p>Takes less than 2 minutes. No obligation.</p>
+    </div>
+    <div class="form-body">
+      <div id="form-inner">
+        <input type="text" id="f-name" placeholder="Full Name" required>
+        <input type="tel" id="f-phone" placeholder="Phone Number" required>
+        <input type="email" id="f-email" placeholder="Email Address">
+        <select id="f-credit" required>
+          <option value="">Credit Score Range</option>
+          <option>700+</option>
+          <option>650-699</option>
+          <option>600-649</option>
+          <option>Below 600</option>
+          <option>Not sure</option>
+        </select>
+        <input type="text" id="f-business" placeholder="Business Name (optional)">
+        <input type="number" id="f-revenue" placeholder="Monthly Revenue (optional)" min="0">
+        <input type="text" id="f-unit-display" placeholder="Unit you are interested in">
+        <input type="hidden" id="f-stock">
+        <input type="hidden" id="f-unit">
+        <input type="hidden" id="f-price">
+        <input type="hidden" id="f-source">
+        <input type="hidden" id="f-referrer">
+        <input type="hidden" id="f-page-url">
+        <input type="hidden" id="f-lender">
+        <input type="hidden" id="f-rep">
+        <input type="hidden" id="f-dealer">
+<select id="f-down-payment">
+          <option value="">Estimated Down Payment</option>
+          <option value="0">$0 — No money down</option>
+          <option value="1000-2500">$1,000 - $2,500</option>
+          <option value="2500-5000">$2,500 - $5,000</option>
+          <option value="5000-10000">$5,000 - $10,000</option>
+          <option value="10000+">$10,000+</option>
+        </select>
+        <select id="f-timeframe">
+          <option value="">Timeframe to Buy</option>
+          <option value="asap">Ready now / ASAP</option>
+          <option value="30days">Within 30 days</option>
+          <option value="60days">Within 60 days</option>
+          <option value="exploring">Just exploring options</option>
+        </select>
+        <p style="font-size:12px;color:#64748b;text-align:center;margin-top:4px">Phone required so a financing rep can move fast on your behalf.</p>
+        <button class="btn-submit" id="submit-btn" onclick="submitFinance()">Get Approved Now</button>
+        <p class="trust">Your information is secure and will only be used to match you with financing options.</p>
+        <p class="trust">Initial application is intended for matching. If a lender needs a hard credit pull, you should be notified first.</p>
+        <p class="trust" style="color:#475569;margin-top:8px">Submitting this form does not guarantee approval. Terms vary by lender, credit profile, collateral, and documentation.</p>
+        <p id="source-display" style="display:none"></p>
+        <div style="margin-top:18px;text-align:center;color:#64748b;font-size:12px;line-height:1.8">
+          &#10004; Commercial vehicle lenders<br>
+          &#10004; Equipment &amp; trailer financing specialists<br>
+          &#10004; Used truck financing available<br>
+          &#10004; Fast approvals for business use
+        </div>
+      </div>
+      <div class="form-success" id="form-success">
+        <h3>&#10003; Application Received!</h3>
+        <p>We will be in touch shortly to discuss your financing options. Keep an eye on your phone.</p>
+        <a href="/" class="btn-back">Browse More Inventory</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+  <!-- SEO CONTENT LAYER -->
+  <div style="max-width:700px;margin:0 auto;padding:0 20px 60px">
+
+    <!-- FINANCING TYPES -->
+    <section style="margin-bottom:48px">
+      <h2 style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;text-transform:uppercase;margin-bottom:20px">What We Finance</h2>
+
+      <div style="display:flex;flex-direction:column;gap:16px">
+
+        <div style="background:#111827;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:20px 24px">
+          <h3 style="font-size:17px;font-weight:800;margin-bottom:8px"><a href="/commercial-truck-financing.html" style="color:#fff;text-decoration:none">Commercial Truck Financing</a></h3>
+          <p style="color:#94a3b8;font-size:14px;line-height:1.75">Whether you need a dump truck, box truck, flatbed, rollback, or tractor-trailer, Torque Hub connects you with lenders who specialize in commercial vehicle financing. New businesses, owner-operators, and established fleets are all welcome. Most approvals happen within minutes — not days.</p>
+        </div>
+
+        <div style="background:#111827;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:20px 24px">
+          <h3 style="font-size:17px;font-weight:800;margin-bottom:8px"><a href="/equipment-financing.html" style="color:#fff;text-decoration:none">Equipment Financing</a></h3>
+          <p style="color:#94a3b8;font-size:14px;line-height:1.75">Skid steers, wheel loaders, excavators, forklifts, tractors, and other work equipment. Equipment financing lets you put machines to work before they're fully paid off — turning your financing into a revenue tool, not just a debt. All credit situations considered.</p>
+        </div>
+
+        <div style="background:#111827;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:20px 24px">
+          <h3 style="font-size:17px;font-weight:800;margin-bottom:8px"><a href="/trailer-financing.html" style="color:#fff;text-decoration:none">Trailer Financing</a></h3>
+          <p style="color:#94a3b8;font-size:14px;line-height:1.75">Livestock trailers, enclosed trailers, dump trailers, flatbed trailers, hoppers, dry vans, and race trailers. Trailer financing is available for both new and used units. If it hauls, we can help you finance it.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <div style="margin:40px 0;padding:20px;border-radius:16px;background:#111827;border:1px solid rgba(255,255,255,0.08);text-align:center">
+      <div style="font-weight:800;font-size:16px;margin-bottom:8px">Ready to move on the right unit?</div>
+      <div style="color:#94a3b8;font-size:14px;margin-bottom:14px">Get approved now and lock it in before someone else does.</div>
+      <button onclick="window.scrollTo({top:0,behavior:'smooth'})" style="padding:12px 20px;border-radius:10px;background:#15803d;border:none;color:#fff;font-weight:800;font-family:'Barlow',sans-serif;cursor:pointer;font-size:15px">Get Approved Now</button>
+    </div>
+
+    <!-- WHO THIS IS FOR -->
+    <section style="margin-bottom:48px">
+      <h2 style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;text-transform:uppercase;margin-bottom:16px">Who This Is For</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div style="background:#111827;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px 16px;font-size:14px;font-weight:600;color:#cbd5e1">✔ Owner-operators and independents</div>
+        <div style="background:#111827;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px 16px;font-size:14px;font-weight:600;color:#cbd5e1">✔ Small business owners</div>
+        <div style="background:#111827;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px 16px;font-size:14px;font-weight:600;color:#cbd5e1">✔ Contractors and trade businesses</div>
+        <div style="background:#111827;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px 16px;font-size:14px;font-weight:600;color:#cbd5e1">✔ Farm and agricultural operations</div>
+        <div style="background:#111827;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px 16px;font-size:14px;font-weight:600;color:#cbd5e1">✔ First-time commercial buyers</div>
+        <div style="background:#111827;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px 16px;font-size:14px;font-weight:600;color:#cbd5e1">✔ Buyers with challenged credit</div>
+      </div>
+    </section>
+
+    <!-- WHAT HAPPENS AFTER -->
+    <section style="margin-bottom:48px">
+      <h2 style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;text-transform:uppercase;margin-bottom:16px">What Happens After You Apply</h2>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;gap:16px;align-items:flex-start">
+          <div style="min-width:32px;height:32px;border-radius:50%;background:rgba(249,115,22,0.12);border:1px solid rgba(249,115,22,0.25);display:flex;align-items:center;justify-content:center;font-weight:900;color:#f97316;font-size:14px;margin-top:2px">1</div>
+          <div><div style="font-weight:700;margin-bottom:4px">We receive your application</div><div style="color:#94a3b8;font-size:14px;line-height:1.65">Your info goes directly to our team. No bots, no automated runaround.</div></div>
+        </div>
+        <div style="display:flex;gap:16px;align-items:flex-start">
+          <div style="min-width:32px;height:32px;border-radius:50%;background:rgba(249,115,22,0.12);border:1px solid rgba(249,115,22,0.25);display:flex;align-items:center;justify-content:center;font-weight:900;color:#f97316;font-size:14px;margin-top:2px">2</div>
+          <div><div style="font-weight:700;margin-bottom:4px">We match you with the right lender</div><div style="color:#94a3b8;font-size:14px;line-height:1.65">Based on your credit, income, and the unit you want, we find the best fit from our lender network.</div></div>
+        </div>
+        <div style="display:flex;gap:16px;align-items:flex-start">
+          <div style="min-width:32px;height:32px;border-radius:50%;background:rgba(249,115,22,0.12);border:1px solid rgba(249,115,22,0.25);display:flex;align-items:center;justify-content:center;font-weight:900;color:#f97316;font-size:14px;margin-top:2px">3</div>
+          <div><div style="font-weight:700;margin-bottom:4px">You get a decision fast</div><div style="color:#94a3b8;font-size:14px;line-height:1.65">Most approvals happen within minutes. We'll contact you directly with next steps.</div></div>
+        </div>
+        <div style="display:flex;gap:16px;align-items:flex-start">
+          <div style="min-width:32px;height:32px;border-radius:50%;background:rgba(249,115,22,0.12);border:1px solid rgba(249,115,22,0.25);display:flex;align-items:center;justify-content:center;font-weight:900;color:#f97316;font-size:14px;margin-top:2px">4</div>
+          <div><div style="font-weight:700;margin-bottom:4px">Go get your unit</div><div style="color:#94a3b8;font-size:14px;line-height:1.65">Once approved, you're ready to move on the truck, trailer, or equipment you want — before someone else does.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section style="margin-bottom:48px">
+      <h2 style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;text-transform:uppercase;margin-bottom:20px">Frequently Asked Questions</h2>
+      <div style="display:flex;flex-direction:column;gap:12px">
+
+        <details style="background:#111827;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:16px 20px;cursor:pointer">
+          <summary style="font-weight:700;font-size:15px;list-style:none;cursor:pointer">Does applying affect my credit score?</summary>
+          <p style="color:#94a3b8;font-size:14px;line-height:1.75;margin-top:10px">No. Submitting your application through Torque Hub is intended for initial matching. If a lender needs a hard credit pull, you should be notified before that step.</p>
+        </details>
+
+        <details style="background:#111827;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:16px 20px;cursor:pointer">
+          <summary style="font-weight:700;font-size:15px;list-style:none;cursor:pointer">What credit score do I need?</summary>
+          <p style="color:#94a3b8;font-size:14px;line-height:1.75;margin-top:10px">We work with all credit situations — including buyers with scores below 600. Credit score is one factor, but income, down payment, and the unit itself also matter. Don't let your credit score stop you from applying.</p>
+        </details>
+
+        <details style="background:#111827;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:16px 20px;cursor:pointer">
+          <summary style="font-weight:700;font-size:15px;list-style:none;cursor:pointer">Can I finance a used work truck?</summary>
+          <p style="color:#94a3b8;font-size:14px;line-height:1.75;margin-top:10px">Yes. Most of the inventory on Torque Hub is quality used commercial vehicles. Financing is available for both new and used trucks, trailers, and equipment depending on the lender and unit condition.</p>
+        </details>
+
+        <details style="background:#111827;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:16px 20px;cursor:pointer">
+          <summary style="font-weight:700;font-size:15px;list-style:none;cursor:pointer">How long does approval take?</summary>
+          <p style="color:#94a3b8;font-size:14px;line-height:1.75;margin-top:10px">Most approvals happen within minutes to a few hours. In some cases it may take one business day depending on the lender and documentation needed. We move fast so you don't lose the unit.</p>
+        </details>
+
+        <details style="background:#111827;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:16px 20px;cursor:pointer">
+          <summary style="font-weight:700;font-size:15px;list-style:none;cursor:pointer">Do I need a down payment?</summary>
+          <p style="color:#94a3b8;font-size:14px;line-height:1.75;margin-top:10px">It depends on the lender and your credit profile. Some programs are available with little to no money down. A down payment can improve your rate and terms, but it is not always required to get approved.</p>
+        </details>
+
+        <details style="background:#111827;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:16px 20px;cursor:pointer">
+          <summary style="font-weight:700;font-size:15px;list-style:none;cursor:pointer">Can I finance equipment for my business?</summary>
+          <p style="color:#94a3b8;font-size:14px;line-height:1.75;margin-top:10px">Yes. We finance commercial equipment including skid steers, excavators, loaders, forklifts, and agricultural equipment. Business financing is available for established businesses as well as startups.</p>
+        </details>
+
+      </div>
+    </section>
+
+    <!-- INVENTORY LINKS -->
+    <section style="margin-bottom:48px;background:#111827;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:24px">
+      <h2 style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;text-transform:uppercase;margin-bottom:12px">Ready to Browse?</h2>
+      <p style="color:#94a3b8;font-size:14px;margin-bottom:16px;line-height:1.65">Apply first, then shop with confidence. Or browse available inventory by category and apply when you find the right unit.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <a href="/?cat=Trucks" style="display:inline-flex;align-items:center;padding:9px 16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:9px;font-size:13px;font-weight:700;color:#f1f5f9">Browse Trucks</a>
+        <a href="/?cat=Trailers" style="display:inline-flex;align-items:center;padding:9px 16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:9px;font-size:13px;font-weight:700;color:#f1f5f9">Browse Trailers</a>
+        <a href="/?cat=Construction" style="display:inline-flex;align-items:center;padding:9px 16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:9px;font-size:13px;font-weight:700;color:#f1f5f9">Browse Construction</a>
+        <a href="/?cat=Farm" style="display:inline-flex;align-items:center;padding:9px 16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:9px;font-size:13px;font-weight:700;color:#f1f5f9">Browse Farm</a>
+        <a href="/?cat=Other" style="display:inline-flex;align-items:center;padding:9px 16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:9px;font-size:13px;font-weight:700;color:#f1f5f9">Browse Other</a>
+      </div>
+    </section>
+
+  </div>
+    <!-- FINAL CTA -->
+    <div style="text-align:center;margin:40px 0 20px">
+      <h2 style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:900;text-transform:uppercase;margin-bottom:10px">Get Approved Today</h2>
+      <p style="color:#94a3b8;margin-bottom:16px;font-size:15px;">Don't wait until the unit is gone. Secure your financing now.</p>
+      <button onclick="window.scrollTo({top:0,behavior:'smooth'})" style="padding:14px 28px;font-size:18px;font-weight:900;font-family:'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:0.05em;border:none;border-radius:12px;background:#15803d;color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(21,128,61,0.2)">Start Application</button>
+    </div>
+
+<footer>
+  <p>Torque Hub &mdash; Powered by <a href="https://torquedma.com">Torque DMA</a> &bull; <a href="/" style="color:#f8fafc">Browse Inventory</a></p>
+</footer>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const stock = params.get("stock") || "";
+const unit = params.get("unit") || "";
+const price = params.get("price") || "";
+const src = params.get("src") || "direct";
+const lender = params.get("lender") || "";
+const rep = params.get("rep") || "";
+const dealer = params.get("dealer") || "";
+
+if (unit || stock) {
+  const unitLabel = unit ? unit.replace(/-/g," ").replace(/\b\w/g, l => l.toUpperCase()) : "Stock # " + stock;
+  document.getElementById("contextUnit").textContent = unitLabel;
+  if (price) document.getElementById("contextPrice").textContent = "$" + Number(price).toLocaleString();
+  document.getElementById("contextBox").style.display = "block";
+  document.getElementById("f-unit-display").value = unitLabel;
+  document.getElementById("f-unit-display").setAttribute("readonly", true);
+}
+
+document.getElementById("f-stock").value = stock;
+document.getElementById("f-unit").value = unit;
+document.getElementById("f-price").value = price;
+document.getElementById("f-source").value = "torque_hub_" + src;
+document.getElementById("f-referrer").value = document.referrer || "Direct";
+document.getElementById("f-page-url").value = window.location.href;
+document.getElementById("f-lender").value = lender;
+document.getElementById("f-rep").value = rep;
+document.getElementById("f-dealer").value = dealer;
+
+// Show source context if came from tracked source
+const sourceLabels = {
+  listing: "Source: Torque Hub Listing Page",
+  qr: "Source: Torque Hub QR Code",
+  reel: "Source: Torque Hub Reel",
+  featured: "Source: Torque Hub Featured Unit",
+  homepage: "Source: Torque Hub Homepage"
+};
+const sourceEl = document.getElementById("source-display");
+if (sourceEl && sourceLabels[src]) {
+  sourceEl.textContent = sourceLabels[src];
+  sourceEl.style.display = "block";
+}
+
+function submitFinance() {
+  const name = document.getElementById("f-name").value.trim();
+  const phone = document.getElementById("f-phone").value.trim();
+  const email = document.getElementById("f-email").value.trim();
+  const credit = document.getElementById("f-credit").value;
+  const business = document.getElementById("f-business").value.trim();
+  const revenue = document.getElementById("f-revenue").value.trim();
+  const unitDisplay = document.getElementById("f-unit-display").value.trim();
+
+  if (!name || !phone) { alert("Please enter your name and phone number."); return; }
+
+  const btn = document.getElementById("submit-btn");
+  btn.disabled = true;
+  btn.textContent = "Submitting...";
+
+  const downPayment = document.getElementById("f-down-payment").value;
+  const timeframe = document.getElementById("f-timeframe").value;
+
+  const payload = {
+    customer_name: name,
+    customer_phone: phone,
+    customer_email: email || null,
+    message: [
+      "Credit: " + (credit || "Not provided"),
+      downPayment ? "Down Payment: " + downPayment : null,
+      timeframe ? "Timeframe: " + timeframe : null,
+      business ? "Business: " + business : null,
+      revenue ? "Monthly Revenue: " + revenue : null,
+      unitDisplay ? "Unit: " + unitDisplay : null,
+      lender ? "Lender: " + lender : null,
+      rep ? "Rep: " + rep : null,
+      dealer ? "Dealer: " + dealer : null
+    ].filter(Boolean).join("\n"),
+    stock_number: stock || null,
+    listing_title: unitDisplay || unit || null,
+    source_url: window.location.href,
+    referrer: document.getElementById("f-referrer").value,
+    source: document.getElementById("f-source").value,
+    status: "new",
+    dealer_name: dealer || "Torque Hub Finance Lead",
+    lender: lender || null,
+    rep: rep || null
+  };
+
+  fetch("/.netlify/functions/submit-lead", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  }).then(r => {
+    if (!r.ok) throw new Error("failed");
+    showSuccess();
+  }).catch(() => {
+    const subject = encodeURIComponent("Finance Application - " + (unitDisplay || stock || "General"));
+    const body = encodeURIComponent("Name: " + name + "\nPhone: " + phone + "\nEmail: " + email + "\nCredit: " + credit + "\nBusiness: " + business + "\nRevenue: " + revenue + "\nUnit: " + unitDisplay + "\nStock: " + stock + "\nSource: " + src);
+    window.location.href = "mailto:leads@torquedma.com?subject=" + subject + "&body=" + body;
+    showSuccess();
+  });
+}
+
+function showSuccess() {
+  document.getElementById("form-inner").style.display = "none";
+  document.getElementById("form-success").style.display = "block";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+</script>
+</body>
+</html>
