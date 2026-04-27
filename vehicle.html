@@ -35,6 +35,7 @@
       --muted: #94a3b8;
       --soft: #64748b;
       --orange: #f97316;
+      --price: #e2e8f0;
       --orange-2: #ea6f0f;
       --green: #365943;
       --shadow: 0 20px 50px rgba(0,0,0,0.35);
@@ -63,7 +64,7 @@
     /* BREADCRUMB */
     .breadcrumb { padding: 14px 0; font-size: 13px; color: var(--soft); }
     .breadcrumb a { color: var(--muted); }
-    .breadcrumb a:hover { color: var(--orange); }
+    .breadcrumb a:hover { color: #cbd5e1; }
     .breadcrumb span { margin: 0 6px; }
 
     /* SOLD BANNER */
@@ -78,7 +79,7 @@
     .vdp-headline { margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
     .vdp-headline-title { font-family: "Barlow Condensed", sans-serif; font-size: clamp(24px, 4vw, 36px); font-weight: 900; text-transform: uppercase; line-height: 1.05; margin-bottom: 6px; }
     .vdp-headline-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 14px; color: var(--muted); font-weight: 600; }
-    .vdp-headline-price { font-family: "Barlow Condensed", sans-serif; font-size: 26px; font-weight: 900; color: var(--orange); }
+    .vdp-headline-price { font-family: "Barlow Condensed", sans-serif; font-size: 26px; font-weight: 900; color: #e2e8f0; }
     .vdp-headline-sep { color: var(--soft); }
 
     /* GALLERY */
@@ -96,7 +97,7 @@
     .gallery-thumbs::-webkit-scrollbar-track { background: transparent; }
     .gallery-thumbs::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
     .thumb { width: 72px; height: 54px; border-radius: 8px; overflow: hidden; flex-shrink: 0; cursor: pointer; opacity: 0.55; transition: opacity 0.2s; border: 2px solid transparent; }
-    .thumb.active { opacity: 1; border-color: var(--orange); }
+    .thumb.active { opacity: 1; border-color: #94a3b8; }
     .thumb img { width: 100%; height: 100%; object-fit: cover; }
 
     /* SPECS CARD */
@@ -113,10 +114,10 @@
     .desc-body { padding: 18px; font-size: 14px; line-height: 1.8; color: var(--muted); white-space: pre-line; }
 
     /* BEST FOR */
-    .bestfor-card { background: linear-gradient(135deg, rgba(249,115,22,0.08), rgba(249,115,22,0.03)); border: 1px solid rgba(249,115,22,0.2); border-radius: var(--radius); padding: 18px; margin-top: 20px; }
-    .bestfor-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--orange); margin-bottom: 12px; }
+    .bestfor-card { background: #111827; border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius); padding: 18px; margin-top: 20px; }
+    .bestfor-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; margin-bottom: 12px; }
     .bestfor-items { display: flex; flex-wrap: wrap; gap: 8px; }
-    .bestfor-item { background: rgba(249,115,22,0.1); border: 1px solid rgba(249,115,22,0.2); color: var(--text); font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 8px; }
+    .bestfor-item { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text); font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 8px; }
 
     /* SIMILAR */
     .similar-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin-top: 20px; }
@@ -127,7 +128,7 @@
     .sim-img img { width: 100%; height: 100%; object-fit: cover; }
     .sim-body { padding: 8px 10px; }
     .sim-title { font-size: 12px; font-weight: 700; line-height: 1.3; margin-bottom: 4px; }
-    .sim-price { font-size: 13px; font-weight: 700; color: var(--orange); }
+    .sim-price { font-size: 13px; font-weight: 700; color: #e2e8f0; }
 
     /* SIDEBAR */
     .sidebar { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 80px; }
@@ -137,7 +138,7 @@
     .price-kicker { font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
     .price-title { font-family: "Barlow Condensed", sans-serif; font-size: 22px; font-weight: 900; text-transform: uppercase; line-height: 1.1; margin-bottom: 4px; }
     .price-stock { font-size: 12px; color: var(--soft); margin-bottom: 16px; }
-    .price-amount { font-family: "Barlow Condensed", sans-serif; font-size: 42px; font-weight: 900; letter-spacing: -0.02em; color: var(--orange); margin-bottom: 4px; line-height: 1; }
+    .price-amount { font-family: "Barlow Condensed", sans-serif; font-size: 42px; font-weight: 900; letter-spacing: -0.02em; color: #e2e8f0; margin-bottom: 4px; line-height: 1; }
     .price-amount.call { font-size: 24px; color: var(--muted); }
     .price-divider { border: none; border-top: 1px solid var(--line); margin: 16px 0; }
     .cta-stack { display: flex; flex-direction: column; gap: 10px; }
@@ -165,13 +166,13 @@
     .form-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
     .form-field label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--soft); }
     .form-field input, .form-field textarea { padding: 10px 12px; background: rgba(255,255,255,0.04); border: 1px solid var(--line); border-radius: 9px; color: var(--text); font-size: 14px; font-family: inherit; outline: none; transition: border-color 0.2s; }
-    .form-field input:focus, .form-field textarea:focus { border-color: var(--orange); }
+    .form-field input:focus, .form-field textarea:focus { border-color: #475569; }
     .form-field textarea { resize: vertical; min-height: 80px; }
     .form-success { display: none; text-align: center; padding: 20px; color: #4ade80; font-weight: 700; font-size: 14px; }
 
     /* STATES */
     .loading-state { text-align: center; padding: 80px 20px; color: var(--muted); }
-    .loading-spinner { width: 40px; height: 40px; border: 3px solid var(--line); border-top-color: var(--orange); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+    .loading-spinner { width: 40px; height: 40px; border: 3px solid var(--line); border-top-color: #94a3b8; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
     @keyframes spin { to { transform: rotate(360deg); } }
     .error-state { text-align: center; padding: 80px 20px; }
     .error-state h2 { font-size: 22px; margin-bottom: 10px; }
@@ -296,7 +297,7 @@
 
         <!-- Finance Block -->
         <div class="finance-block" id="finance-block">
-          <h3>💵 Financing Available</h3>
+          <h3>Financing Available</h3>
           <ul>
             <li>Fast approvals</li>
             <li>Work trucks &amp; equipment</li>
@@ -326,12 +327,12 @@
           <div class="price-title" id="s-title">Loading...</div>
           <div class="price-stock" id="s-stock"></div>
           <div class="price-amount" id="s-price"></div>
-          <div id="price-urgency" style="display:none;font-size:13px;color:#4ade80;font-weight:600;margin-top:6px;">Get approved before this unit sells.</div>
+          
           <hr class="price-divider">
           <div class="finance-note" id="finance-note">Financing available for this unit — get approved before it's gone.</div>
           <div style="font-size:12px;color:var(--soft);text-align:center;margin-bottom:8px;font-weight:600;">Secure application &bull; Fast approvals &bull; Business-use financing</div>
           <div class="cta-stack">
-            <a class="btn btn-finance" id="cta-finance" href="/finance.html">💰 Get Pre-Approved Now</a>
+            <a class="btn btn-finance" id="cta-finance" href="/finance.html">Get Pre-Approved Now</a>
             <a class="btn btn-call" id="cta-call" href="#">📞 Call Dealer Now</a>
             <button class="btn btn-lead" onclick="scrollToForm()">✉ Send a Message</button>
           </div>
