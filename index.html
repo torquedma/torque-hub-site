@@ -879,7 +879,7 @@
           <div class="hero-actions">
             <a class="btn btn-green" href="/finance.html?src=homepage">Get Financing</a>
             <a class="btn btn-primary" href="#inventory">Browse Inventory</a>
-            <a class="btn btn-secondary" href="#sell">Sell Equipment</a>
+            <a class="btn btn-secondary" href="#sell">Partner Program</a>
           </div>
           <p style="margin-top:8px;color:#64748b;font-size:14px;">Financing available for qualified commercial buyers.</p>
           <p style="margin-top:6px;font-size:12px;color:#64748b;">Secure application &bull; Business-use financing &bull; Fast approvals</p>
@@ -1324,8 +1324,8 @@ function renderDealers() {
       <h3>${d.name}</h3>
       <p>${d.desc}</p>
       <div class="dealer-meta">
-        <div>📍 ${d.location}</div>
-        <div>📞 ${d.phone}</div>
+        <div>${d.location}</div>
+        <div>${d.phone}</div>
         <div style="color:#cbd5e1;font-weight:700">${count} units available</div>
       </div>
       <a class="btn btn-primary" href="#inventory" onclick="document.getElementById('dealer-filter').value='${d.key.replace(/'/g,"\'")}';applyFilters()">View Inventory</a>
