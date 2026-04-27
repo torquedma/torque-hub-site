@@ -733,27 +733,33 @@
     }
 
     /* Card alignment fix */
-    .listing-grid, .inv-grid, .cards-grid, [class*="grid"] {
+    .inventory-grid {
       align-items: stretch;
     }
-    .card, .listing-card, .inv-card, [class*="card"] {
+    .card {
       display: flex;
       flex-direction: column;
       height: 100%;
     }
-    .card-body, .listing-body, .inv-body {
+    .inventory-body {
       display: flex;
       flex-direction: column;
       flex: 1;
     }
-    .card-title, .listing-title {
-      min-height: 52px;
+    .inventory-title {
+      min-height: 58px;
+    }
+    .inventory-copy {
+      min-height: 24px;
     }
     .specs {
+      min-height: 158px;
       align-content: start;
     }
-    .card-bottom, .listing-bottom, .card-price, .price-row {
+    .inventory-bottom {
       margin-top: auto;
+      min-height: 78px;
+      align-items: flex-end;
     }
   </style>
 </head>
@@ -1304,11 +1310,11 @@ function renderInventory(items) {
     const title = [u.year, u.make, u.model].filter(Boolean).join(' ') || 'Unit Available';
     const vdpUrl = `vehicle.html?stock=${encodeURIComponent(u.stock)}&dealer=${encodeURIComponent(d.key || u.dealer || '')}`;
     const specs = [
-      u.fuel ? ['Fuel', u.fuel] : null,
-      u.mileage ? ['Miles', u.mileage] : null,
-      u.engine ? ['Engine', u.engine] : null,
-      ['Dealer', d.name || u.dealer || '']
-    ].filter(Boolean);
+      ['Fuel', u.fuel || '—'],
+      ['Miles', u.mileage || '—'],
+      ['Engine', u.engine || '—'],
+      ['Dealer', d.name || u.dealer || '—']
+    ];
 
     return `<article class="card">
       <div class="inventory-media" style="position:relative">
@@ -1341,7 +1347,7 @@ function renderInventory(items) {
   if (pg) {
     if (pages <= 1) { pg.innerHTML = ''; return; }
     pg.innerHTML = Array.from({length: pages}, (_, i) =>
-      `<button onclick="currentPage=${i+1};applyFilters()" style="padding:9px 16px;border-radius:9px;border:1px solid rgba(255,255,255,0.08);background:${i+1===currentPage?'rgba(37,99,235,0.8)':'rgba(255,255,255,0.05)'};color:#f8fafc;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">${i+1}</button>`
+      `<button onclick="currentPage=${i+1};applyFilters()" style="padding:9px 16px;border-radius:9px;border:1px solid rgba(255,255,255,0.08);background:${i+1===currentPage?'#334155':'rgba(255,255,255,0.05)'};color:#f8fafc;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">${i+1}</button>`
     ).join('');
   }
 }
