@@ -1348,7 +1348,7 @@ function renderInventory(items) {
   if (pg) {
     if (pages <= 1) { pg.innerHTML = ''; return; }
     pg.innerHTML = Array.from({length: pages}, (_, i) =>
-      `<button onclick="currentPage=${i+1};applyFilters()" style="padding:9px 16px;border-radius:9px;border:1px solid rgba(255,255,255,0.08);background:${i+1===currentPage?'#334155':'rgba(255,255,255,0.05)'};color:#f8fafc;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">${i+1}</button>`
+      `<button onclick="currentPage=${i+1};applyFilters();document.getElementById('inventory').scrollIntoView({behavior:'smooth',block:'start'})" style="padding:9px 16px;border-radius:9px;border:1px solid rgba(255,255,255,0.08);background:${i+1===currentPage?'#334155':'rgba(255,255,255,0.05)'};color:#f8fafc;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">${i+1}</button>`
     ).join('');
   }
 }
