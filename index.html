@@ -46,8 +46,8 @@
       --blue: #334155;
       --blue-2: #1f2937;
       --orange: #f97316;
-      --green: #16a34a;
-      --green-2: #15803d;
+      --green: #365943;
+      --green-2: #294434;
       --gold: #fbbf24;
       --shadow: 0 20px 50px rgba(0,0,0,0.28);
       --radius: 18px;
@@ -150,13 +150,13 @@
     }
 
     .nav-links .cta {
-      background: linear-gradient(135deg, #15803d, #166534);
+      background: linear-gradient(135deg, #365943, #294434);
       color: white;
       box-shadow: 0 4px 16px rgba(21,128,61,0.2);
     }
 
     .nav-links .cta:hover {
-      background: linear-gradient(135deg, #166534, #14532d);
+      background: linear-gradient(135deg, #426b51, #365943);
     }
 
     .hero {
@@ -310,9 +310,10 @@
       color: white;
     }
     .btn-green {
-      background: linear-gradient(135deg, var(--green), var(--green-2));
-      color: white;
-      box-shadow: 0 12px 24px rgba(22,163,74,0.24);
+      background: linear-gradient(135deg, #365943, #294434);
+      color: #f8fafc;
+      box-shadow: none;
+      border: 1px solid rgba(255,255,255,0.10);
     }
 
     .metric strong {
@@ -906,7 +907,7 @@
 
 
 
-        <p style="margin-bottom:12px;color:#4ade80;font-weight:600;font-size:14px;">Inventory moves fast — lock in financing before the right unit is gone.</p>
+        <p style="margin-bottom:12px;color:#94a3b8;font-weight:600;font-size:14px;">Inventory moves fast — lock in financing before the right unit is gone.</p>
         <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
           <input type="text" id="inv-search" placeholder="Search year, make, model, stock..." oninput="applyFilters()" style="flex:1;min-width:200px;padding:10px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#f8fafc;font-size:14px;font-family:inherit;outline:none">
           <select id="dealer-filter" onchange="applyFilters()" style="padding:10px 14px;background:rgba(17,24,39,0.9);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#f8fafc;font-size:14px;font-family:inherit;outline:none;cursor:pointer">
