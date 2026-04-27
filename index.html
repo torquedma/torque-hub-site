@@ -927,8 +927,9 @@
             <option value="price-asc">Price: Low to High</option>
             <option value="price-desc">Price: High to Low</option>
             <option value="year-desc">Year: Newest</option>
-            <option value="days-desc">Listed: Longest First</option>
-            <option value="days-asc">Listed: Most Recent</option>
+            <option value="year-asc">Year: Oldest</option>
+            <option value="days-desc">Days Listed: High to Low</option>
+            <option value="days-asc">Days Listed: Low to High</option>
           </select>
         </div>
         <div style="font-size:12px;color:#94a3b8;margin-bottom:8px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">Browse by Category</div>
@@ -1272,6 +1273,7 @@ function applyFilters() {
   else if (sort === 'price-asc') filtered.sort((a, b) => pp(a.price) - pp(b.price));
   else if (sort === 'price-desc') filtered.sort((a, b) => pp(b.price) - pp(a.price));
   else if (sort === 'year-desc') filtered.sort((a, b) => (parseInt(b.year) || 0) - (parseInt(a.year) || 0));
+  else if (sort === 'year-asc') filtered.sort((a, b) => (parseInt(a.year) || 0) - (parseInt(b.year) || 0));
   else if (sort === 'days-desc') filtered.sort((a, b) => (parseFloat(b.days) || 0) - (parseFloat(a.days) || 0));
   else if (sort === 'days-asc') filtered.sort((a, b) => (parseFloat(a.days) || 0) - (parseFloat(b.days) || 0));
 
