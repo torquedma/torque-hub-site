@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Submit Inventory | Torque Hub Partner Portal</title>
+<meta name="robots" content="noindex">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;800;900&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:"Barlow",sans-serif;background:#0b111c;color:#f8fafc;min-height:100vh;line-height:1.6}
+.topbar{background:rgba(11,17,28,0.98);border-bottom:1px solid rgba(255,255,255,0.07);padding:0 20px}
+.nav{max-width:680px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;min-height:60px}
+.brand-name{font-family:"Barlow Condensed",sans-serif;font-size:20px;font-weight:900;text-transform:uppercase}
+.brand-sub{font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:0.12em}
+.container{max-width:680px;margin:0 auto;padding:40px 20px 80px}
+h1{font-family:"Barlow Condensed",sans-serif;font-size:36px;font-weight:900;text-transform:uppercase;margin-bottom:8px}
+h2{font-family:"Barlow Condensed",sans-serif;font-size:18px;font-weight:900;text-transform:uppercase;color:#94a3b8;margin:28px 0 14px}
+p{color:#94a3b8;font-size:14px;line-height:1.7}
+.divider{width:40px;height:3px;background:#64748b;margin:10px 0 20px;border-radius:2px}
+.card{background:#111827;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:24px;margin-bottom:16px}
+.form-field{margin-bottom:14px}
+.form-field label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#64748b;margin-bottom:5px}
+.form-field input,.form-field select,.form-field textarea{width:100%;padding:11px 14px;background:#0b111c;border:1px solid rgba(255,255,255,0.1);border-radius:9px;color:#f8fafc;font-size:14px;font-family:inherit;outline:none;transition:0.2s}
+.form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:#475569}
+.form-field textarea{min-height:90px;resize:vertical}
+.form-field select option{background:#111827}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.checkbox-row{display:flex;align-items:flex-start;gap:10px;padding:14px;background:#0b111c;border:1px solid rgba(255,255,255,0.08);border-radius:9px}
+.checkbox-row input[type=checkbox]{width:16px;height:16px;margin-top:2px;flex-shrink:0;accent-color:#365943}
+.checkbox-row label{font-size:13px;color:#94a3b8;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer}
+.btn{width:100%;padding:15px;font-size:17px;font-weight:900;font-family:"Barlow Condensed",sans-serif;text-transform:uppercase;letter-spacing:0.06em;border:none;border-radius:11px;background:linear-gradient(135deg,#365943,#294434);color:#fff;cursor:pointer;transition:all 0.18s;margin-top:6px}
+.btn:hover{background:linear-gradient(135deg,#426b51,#365943)}
+.btn:disabled{opacity:0.5;cursor:not-allowed}
+.trust{font-size:12px;color:#475569;text-align:center;margin-top:10px}
+.success{display:none;background:rgba(54,89,67,0.2);border:1px solid rgba(54,89,67,0.4);border-radius:12px;padding:28px;text-align:center;margin-top:20px}
+.success h2{color:#86efac;font-size:26px;margin-bottom:8px;text-transform:none;letter-spacing:0}
+.success p{color:#94a3b8}
+.error-msg{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:8px;padding:12px 16px;font-size:13px;color:#fca5a5;margin-bottom:16px;display:none}
+.partner-banner{background:#1e293b;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:12px 16px;margin-bottom:24px;font-size:13px;color:#94a3b8;display:none}
+.code-card{background:#111827;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:32px;max-width:420px;margin:60px auto}
+.code-card h2{font-family:"Barlow Condensed",sans-serif;font-size:24px;font-weight:900;text-transform:uppercase;margin-bottom:8px;color:#f8fafc;letter-spacing:0}
+.code-card p{margin-bottom:20px}
+#submission-form{display:none}
+@media(max-width:600px){.form-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <nav class="nav">
+    <div>
+      <div class="brand-name">Torque Hub</div>
+      <div class="brand-sub">Partner Inventory Portal</div>
+    </div>
+    <span style="font-size:12px;color:#475569">Partner Submission</span>
+  </nav>
+</header>
+
+<div class="container">
+
+  <!-- Code Gate -->
+  <div id="code-gate">
+    <div class="code-card">
+      <h2>Partner Code Access</h2>
+      <div class="divider"></div>
+      <p>Enter your partner code to access the inventory submission form. Contact Torque DMA if you need a code.</p>
+      <div class="form-field" style="margin-top:4px">
+        <label>Partner Code</label>
+        <input type="text" id="partner-code-input" placeholder="e.g. TH-LENDER-001" autocomplete="off" style="text-transform:uppercase;letter-spacing:0.1em">
+      </div>
+      <div class="error-msg" id="code-error">Invalid or inactive partner code. Contact Torque DMA to get access.</div>
+      <button class="btn" id="code-btn" onclick="validatePartnerCode()">Access Portal</button>
+    </div>
+  </div>
+
+  <!-- Submission Form -->
+  <div id="submission-form">
+    <h1>Submit Inventory</h1>
+    <div class="divider"></div>
+    <p style="margin-bottom:24px">Submit a unit for review. Units are not live until reviewed and approved by the Torque Hub team.</p>
+
+    <div class="partner-banner" id="partner-banner"></div>
+
+    <h2>Dealer Information</h2>
+    <div class="card">
+      <div class="form-row">
+        <div class="form-field"><label>Dealer Name *</label><input type="text" id="f-dealer-name" placeholder="Business name"></div>
+        <div class="form-field"><label>Dealer Location</label><input type="text" id="f-dealer-location" placeholder="City, State"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label>Dealer Contact Name</label><input type="text" id="f-dealer-contact" placeholder="Contact person"></div>
+        <div class="form-field"><label>Dealer Phone</label><input type="tel" id="f-dealer-phone" placeholder="Phone number"></div>
+      </div>
+      <div class="form-field"><label>Dealer Email</label><input type="email" id="f-dealer-email" placeholder="Dealer email address"></div>
+    </div>
+
+    <h2>Unit Information</h2>
+    <div class="card">
+      <div class="form-row">
+        <div class="form-field"><label>Unit Type *</label>
+          <select id="f-unit-type">
+            <option value="">Select type</option>
+            <option>Commercial Truck</option>
+            <option>Semi Truck</option>
+            <option>Dump Truck</option>
+            <option>Flatbed Truck</option>
+            <option>Box Truck</option>
+            <option>Rollback / Tow Truck</option>
+            <option>Service Truck</option>
+            <option>Equipment Trailer</option>
+            <option>Dump Trailer</option>
+            <option>Enclosed Trailer</option>
+            <option>Livestock Trailer</option>
+            <option>Flatbed Trailer</option>
+            <option>Skid Steer</option>
+            <option>Excavator</option>
+            <option>Tractor</option>
+            <option>Forklift</option>
+            <option>Other Equipment</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Condition</label>
+          <select id="f-condition">
+            <option value="Used">Used</option>
+            <option value="New">New</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label>Year *</label><input type="text" id="f-year" placeholder="e.g. 2019"></div>
+        <div class="form-field"><label>Make *</label><input type="text" id="f-make" placeholder="e.g. Kenworth"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label>Model *</label><input type="text" id="f-model" placeholder="e.g. T680"></div>
+        <div class="form-field"><label>Asking Price</label><input type="text" id="f-price" placeholder="e.g. 45000"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label>Mileage / Hours</label><input type="text" id="f-mileage" placeholder="e.g. 187,000 mi"></div>
+        <div class="form-field"><label>VIN</label><input type="text" id="f-vin" placeholder="17-digit VIN" style="text-transform:uppercase"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label>Engine</label><input type="text" id="f-engine" placeholder="e.g. Cummins ISX 450hp"></div>
+        <div class="form-field"><label>Transmission</label><input type="text" id="f-transmission" placeholder="e.g. Automatic"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label>Drivetrain</label><input type="text" id="f-drivetrain" placeholder="e.g. 6x4"></div>
+        <div class="form-field"><label>Fuel Type</label>
+          <select id="f-fuel">
+            <option value="">Select</option>
+            <option>Diesel</option>
+            <option>Gasoline</option>
+            <option>Electric</option>
+            <option>Propane</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <h2>Description & Notes</h2>
+    <div class="card">
+      <div class="form-field"><label>Unit Description</label><textarea id="f-description" placeholder="Describe the unit — condition, features, highlights, why it is a good buy..."></textarea></div>
+      <div class="form-field"><label>Photo URLs (one per line)</label><textarea id="f-photos" placeholder="Paste photo URLs here, one per line. File upload coming soon." style="min-height:70px"></textarea></div>
+      <div class="form-field"><label>Notes for Torque Hub Team</label><textarea id="f-notes" placeholder="Anything else we should know — urgency, dealer relationship, special situation..." style="min-height:70px"></textarea></div>
+      <div class="checkbox-row" style="margin-top:4px">
+        <input type="checkbox" id="f-permission">
+        <label for="f-permission">I confirm I have permission to submit this inventory or introduce this dealer to Torque Hub.</label>
+      </div>
+    </div>
+
+    <div class="error-msg" id="submit-error">Please fill in all required fields and confirm dealer permission.</div>
+    <button class="btn" id="submit-btn" onclick="submitInventory()">Submit for Review</button>
+    <p class="trust" id="submit-trust">Submitted units are reviewed before going live. Not published until approved.</p>
+
+    <div class="success" id="submit-success">
+      <h2>Submitted for Review</h2>
+      <p style="margin-top:8px">Your unit has been submitted to Torque Hub. It is not live yet.</p>
+      <p style="margin-top:6px;color:#64748b;font-size:13px">The Torque Hub team will review your submission and follow up if additional information is needed.</p>
+      <button onclick="resetForm()" style="margin-top:20px;padding:10px 24px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:#1e293b;color:#f8fafc;cursor:pointer;font-family:inherit;font-size:14px;font-weight:600">Submit Another Unit</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let currentPartner = null;
+
+document.getElementById('partner-code-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') validatePartnerCode();
+});
+
+async function validatePartnerCode() {
+  const btn = document.getElementById('code-btn');
+  const code = document.getElementById('partner-code-input').value.trim().toUpperCase();
+  const errEl = document.getElementById('code-error');
+  if (!code) { errEl.style.display='block'; errEl.textContent='Please enter your partner code.'; return; }
+  btn.disabled = true; btn.textContent = 'Checking...'; errEl.style.display = 'none';
+  try {
+    const res = await fetch('/.netlify/functions/validate-partner-code', {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ partner_code: code })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      errEl.textContent = data.error || 'Invalid partner code. Contact Torque DMA.';
+      errEl.style.display = 'block'; btn.disabled = false; btn.textContent = 'Access Portal'; return;
+    }
+    currentPartner = data;
+    document.getElementById('code-gate').style.display = 'none';
+    document.getElementById('submission-form').style.display = 'block';
+    const banner = document.getElementById('partner-banner');
+    banner.style.display = 'block';
+    banner.innerHTML = 'Partner verified: <strong style="color:#f8fafc">' + data.name + '</strong>' +
+      (data.company ? ' &mdash; ' + data.company : '') +
+      ' <span style="color:#475569;margin-left:8px">Code: ' + data.partner_code + '</span>';
+  } catch(e) {
+    errEl.textContent = 'Error checking partner code. Please try again.';
+    errEl.style.display = 'block'; btn.disabled = false; btn.textContent = 'Access Portal';
+  }
+}
+
+async function submitInventory() {
+  const btn = document.getElementById('submit-btn');
+  const errEl = document.getElementById('submit-error');
+  errEl.style.display = 'none';
+  const dealerName = document.getElementById('f-dealer-name').value.trim();
+  const year = document.getElementById('f-year').value.trim();
+  const make = document.getElementById('f-make').value.trim();
+  const model = document.getElementById('f-model').value.trim();
+  const unitType = document.getElementById('f-unit-type').value;
+  const permission = document.getElementById('f-permission').checked;
+  if (!dealerName || !year || !make || !model || !unitType || !permission) {
+    errEl.style.display = 'block'; return;
+  }
+  btn.disabled = true; btn.textContent = 'Submitting...';
+  const photoRaw = document.getElementById('f-photos').value.trim();
+  const photoUrls = photoRaw ? photoRaw.split('\n').map(u => u.trim()).filter(u => u.startsWith('http')) : [];
+  const payload = {
+    partner_code: currentPartner.partner_code,
+    partner_id: currentPartner.id,
+    dealer_name: dealerName,
+    dealer_contact: document.getElementById('f-dealer-contact').value.trim() || null,
+    dealer_phone: document.getElementById('f-dealer-phone').value.trim() || null,
+    dealer_email: document.getElementById('f-dealer-email').value.trim() || null,
+    dealer_location: document.getElementById('f-dealer-location').value.trim() || null,
+    unit_type: unitType,
+    condition: document.getElementById('f-condition').value,
+    year, make, model,
+    price: document.getElementById('f-price').value.trim() || null,
+    mileage: document.getElementById('f-mileage').value.trim() || null,
+    vin: document.getElementById('f-vin').value.trim().toUpperCase() || null,
+    engine: document.getElementById('f-engine').value.trim() || null,
+    transmission: document.getElementById('f-transmission').value.trim() || null,
+    drivetrain: document.getElementById('f-drivetrain').value.trim() || null,
+    fuel: document.getElementById('f-fuel').value || null,
+    description: document.getElementById('f-description').value.trim() || null,
+    notes: document.getElementById('f-notes').value.trim() || null,
+    photo_urls: photoUrls.length ? photoUrls : null,
+    dealer_permission: true,
+    source_type: currentPartner.type || 'partner'
+  };
+  try {
+    const res = await fetch('/.netlify/functions/submit-inventory', {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Submission failed');
+    document.getElementById('submit-btn').style.display = 'none';
+    document.getElementById('submit-trust').style.display = 'none';
+    document.getElementById('submit-success').style.display = 'block';
+  } catch(e) {
+    errEl.textContent = e.message || 'Submission failed. Please try again or contact Torque DMA.';
+    errEl.style.display = 'block'; btn.disabled = false; btn.textContent = 'Submit for Review';
+  }
+}
+
+function resetForm() {
+  document.querySelectorAll('#submission-form input, #submission-form select, #submission-form textarea').forEach(el => {
+    if (el.type === 'checkbox') el.checked = false; else el.value = '';
+  });
+  document.getElementById('submit-success').style.display = 'none';
+  document.getElementById('submit-btn').style.display = 'block';
+  document.getElementById('submit-trust').style.display = 'block';
+  document.getElementById('submit-btn').disabled = false;
+  document.getElementById('submit-btn').textContent = 'Submit for Review';
+}
+</script>
+</body></html>
