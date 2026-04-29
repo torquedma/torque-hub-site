@@ -112,11 +112,17 @@
 
     /* DESCRIPTION */
     .desc-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin-top: 20px; }
-    .desc-body { padding: 18px; font-size: 14px; line-height: 1.8; color: var(--muted); }
+    .desc-body { padding: 18px; }
+    .desc-heading { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text); margin: 18px 0 8px; }
+    .desc-body > .desc-heading:first-child { margin-top: 0; }
+    .desc-para { font-size: 14px; line-height: 1.75; color: var(--muted); margin-bottom: 6px; }
+    .desc-list { list-style: none; padding: 0; margin: 0 0 6px; display: flex; flex-direction: column; gap: 4px; }
+    .desc-list li { font-size: 14px; color: var(--muted); padding-left: 16px; position: relative; line-height: 1.6; }
+    .desc-list li::before { content: '•'; position: absolute; left: 0; color: var(--soft); }
 
     /* SIMILAR */
     .similar-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin-top: 20px; }
-    .similar-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 14px; }
+    .similar-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 14px; }
     .sim-item { background: var(--panel-2); border-radius: 10px; overflow: hidden; cursor: pointer; transition: transform 0.2s; }
     .sim-item:hover { transform: translateY(-2px); }
     .sim-img { aspect-ratio: 4/3; overflow: hidden; }
@@ -126,7 +132,7 @@
     .sim-price { font-size: 13px; font-weight: 700; color: #e2e8f0; }
 
     /* SIDEBAR */
-    .sidebar { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 80px; }
+    .sidebar { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 80px; align-self: start; }
 
     /* PRICE CARD */
     .price-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; }
@@ -192,13 +198,11 @@
     @media (max-width: 900px) {
       .vdp-grid { grid-template-columns: 1fr; }
       .sidebar { position: static; }
-      .similar-grid { grid-template-columns: repeat(2, 1fr); }
       .mobile-bar { display: flex; }
       body { padding-bottom: 76px; }
     }
     @media (max-width: 500px) {
       .specs-grid { grid-template-columns: 1fr; }
-      .similar-grid { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
 </head>
@@ -368,6 +372,7 @@
               <input type="hidden" id="f-page-url" name="page_url">
               <input type="hidden" id="f-referrer" name="referrer">
               <button class="btn btn-call" onclick="submitLead()" style="margin-top:4px">Send Message</button>
+              <p style="font-size:11px;color:var(--soft);text-align:center;margin-top:10px;line-height:1.5;">Your info is never sold. We connect you directly with the dealer.</p>
             </div>
             <div class="form-success" id="form-success">
               ✓ Message sent! A dealer representative will be in touch shortly.
@@ -481,11 +486,40 @@ function formatPrice(raw) {
   return '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
 }
 
+function formatMileage(raw) {
+  if (!raw) return '';
+  const n = parseInt(String(raw).replace(/[^0-9]/g, ''), 10);
+  return isNaN(n) ? String(raw) : n.toLocaleString('en-US') + ' mi';
+}
+
 function formatDescription(text) {
   if (!text) return '';
-  return text
-    .replace(/^- /gm, '• ')
-    .replace(/\n/g, '<br>');
+  const HEADINGS = new Set(['Key Details', 'Overview', 'Interested In This Unit?']);
+  const lines = text.split('\n');
+  const parts = [];
+  let bullets = [];
+
+  function flushBullets() {
+    if (!bullets.length) return;
+    parts.push('<ul class="desc-list">' + bullets.map(b => `<li>${b}</li>`).join('') + '</ul>');
+    bullets = [];
+  }
+
+  for (const raw of lines) {
+    const line = raw.trimEnd();
+    if (!line.trim()) { flushBullets(); continue; }
+    if (HEADINGS.has(line.trim())) {
+      flushBullets();
+      parts.push(`<div class="desc-heading">${line.trim()}</div>`);
+    } else if (/^[-•]\s+/.test(line.trim())) {
+      bullets.push(line.trim().replace(/^[-•]\s+/, ''));
+    } else {
+      flushBullets();
+      parts.push(`<p class="desc-para">${line}</p>`);
+    }
+  }
+  flushBullets();
+  return parts.join('');
 }
 
 // ─── GALLERY ────────────────────────────────────────────────────────────────
@@ -658,7 +692,7 @@ function render(unit, dealerKey) {
     unit.model ? ['Model', unit.model] : null,
     unit.condition ? ['Condition', unit.condition] : null,
     unit.fuel ? ['Fuel', unit.fuel] : null,
-    unit.mileage ? ['Mileage', unit.mileage] : null,
+    unit.mileage ? ['Mileage', formatMileage(unit.mileage)] : null,
     unit.engine ? ['Engine', unit.engine] : null,
     unit.transmission ? ['Transmission', unit.transmission] : null,
     unit.drivetrain ? ['Drivetrain', unit.drivetrain] : null,
@@ -694,18 +728,18 @@ function render(unit, dealerKey) {
 async function loadSimilar(currentUnit, dealerKey) {
   try {
     // Primary: same category + same dealer
-    const url1 = `${SUPABASE_URL}/rest/v1/inventory?sold=eq.false&category=eq.${encodeURIComponent(currentUnit.category || '')}&dealer=eq.${encodeURIComponent(dealerKey)}&limit=7&select=stock,year,make,model,price,photos,dealer,category`;
+    const url1 = `${SUPABASE_URL}/rest/v1/inventory?sold=eq.false&category=eq.${encodeURIComponent(currentUnit.category || '')}&dealer=eq.${encodeURIComponent(dealerKey)}&limit=6&select=stock,year,make,model,price,photos,dealer,category`;
     let items = (await (await fetch(url1, { headers: SB_HEADERS })).json() || []).filter(u => u.stock !== currentUnit.stock);
 
-    // Fallback: same category only if fewer than 3
-    if (items.length < 3 && currentUnit.category) {
-      const url2 = `${SUPABASE_URL}/rest/v1/inventory?sold=eq.false&category=eq.${encodeURIComponent(currentUnit.category)}&limit=10&select=stock,year,make,model,price,photos,dealer,category`;
+    // Fallback: same category only if fewer than 2
+    if (items.length < 2 && currentUnit.category) {
+      const url2 = `${SUPABASE_URL}/rest/v1/inventory?sold=eq.false&category=eq.${encodeURIComponent(currentUnit.category)}&limit=6&select=stock,year,make,model,price,photos,dealer,category`;
       const more = (await (await fetch(url2, { headers: SB_HEADERS })).json() || []).filter(u => u.stock !== currentUnit.stock);
       const seen = new Set(items.map(u => u.stock));
       for (const u of more) { if (!seen.has(u.stock)) items.push(u); }
     }
 
-    items = items.slice(0, 6);
+    items = items.slice(0, 4);
     if (!items.length) return;
 
     document.getElementById('similar-card').style.display = 'block';
