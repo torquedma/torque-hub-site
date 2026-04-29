@@ -1157,6 +1157,8 @@ function showMini(i) {
   const d = u._dealer || DEALERS.find(x => x.key === u.dealer) || {};
   const photo = u.photos[0] ? (u.photos[0].url || u.photos[0].dataUrl || '') : '';
   const title = [u.year, u.make, u.model].filter(Boolean).join(' ');
+  const bodyTypes = ['Rollback Tow Truck','Day Cab','Sleeper','Box Truck','Dump Truck','Flatbed','Service Truck','Yard Spotter','Car Hauler','Cab & Chassis','Step Van','Reefer','Tow Truck','Tanker','Stake Truck'];
+  const subtitle = u.subcategory || bodyTypes.find(t => (u.description||'').toLowerCase().includes(t.toLowerCase())) || '';
   const vdpUrl = `vehicle.html?stock=${encodeURIComponent(u.stock)}&dealer=${encodeURIComponent(u._dealer && u._dealer.key ? u._dealer.key : u.dealer || '')}`;
 
   // Preload next
@@ -1170,6 +1172,7 @@ function showMini(i) {
   if (!inner) return;
   inner.innerHTML = `<a href="${vdpUrl}">
     <div class="mini-card-img">${photo ? `<img src="${photo}" alt="${title}" loading="eager">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#475569;font-size:11px">No Photo</div>`}</div>
+    ${subtitle ? `<div style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#94a3b8;padding:4px 12px 0">${subtitle}</div>` : ''}
     <div class="mini-card-price">${u.price ? "$" + Number(u.price).toLocaleString() : "Call"}</div>
     <span class="mini-card-cta">View Details</span>
   </a>`;
