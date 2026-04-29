@@ -1159,7 +1159,7 @@ function showMini(i) {
   const title = [u.year, u.make, u.model].filter(Boolean).join(' ');
   const bodyTypes = ['Rollback Tow Truck','Day Cab','Sleeper','Box Truck','Dump Truck','Flatbed','Service Truck','Yard Spotter','Car Hauler','Cab & Chassis','Step Van','Reefer','Tow Truck','Tanker','Stake Truck'];
   const subtitle = u.subcategory || bodyTypes.find(t => (u.description||'').toLowerCase().includes(t.toLowerCase())) || '';
-  const vdpUrl = `vehicle.html?stock=${encodeURIComponent(u.stock)}&dealer=${encodeURIComponent(u._dealer && u._dealer.key ? u._dealer.key : u.dealer || '')}`;
+  const vdpUrl = `vehicle.html?stock=${encodeURIComponent(u.stock || '')}&dealer=${encodeURIComponent(u._dealer && u._dealer.key ? u._dealer.key : u.dealer || '')}`;
 
   // Preload next
   const next = miniItems[(miniIdx + 1) % miniItems.length];
@@ -1276,7 +1276,7 @@ function showFeatured(i) {
 
   const viewEl = document.getElementById('featured-view');
   if (viewEl) {
-    viewEl.href = `vehicle.html?stock=${encodeURIComponent(u.stock)}&dealer=${encodeURIComponent(d.key || u.dealer || '')}`;
+    viewEl.href = `vehicle.html?stock=${encodeURIComponent(u.stock || '')}&dealer=${encodeURIComponent(d.key || u.dealer || '')}`;
     viewEl.onclick = () => trackFeaturedAction("view_listing", u);
   }
 
@@ -1394,7 +1394,7 @@ function renderInventory(items) {
     const d = u._dealer || DEALERS.find(x => x.key === u.dealer) || {};
     const photo = u.photos && u.photos.length ? (u.photos[0].url || u.photos[0].dataUrl || '') : '';
     const title = [u.year, u.make, u.model].filter(Boolean).join(' ') || 'Unit Available';
-    const vdpUrl = `vehicle.html?stock=${encodeURIComponent(u.stock)}&dealer=${encodeURIComponent(d.key || u.dealer || '')}`;
+    const vdpUrl = `vehicle.html?stock=${encodeURIComponent(u.stock || '')}&dealer=${encodeURIComponent(d.key || u.dealer || '')}`;
     const mileageLabel = u.hours ? 'Hours' : 'Miles';
     const mileageValue = u.hours || u.mileage || '—';
     const specs = [
