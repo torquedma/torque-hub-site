@@ -836,6 +836,13 @@
     .cat-browser-seo { margin-top: 28px; font-size: 13px; color: #475569; line-height: 1.75; max-width: 760px; margin-left: auto; margin-right: auto; text-align: center; }
     @media (max-width: 900px) { .cat-tile-grid { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 480px) { .cat-tile-grid { grid-template-columns: 1fr; } }
+    /* cat browser inside hero-copy — narrower column, 2×2 layout */
+    .hero-copy .cat-tile-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .hero-copy .cat-tile { padding: 12px 14px; }
+    .hero-copy .cat-browser-head { text-align: left; margin-bottom: 12px; }
+    .hero-copy .cat-browser-head h2 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; margin-bottom: 4px; }
+    .hero-copy .cat-browser-head p { font-size: 12px; }
+    .hero-copy .cat-browser-seo { text-align: left; margin-left: 0; margin-right: 0; margin-top: 14px; font-size: 11px; }
   </style>
 </head>
 <body>
@@ -889,6 +896,17 @@
           <p style="margin-top:6px;font-size:12px;color:#64748b;">Secure application &bull; Business-use financing &bull; Fast approvals</p>
           <p style="margin-top:6px;font-size:13px;color:#64748b;">Initial application is intended for matching. If a lender needs a hard credit pull, you should be notified first.</p>
 
+          <div style="margin-top:20px">
+            <div class="cat-browser-head">
+              <h2>Browse By Equipment Type</h2>
+              <p id="cat-browser-count">Loading inventory...</p>
+            </div>
+            <div class="cat-tile-grid" id="cat-tile-grid">
+              <div style="grid-column:1/-1;padding:16px 0;color:#475569;font-size:12px">Loading categories...</div>
+            </div>
+            <p class="cat-browser-seo">Torque Hub is a commercial truck, trailer, and equipment marketplace built for buyers shopping work-ready inventory across North Carolina and beyond. Browse dump trucks, box trucks, rollbacks, equipment trailers, enclosed trailers, skid steers, excavators, tractors, and more from real dealers with direct contact and financing options available.</p>
+          </div>
+
         </div>
 
         <aside class="hero-panel" aria-label="Featured inventory panel">
@@ -915,20 +933,6 @@
 
 
         </aside>
-      </div>
-    </section>
-
-    <!-- BROWSE BY EQUIPMENT TYPE -->
-    <section class="cat-browser">
-      <div class="container">
-        <div class="cat-browser-head">
-          <h2>Browse By Equipment Type</h2>
-          <p id="cat-browser-count">Loading inventory...</p>
-        </div>
-        <div class="cat-tile-grid" id="cat-tile-grid">
-          <div style="grid-column:1/-1;text-align:center;padding:40px 0;color:#475569;font-size:13px">Loading categories...</div>
-        </div>
-        <p class="cat-browser-seo">Torque Hub is a commercial truck, trailer, and equipment marketplace built for buyers shopping work-ready inventory across North Carolina and beyond. Browse dump trucks, box trucks, rollbacks, equipment trailers, enclosed trailers, skid steers, excavators, tractors, and more from real dealers with direct contact and financing options available.</p>
       </div>
     </section>
 
