@@ -81,6 +81,8 @@
     .vdp-headline-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 14px; color: var(--muted); font-weight: 600; }
     .vdp-headline-price { font-family: "Barlow Condensed", sans-serif; font-size: 26px; font-weight: 900; color: #e2e8f0; }
     .vdp-headline-sep { color: var(--soft); }
+    .subcat-badge { display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; padding: 3px 10px; border-radius: 6px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.11); color: var(--muted); margin-top: 8px; }
+    .subcat-h2 { font-size: 13px; font-weight: 600; color: var(--soft); margin-top: 10px; letter-spacing: 0.01em; }
 
     /* GALLERY */
     .gallery { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
@@ -257,6 +259,8 @@
         <!-- Headline Strip -->
         <div class="vdp-headline" id="vdp-headline" style="display:none">
           <div class="vdp-headline-title" id="hl-title"></div>
+          <div id="hl-badge" style="display:none"><span class="subcat-badge" id="hl-subcat"></span></div>
+          <h2 class="subcat-h2" id="hl-subcat-h2" style="display:none"></h2>
           <div class="vdp-headline-meta">
             <span class="vdp-headline-price" id="hl-price"></span>
             <span class="vdp-headline-sep" id="hl-sep" style="display:none">&bull;</span>
@@ -532,12 +536,21 @@ function render(unit, dealerKey) {
   const title = [unit.year, unit.make, unit.model].filter(Boolean).join(' ') || 'Unit Available';
   const price = formatPrice(unit.price);
   const isSold = unit.sold === true;
+  const subcat = unit.subcategory || '';
+
+  // Derive city/state for SEO strings
+  const addrLines = (d.address || '').split('\n');
+  const cityLine = addrLines[addrLines.length - 1] || '';
+  const city = cityLine.split(',')[0].trim();
+  const stateCode = (cityLine.split(',')[1] || '').trim().split(' ')[0];
+  const cityState = city && stateCode ? `${city}, ${stateCode}` : city || 'NC';
 
   // Page meta
   const pageUrl = `https://hub.torquedma.com/vehicle.html?stock=${encodeURIComponent(unit.stock)}&dealer=${encodeURIComponent(dealerKey)}`;
-  document.title = `${title}${price !== 'Call for Price' ? ' — ' + price : ''} | Torque Hub`;
+  const titleTag = [unit.year, unit.make, unit.model, subcat].filter(Boolean).join(' ');
+  document.title = `${titleTag} for Sale in ${cityState} | Torque Hub`;
   document.getElementById('page-title').textContent = document.title;
-  document.getElementById('page-desc').content = `${title} for sale${d.address ? ' in ' + d.address : ' in NC'}. ${price}. Call ${d.phone || 'dealer'} or apply for financing. Torque Hub powered by Torque DMA.`;
+  document.getElementById('page-desc').content = `${title}${subcat ? ' ' + subcat : ''} for sale in ${cityState}. ${price}. Call ${d.phone || 'the dealer'} or apply for financing online. Torque Hub.`;
   document.getElementById('canonical-url').href = pageUrl;
   document.getElementById('og-title').content = document.title;
   document.getElementById('og-desc').content = document.getElementById('page-desc').content;
@@ -560,6 +573,7 @@ function render(unit, dealerKey) {
     "brand": { "@type": "Brand", "name": unit.make || undefined },
     "model": unit.model || undefined,
     "fuelType": unit.fuel || undefined,
+    "vehicleBodyType": subcat || undefined,
     "mileageFromOdometer": unit.mileage ? { "@type": "QuantitativeValue", "value": unit.mileage, "unitCode": "SMI" } : undefined,
     "vehicleCondition": isSold ? "https://schema.org/UsedCondition" : (unit.condition === "New" ? "https://schema.org/NewCondition" : "https://schema.org/UsedCondition"),
     "image": firstPhoto || undefined,
@@ -587,6 +601,13 @@ function render(unit, dealerKey) {
   if (hlEl) hlEl.style.display = 'block';
   const hlTitle = document.getElementById('hl-title');
   if (hlTitle) hlTitle.textContent = title;
+  if (subcat) {
+    document.getElementById('hl-subcat').textContent = subcat;
+    document.getElementById('hl-badge').style.display = 'block';
+    const h2El = document.getElementById('hl-subcat-h2');
+    h2El.textContent = `${subcat} for Sale — ${dealerKey || unit.dealer || ''}`;
+    h2El.style.display = 'block';
+  }
   const hlPrice = document.getElementById('hl-price');
   if (hlPrice) hlPrice.textContent = price;
   const hlDealer = document.getElementById('hl-dealer');
