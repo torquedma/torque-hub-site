@@ -836,13 +836,32 @@
     .cat-browser-seo { margin-top: 28px; font-size: 13px; color: #475569; line-height: 1.75; max-width: 760px; margin-left: auto; margin-right: auto; text-align: center; }
     @media (max-width: 900px) { .cat-tile-grid { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 480px) { .cat-tile-grid { grid-template-columns: 1fr; } }
-    /* cat browser inside hero-copy — narrower column, 2×2 layout */
-    .hero-copy .cat-tile-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-    .hero-copy .cat-tile { padding: 12px 14px; }
-    .hero-copy .cat-browser-head { text-align: left; margin-bottom: 12px; }
-    .hero-copy .cat-browser-head h2 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; margin-bottom: 4px; }
-    .hero-copy .cat-browser-head p { font-size: 12px; }
-    .hero-copy .cat-browser-seo { text-align: left; margin-left: 0; margin-right: 0; margin-top: 14px; font-size: 11px; }
+    /* New hero — centered single column */
+    .hero { padding: 48px 0 36px; }
+    .hero-header { max-width: 720px; margin: 0 auto 28px; text-align: center; }
+    .hero-header h1 { font-size: clamp(32px, 5.5vw, 58px); margin: 12px 0 14px; line-height: 1; }
+    .hero-header .hero-sub { font-size: 16px; color: #94a3b8; line-height: 1.65; margin: 0; max-width: 100%; }
+    .hero-search-bar { display: flex; gap: 10px; max-width: 720px; margin: 0 auto 28px; flex-wrap: wrap; }
+    .hero-search-bar input { flex: 1; min-width: 200px; padding: 13px 16px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #f8fafc; font-size: 15px; font-family: inherit; outline: none; }
+    .hero-search-bar input:focus { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.07); }
+    .hero-search-bar select { padding: 13px 14px; background: rgba(17,24,39,0.9); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #f8fafc; font-size: 15px; font-family: inherit; outline: none; cursor: pointer; }
+    .trust-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; max-width: 900px; margin: 0 auto; }
+    .trust-stat { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; padding: 16px; text-align: center; }
+    .trust-stat strong { display: block; font-family: "Barlow Condensed", sans-serif; font-size: 19px; font-weight: 900; color: #f1f5f9; margin-bottom: 4px; line-height: 1.15; }
+    .trust-stat span { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+    /* Category discovery */
+    .cat-discovery { padding: 32px 0 12px; }
+    .cat-discovery-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    .cat-col-head { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #f1f5f9; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: color 0.15s; }
+    .cat-col-head:hover { color: #93c5fd; }
+    .cat-col-head-count { font-size: 10px; color: #475569; font-weight: 600; letter-spacing: 0; text-transform: none; }
+    .cat-sub-list { display: flex; flex-direction: column; gap: 1px; }
+    .cat-sub-item { display: flex; justify-content: space-between; align-items: center; padding: 7px 10px; border-radius: 8px; font-size: 13px; color: #94a3b8; cursor: pointer; transition: background 0.13s, color 0.13s; border: none; background: none; font-family: inherit; width: 100%; text-align: left; }
+    .cat-sub-item:hover { background: rgba(255,255,255,0.06); color: #f1f5f9; }
+    .cat-sub-count { font-size: 11px; color: #475569; font-weight: 600; }
+    .cat-sub-item.has-count { color: #cbd5e1; }
+    @media (max-width: 900px) { .trust-stats { grid-template-columns: repeat(2, 1fr); } .cat-discovery-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 500px) { .hero-search-bar .btn { width: 100%; } .cat-discovery-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -879,60 +898,52 @@
 
   <main id="top">
     <section class="hero">
-      <div class="container hero-grid">
-        <div class="hero-copy">
-          <div class="eyebrow">Torque DMA — Commercial Trucks, Trailers &amp; Equipment</div>
-          <h1>Commercial Trucks, Trailers &amp; Equipment <span style="color:#f8fafc">For Serious Buyers</span></h1>
-          <p class="hero-sub">Real dealer inventory, direct seller access, and financing built for commercial buyers.</p>
-          <p class="hero-hook">Shop with confidence before you move on a high-value unit.</p>
-          <p style="margin-top:8px;font-size:13px;color:#64748b;"><a href="/commercial-truck-financing.html" style="color:#94a3b8">Commercial truck financing</a>, <a href="/equipment-financing.html" style="color:#94a3b8">equipment financing</a>, and <a href="/trailer-financing.html" style="color:#94a3b8">trailer financing</a> — all in one place.</p>
-
-          <div class="hero-actions">
-            <a class="btn btn-green" href="/finance.html?src=homepage">Get Financing</a>
-            <a class="btn btn-primary" href="#inventory">Browse Inventory</a>
-            <a class="btn btn-secondary" href="#sell">Partners</a>
-          </div>
-          <p style="margin-top:8px;color:#64748b;font-size:14px;">Financing available for qualified commercial buyers.</p>
-          <p style="margin-top:6px;font-size:12px;color:#64748b;">Secure application &bull; Business-use financing &bull; Fast approvals</p>
-          <p style="margin-top:6px;font-size:13px;color:#64748b;">Initial application is intended for matching. If a lender needs a hard credit pull, you should be notified first.</p>
-
-          <div style="margin-top:20px">
-            <div class="cat-browser-head">
-              <h2>Browse By Equipment Type</h2>
-              <p id="cat-browser-count">Loading inventory...</p>
-            </div>
-            <div class="cat-tile-grid" id="cat-tile-grid">
-              <div style="grid-column:1/-1;padding:16px 0;color:#475569;font-size:12px">Loading categories...</div>
-            </div>
-            <p class="cat-browser-seo">Torque Hub is a commercial truck, trailer, and equipment marketplace built for buyers shopping work-ready inventory across North Carolina and beyond. Browse dump trucks, box trucks, rollbacks, equipment trailers, enclosed trailers, skid steers, excavators, tractors, and more from real dealers with direct contact and financing options available.</p>
-          </div>
-
+      <div class="container">
+        <div class="hero-header">
+          <div class="eyebrow">Torque DMA — Commercial Marketplace</div>
+          <h1>Commercial Trucks, Trailers &amp; Equipment for Sale</h1>
+          <p class="hero-sub">Browse work-ready dealer inventory across North Carolina and beyond. Real listings, direct seller access, and financing built for commercial buyers.</p>
         </div>
+        <div class="hero-search-bar">
+          <input type="text" id="hero-kw" placeholder="Search trucks, trailers, equipment, stock #..." autocomplete="off" onkeydown="if(event.key==='Enter')heroSearch()">
+          <select id="hero-cat">
+            <option value="">All Categories</option>
+            <option value="Trucks">Trucks</option>
+            <option value="Trailers">Trailers</option>
+            <option value="Construction">Construction</option>
+            <option value="Farm">Farm</option>
+          </select>
+          <button class="btn btn-primary" onclick="heroSearch()">Search</button>
+          <a class="btn btn-green" href="/finance.html?src=hero">Get Financing</a>
+        </div>
+        <div class="trust-stats">
+          <div class="trust-stat">
+            <strong id="trust-listing-count">450+</strong>
+            <span>Listings</span>
+          </div>
+          <div class="trust-stat">
+            <strong>8+</strong>
+            <span>Dealers</span>
+          </div>
+          <div class="trust-stat">
+            <strong>Trucks &middot; Trailers &middot; Equipment</strong>
+            <span>All Categories</span>
+          </div>
+          <div class="trust-stat">
+            <strong>Financing Available</strong>
+            <span>Commercial Buyers</span>
+          </div>
+        </div>
+      </div>
+    </section>
 
-        <aside class="hero-panel" aria-label="Featured inventory panel">
-          <div class="panel-kicker">Featured inventory</div>
-
-          <article class="featured-card" id="featured-card">
-            <div class="featured-image" id="featured-image" style="position:relative;overflow:hidden">
-              <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#64748b">Loading...</div>
-            </div>
-            <div class="featured-body">
-              <h2 class="featured-title" id="featured-title">Available Now</h2>
-              <div class="featured-meta" id="featured-meta"></div>
-              <div class="featured-price" id="featured-price"></div>
-              <div class="specs" style="margin-bottom: 16px;" id="featured-specs"></div>
-              <p class="featured-urgency">Financing options available for qualified buyers.</p>
-              <div class="featured-actions">
-                <a class="btn btn-primary" href="#" id="featured-view">View Listing</a>
-                <a class="btn btn-green" href="/finance.html?src=featured" id="featured-finance">Get Approved</a>
-                <a class="btn btn-secondary" href="#" id="featured-call">Call Dealer Now</a>
-              </div>
-              <button class="next-unit-link" onclick="nextFeatured()">Next featured unit ›</button>
-            </div>
-          </article>
-
-
-        </aside>
+    <!-- CATEGORY DISCOVERY -->
+    <section class="cat-discovery">
+      <div class="container">
+        <div class="cat-discovery-grid" id="cat-discovery-grid">
+          <div style="grid-column:1/-1;padding:20px 0;color:#475569;font-size:13px">Loading categories...</div>
+        </div>
+        <p class="cat-browser-seo" style="text-align:center;max-width:760px;margin:28px auto 0">Torque Hub connects buyers with commercial trucks, trailers, tractors, and heavy equipment for sale across North Carolina and beyond. Browse dealer inventory, compare units, and apply for financing.</p>
       </div>
     </section>
 
@@ -1202,6 +1213,101 @@ function filterByCatSub(cat, sub) {
   document.getElementById('inventory').scrollIntoView({ behavior: 'smooth' });
 }
 
+const CAT_SUBS = {
+  'Trucks': [
+    { label: 'Dump Trucks',     kw: 'dump' },
+    { label: 'Rollbacks',       kw: 'rollback' },
+    { label: 'Box Trucks',      kw: 'box' },
+    { label: 'Service Trucks',  kw: 'service' },
+    { label: 'Semi Trucks',     kw: 'semi' },
+    { label: 'Flatbeds',        kw: 'flatbed' },
+  ],
+  'Trailers': [
+    { label: 'Equipment Trailers', kw: 'equipment' },
+    { label: 'Dump Trailers',      kw: 'dump' },
+    { label: 'Enclosed Trailers',  kw: 'enclosed' },
+    { label: 'Goosenecks',         kw: 'gooseneck' },
+    { label: 'Livestock Trailers', kw: 'livestock' },
+    { label: 'Car / Racing',       kw: 'car' },
+  ],
+  'Construction': [
+    { label: 'Skid Steers',   kw: 'skid' },
+    { label: 'Excavators',    kw: 'excavator' },
+    { label: 'Loaders',       kw: 'loader' },
+    { label: 'Forklifts',     kw: 'forklift' },
+    { label: 'Backhoes',      kw: 'backhoe' },
+  ],
+  'Farm': [
+    { label: 'Tractors',       kw: 'tractor' },
+    { label: 'Hay Equipment',  kw: 'hay' },
+    { label: 'Mowers',         kw: 'mower' },
+    { label: 'Implements',     kw: 'implement' },
+    { label: 'Spreaders',      kw: 'spreader' },
+  ],
+};
+
+const CAT_DISPLAY = {
+  'Trucks': 'Commercial Trucks',
+  'Trailers': 'Trailers',
+  'Construction': 'Construction Equipment',
+  'Farm': 'Farm Equipment',
+};
+
+function renderCategoryDiscovery() {
+  const grid = document.getElementById('cat-discovery-grid');
+  if (!grid) return;
+  const active = ALL_INV.filter(u => !u.sold);
+
+  grid.innerHTML = Object.entries(CAT_SUBS).map(([cat, subs]) => {
+    const catItems = active.filter(u => (u.category || '') === cat);
+    const catCount = catItems.length;
+
+    const subItems = subs.map(({ label, kw }) => {
+      const count = catItems.filter(u =>
+        `${u.subcategory || ''} ${u.make || ''} ${u.model || ''}`.toLowerCase().includes(kw)
+      ).length;
+      const safecat = cat.replace(/'/g, "\\'");
+      const safekw  = kw.replace(/'/g, "\\'");
+      return `<button class="cat-sub-item${count > 0 ? ' has-count' : ''}" onclick="filterByCatSub('${safecat}','${safekw}')">
+        <span>${label}</span>
+        ${count > 0 ? `<span class="cat-sub-count">${count}</span>` : ''}
+      </button>`;
+    }).join('');
+
+    const safecat = cat.replace(/'/g, "\\'");
+    return `<div>
+      <div class="cat-col-head" onclick="filterByMainCat('${safecat}')">
+        <span>${CAT_DISPLAY[cat]}</span>
+        ${catCount > 0 ? `<span class="cat-col-head-count">${catCount} units</span>` : ''}
+      </div>
+      <div class="cat-sub-list">${subItems}</div>
+    </div>`;
+  }).join('');
+}
+
+function heroSearch() {
+  const kw = (document.getElementById('hero-kw') || {value: ''}).value.trim();
+  const cat = (document.getElementById('hero-cat') || {value: ''}).value;
+  const searchEl = document.getElementById('inv-search');
+  if (searchEl && kw) searchEl.value = kw;
+  if (cat) {
+    currentCat = cat;
+    currentSub = '';
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    const chip = [...document.querySelectorAll('.chip')].find(c => c.textContent.trim() === cat);
+    if (chip) chip.classList.add('active');
+  } else if (!kw) {
+    currentCat = '';
+    currentSub = '';
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    const allChip = document.querySelector('.chip');
+    if (allChip) allChip.classList.add('active');
+  }
+  currentPage = 1;
+  applyFilters();
+  document.getElementById('inventory').scrollIntoView({ behavior: 'smooth' });
+}
+
 function initMiniRotation() {
   miniItems = ALL_INV
     .filter(u => !u.sold && u.photos && u.photos.length)
@@ -1267,10 +1373,12 @@ async function loadAll() {
 
   const results = await Promise.allSettled([...feedPromises, ...sbPromises]);
   ALL_INV = results.flatMap(r => r.status === 'fulfilled' ? r.value : []);
-  renderFeatured();
+
+  const countEl = document.getElementById('trust-listing-count');
+  if (countEl) countEl.textContent = ALL_INV.filter(u => !u.sold).length.toLocaleString('en-US') + '+';
+
   renderDealers();
-  renderCategoryBrowser();
-  initMiniRotation();
+  renderCategoryDiscovery();
   applyFilters();
 }
 
@@ -1424,7 +1532,7 @@ function applyFilters() {
     const matchD = !dealer || u.dealer === dealer || (u._dealer && u._dealer.key === dealer);
     const matchC = !cond || u.condition === cond;
     const matchCat = !currentCat || (u.category || '').includes(currentCat);
-    const matchSub = !currentSub || (u.subcategory || '').trim() === currentSub;
+    const matchSub = !currentSub || `${u.subcategory || ''} ${u.make || ''} ${u.model || ''}`.toLowerCase().includes(currentSub.toLowerCase());
     return matchQ && matchD && matchC && matchCat && matchSub;
   });
 
