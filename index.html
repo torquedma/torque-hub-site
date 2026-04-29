@@ -1149,7 +1149,7 @@ function fmtMileage(val) {
 
 function trimEngine(val) {
   if (!val) return '—';
-  return val.split(/\s+[-–—]\s+/)[0].trim();
+  return val.split(/\s+[-–—]\s+/)[0].replace(/\s+Engine\s*$/i, '').trim();
 }
 
 function initDealerFilter() {
@@ -1209,7 +1209,11 @@ function miniResume() { if (miniItems.length > 1) miniTimer = setInterval(() => 
 async function loadAll() {
   const feedPromises = DEALERS.filter(d => d.feedUrl).map(d =>
     fetch(d.feedUrl).then(r => r.json()).then(items =>
-      items.filter(u => !u.sold).map(u => ({ ...u, _dealer: d }))
+      items.filter(u => !u.sold).map(u => {
+        if (d.key === "HGR's Truck and Trailer" && u.stock && !u.stock.includes('-'))
+          u = { ...u, stock: u.stock.slice(0, 3) + '-' + u.stock.slice(3) };
+        return { ...u, _dealer: d };
+      })
     ).catch(() => [])
   );
 
