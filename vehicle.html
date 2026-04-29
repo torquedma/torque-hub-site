@@ -82,7 +82,6 @@
     .vdp-headline-price { font-family: "Barlow Condensed", sans-serif; font-size: 26px; font-weight: 900; color: #e2e8f0; }
     .vdp-headline-sep { color: var(--soft); }
     .subcat-badge { display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; padding: 3px 10px; border-radius: 6px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.11); color: var(--muted); margin-top: 8px; }
-    .subcat-h2 { font-size: 13px; font-weight: 600; color: var(--soft); margin-top: 10px; letter-spacing: 0.01em; }
 
     /* GALLERY */
     .gallery { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
@@ -260,7 +259,6 @@
         <div class="vdp-headline" id="vdp-headline" style="display:none">
           <div class="vdp-headline-title" id="hl-title"></div>
           <div id="hl-badge" style="display:none"><span class="subcat-badge" id="hl-subcat"></span></div>
-          <h2 class="subcat-h2" id="hl-subcat-h2" style="display:none"></h2>
           <div class="vdp-headline-meta">
             <span class="vdp-headline-price" id="hl-price"></span>
             <span class="vdp-headline-sep" id="hl-sep" style="display:none">&bull;</span>
@@ -604,9 +602,6 @@ function render(unit, dealerKey) {
   if (subcat) {
     document.getElementById('hl-subcat').textContent = subcat;
     document.getElementById('hl-badge').style.display = 'block';
-    const h2El = document.getElementById('hl-subcat-h2');
-    h2El.textContent = `${subcat} for Sale — ${dealerKey || unit.dealer || ''}`;
-    h2El.style.display = 'block';
   }
   const hlPrice = document.getElementById('hl-price');
   if (hlPrice) hlPrice.textContent = price;
