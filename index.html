@@ -944,6 +944,14 @@
           <div style="grid-column:1/-1;padding:20px 0;color:#475569;font-size:13px">Loading categories...</div>
         </div>
         <p class="cat-browser-seo" style="text-align:center;max-width:760px;margin:28px auto 0">Torque Hub connects buyers with commercial trucks, trailers, tractors, and heavy equipment for sale across North Carolina and beyond. Browse dealer inventory, compare units, and apply for financing.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:16px">
+          <a href="/finance.html" style="font-size:12px;color:#94a3b8;text-decoration:none;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:6px 12px;transition:color 0.15s" onmouseover="this.style.color='#f1f5f9'" onmouseout="this.style.color='#94a3b8'">Commercial Financing</a>
+          <a href="/commercial-truck-financing.html" style="font-size:12px;color:#94a3b8;text-decoration:none;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:6px 12px;transition:color 0.15s" onmouseover="this.style.color='#f1f5f9'" onmouseout="this.style.color='#94a3b8'">Truck Financing</a>
+          <a href="/equipment-financing.html" style="font-size:12px;color:#94a3b8;text-decoration:none;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:6px 12px;transition:color 0.15s" onmouseover="this.style.color='#f1f5f9'" onmouseout="this.style.color='#94a3b8'">Equipment Financing</a>
+          <a href="/trailer-financing.html" style="font-size:12px;color:#94a3b8;text-decoration:none;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:6px 12px;transition:color 0.15s" onmouseover="this.style.color='#f1f5f9'" onmouseout="this.style.color='#94a3b8'">Trailer Financing</a>
+          <a href="/dealer-partners.html" style="font-size:12px;color:#94a3b8;text-decoration:none;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:6px 12px;transition:color 0.15s" onmouseover="this.style.color='#f1f5f9'" onmouseout="this.style.color='#94a3b8'">Dealer Partners</a>
+          <a href="/lender-partners.html" style="font-size:12px;color:#94a3b8;text-decoration:none;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:6px 12px;transition:color 0.15s" onmouseover="this.style.color='#f1f5f9'" onmouseout="this.style.color='#94a3b8'">Lender Partners</a>
+        </div>
       </div>
     </section>
 
@@ -964,15 +972,20 @@
       <div class="container">
         <div class="section-header">
           <div>
-            <h2 class="section-title">Available trucks & equipment</h2>
-
+            <h2 class="section-title">Commercial Trucks, Trailers &amp; Equipment for Sale</h2>
           </div>
-          <a class="btn btn-secondary" href="#inventory" onclick="currentCat='';document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));document.querySelector('.chip').classList.add('active');applyFilters();">View All Inventory</a>
+          <a class="btn btn-secondary" href="#inventory" onclick="currentCat='';currentSub='';document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));document.querySelector('.chip').classList.add('active');applyFilters();">View All</a>
         </div>
 
+        <p style="margin-bottom:16px;color:#64748b;font-size:14px;line-height:1.65;">Browse work trucks, trailers, construction equipment, and farm equipment from real dealers across North Carolina and beyond.</p>
 
-
-        <p style="margin-bottom:12px;color:#94a3b8;font-weight:600;font-size:14px;">Inventory moves fast — lock in financing before the right unit is gone.</p>
+        <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em">
+          <span style="color:#4ade80">&#10003; Updated daily</span>
+          <span style="color:#94a3b8">&bull;</span>
+          <span style="color:#94a3b8">Real dealer inventory</span>
+          <span style="color:#94a3b8">&bull;</span>
+          <span style="color:#94a3b8">Financing available</span>
+        </div>
         <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
           <input type="text" id="inv-search" placeholder="Search year, make, model, stock..." oninput="applyFilters()" style="flex:1;min-width:200px;padding:10px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#f8fafc;font-size:14px;font-family:inherit;outline:none">
           <select id="dealer-filter" onchange="applyFilters()" style="padding:10px 14px;background:rgba(17,24,39,0.9);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#f8fafc;font-size:14px;font-family:inherit;outline:none;cursor:pointer">
@@ -984,10 +997,10 @@
             <option value="Used">Used Only</option>
           </select>
           <select id="sort-filter" onchange="applyFilters()" style="padding:10px 14px;background:rgba(17,24,39,0.9);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#f8fafc;font-size:14px;font-family:inherit;outline:none;cursor:pointer">
+            <option value="year-desc">Newest First</option>
             <option value="featured">Featured First</option>
             <option value="price-asc">Price: Low to High</option>
             <option value="price-desc">Price: High to Low</option>
-            <option value="year-desc">Year: Newest</option>
             <option value="year-asc">Year: Oldest</option>
             <option value="days-desc">Days Listed: High to Low</option>
             <option value="days-asc">Days Listed: Low to High</option>
@@ -1215,34 +1228,34 @@ function filterByCatSub(cat, sub) {
 
 const CAT_SUBS = {
   'Trucks': [
-    { label: 'Dump Trucks',     kw: 'dump' },
-    { label: 'Rollbacks',       kw: 'rollback' },
-    { label: 'Box Trucks',      kw: 'box' },
-    { label: 'Service Trucks',  kw: 'service' },
-    { label: 'Semi Trucks',     kw: 'semi' },
-    { label: 'Flatbeds',        kw: 'flatbed' },
+    { label: 'Dump Trucks',     kw: 'dump',     slug: 'dump-trucks' },
+    { label: 'Rollback Trucks', kw: 'rollback', slug: 'rollback-trucks' },
+    { label: 'Box Trucks',      kw: 'box',      slug: 'box-trucks' },
+    { label: 'Service Trucks',  kw: 'service',  slug: 'service-trucks' },
+    { label: 'Semi Trucks',     kw: 'semi',     slug: 'semi-trucks' },
+    { label: 'Flatbeds',        kw: 'flatbed',  slug: 'flatbed-trucks' },
   ],
   'Trailers': [
-    { label: 'Equipment Trailers', kw: 'equipment' },
-    { label: 'Dump Trailers',      kw: 'dump' },
-    { label: 'Enclosed Trailers',  kw: 'enclosed' },
-    { label: 'Goosenecks',         kw: 'gooseneck' },
-    { label: 'Livestock Trailers', kw: 'livestock' },
-    { label: 'Car / Racing',       kw: 'car' },
+    { label: 'Equipment Trailers', kw: 'equipment', slug: 'equipment-trailers' },
+    { label: 'Dump Trailers',      kw: 'dump',       slug: 'dump-trailers' },
+    { label: 'Enclosed Trailers',  kw: 'enclosed',   slug: 'enclosed-trailers' },
+    { label: 'Gooseneck Trailers', kw: 'gooseneck',  slug: 'gooseneck-trailers' },
+    { label: 'Livestock Trailers', kw: 'livestock',  slug: 'livestock-trailers' },
+    { label: 'Car / Racing',       kw: 'car',        slug: 'car-racing-trailers' },
   ],
   'Construction': [
-    { label: 'Skid Steers',   kw: 'skid' },
-    { label: 'Excavators',    kw: 'excavator' },
-    { label: 'Loaders',       kw: 'loader' },
-    { label: 'Forklifts',     kw: 'forklift' },
-    { label: 'Backhoes',      kw: 'backhoe' },
+    { label: 'Skid Steers', kw: 'skid',      slug: 'skid-steers' },
+    { label: 'Excavators',  kw: 'excavator', slug: 'excavators' },
+    { label: 'Loaders',     kw: 'loader',    slug: 'loaders' },
+    { label: 'Forklifts',   kw: 'forklift',  slug: 'forklifts' },
+    { label: 'Backhoes',    kw: 'backhoe',   slug: 'backhoes' },
   ],
   'Farm': [
-    { label: 'Tractors',       kw: 'tractor' },
-    { label: 'Hay Equipment',  kw: 'hay' },
-    { label: 'Mowers',         kw: 'mower' },
-    { label: 'Implements',     kw: 'implement' },
-    { label: 'Spreaders',      kw: 'spreader' },
+    { label: 'Tractors',      kw: 'tractor',   slug: 'tractors' },
+    { label: 'Hay Equipment', kw: 'hay',        slug: 'hay-equipment' },
+    { label: 'Mowers',        kw: 'mower',      slug: 'mowers' },
+    { label: 'Implements',    kw: 'implement',  slug: 'implements' },
+    { label: 'Spreaders',     kw: 'spreader',   slug: 'spreaders' },
   ],
 };
 
@@ -1262,16 +1275,16 @@ function renderCategoryDiscovery() {
     const catItems = active.filter(u => (u.category || '') === cat);
     const catCount = catItems.length;
 
-    const subItems = subs.map(({ label, kw }) => {
+    const subItems = subs.map(({ label, kw, slug }) => {
       const count = catItems.filter(u =>
         `${u.subcategory || ''} ${u.make || ''} ${u.model || ''}`.toLowerCase().includes(kw)
       ).length;
       const safecat = cat.replace(/'/g, "\\'");
       const safekw  = kw.replace(/'/g, "\\'");
-      return `<button class="cat-sub-item${count > 0 ? ' has-count' : ''}" onclick="filterByCatSub('${safecat}','${safekw}')">
+      return `<a class="cat-sub-item${count > 0 ? ' has-count' : ''}" href="/inventory.html?type=${slug}" onclick="event.preventDefault();filterByCatSub('${safecat}','${safekw}')">
         <span>${label}</span>
         ${count > 0 ? `<span class="cat-sub-count">${count}</span>` : ''}
-      </button>`;
+      </a>`;
     }).join('');
 
     const safecat = cat.replace(/'/g, "\\'");
@@ -1407,91 +1420,6 @@ function featuredScore(u) {
   return score;
 }
 
-function trackFeaturedAction(action, unit) {
-  console.log("featured_action", {
-    action,
-    stock: unit && unit.stock,
-    title: unit ? [unit.year, unit.make, unit.model].filter(Boolean).join(" ") : "",
-    price: unit && unit.price,
-    timestamp: new Date().toISOString()
-  });
-}
-
-function renderFeatured() {
-  heroItems = ALL_INV
-    .filter(u => !u.sold && u.photos && u.photos.length)
-    .sort((a, b) => featuredScore(b) - featuredScore(a))
-    .slice(0, 8);
-  showFeatured(0);
-  if (heroTimer) clearInterval(heroTimer);
-  if (heroItems.length > 1) heroTimer = setInterval(() => showFeatured(heroIdx + 1), 5500);
-}
-
-function showFeatured(i) {
-  if (!heroItems.length) return;
-  heroIdx = (i + heroItems.length) % heroItems.length;
-  const u = heroItems[heroIdx];
-  const d = u._dealer || {};
-  const photo = u.photos && u.photos[0] ? (u.photos[0].url || u.photos[0].dataUrl || '') : '';
-  const next = heroItems[(heroIdx + 1) % heroItems.length];
-  const nextPhoto = next && next.photos && next.photos[0] ? (next.photos[0].url || next.photos[0].dataUrl || '') : '';
-  preloadImage(nextPhoto);
-  const title = [u.year, u.make, u.model].filter(Boolean).join(' ');
-
-  const imgEl = document.getElementById('featured-image');
-  if (imgEl) imgEl.innerHTML = photo
-    ? `<img src="${photo}" alt="${title}" loading="eager">`
-    : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#64748b">No Photo</div>`;
-
-  const titleEl = document.getElementById('featured-title');
-  if (titleEl) titleEl.textContent = title;
-
-  const metaEl = document.getElementById('featured-meta');
-  if (metaEl) metaEl.innerHTML = [u.condition, u.fuel, u.mileage ? u.mileage + ' mi' : null, d.location].filter(Boolean).map(s => `<span>${s}</span>`).join('');
-
-  const priceEl = document.getElementById('featured-price');
-  if (priceEl) priceEl.textContent = u.price || 'Call for Price';
-
-  const specsEl = document.getElementById('featured-specs');
-  if (specsEl) specsEl.innerHTML = [
-    u.engine ? ['Engine', u.engine] : null,
-    u.drivetrain ? ['Drive', u.drivetrain] : null,
-    ['Dealer', d.name || u.dealer],
-    ['Location', d.location || '']
-  ].filter(Boolean).map(([l, v]) => `<div class="spec"><span class="spec-label">${l}</span><span class="spec-value">${v}</span></div>`).join('');
-
-  const viewEl = document.getElementById('featured-view');
-  if (viewEl) {
-    viewEl.href = `vehicle.html?stock=${encodeURIComponent(u.stock || '')}&dealer=${encodeURIComponent(d.key || u.dealer || '')}`;
-    viewEl.onclick = () => trackFeaturedAction("view_listing", u);
-  }
-
-  const callEl = document.getElementById('featured-call');
-  if (callEl) {
-    callEl.href = `tel:${d.tel || ''}`;
-    callEl.textContent = `Call ${d.phone || 'Dealer'}`;
-    callEl.onclick = () => trackFeaturedAction("call_dealer", u);
-  }
-
-  const finEl = document.getElementById('featured-finance');
-  if (finEl) {
-    finEl.href = financeUrl(u, 'featured');
-    finEl.onclick = () => trackFeaturedAction("finance_click", u);
-  }
-}
-
-function nextFeatured() {
-  clearInterval(heroTimer);
-  showFeatured(heroIdx + 1);
-  heroTimer = setInterval(() => showFeatured(heroIdx + 1), 5500);
-}
-
-const featuredCard = document.getElementById("featured-card");
-if (featuredCard) {
-  featuredCard.addEventListener("mouseenter", () => { if (heroTimer) clearInterval(heroTimer); });
-  featuredCard.addEventListener("mouseleave", () => { if (heroItems.length > 1) heroTimer = setInterval(() => showFeatured(heroIdx + 1), 5500); });
-}
-
 // DEALER GRID
 function renderDealers() {
   const grid = document.getElementById('dealer-grid');
@@ -1525,7 +1453,7 @@ function applyFilters() {
   const q = (document.getElementById('inv-search') || {value:''}).value.toLowerCase();
   const dealer = (document.getElementById('dealer-filter') || {value:''}).value;
   const cond = (document.getElementById('condition-filter') || {value:''}).value;
-  const sort = (document.getElementById('sort-filter') || {value:'featured'}).value;
+  const sort = (document.getElementById('sort-filter') || {value:'year-desc'}).value;
 
   let filtered = ALL_INV.filter(u => {
     const matchQ = !q || `${u.year} ${u.make} ${u.model} ${u.stock} ${u.dealer}`.toLowerCase().includes(q);
