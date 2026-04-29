@@ -1,4 +1,10 @@
 const { createClient } = require('@supabase/supabase-js');
+const { generateDescription } = require('./lib/generate-description');
+
+const DEALER_INFO_MAP = {
+  'Impex Heavy Metal': { name: 'Impex Heavy Metal', phone: '336-715-8704', location: 'Greensboro, NC' },
+  "HGR's Truck and Trailer": { name: "HGR's Truck and Trailer", phone: '910-661-0868', location: 'Hope Mills, NC' },
+};
 
 // Use background function for longer timeout (15 minutes vs 10 seconds)
 exports.handler = async (event) => {
@@ -13,6 +19,7 @@ exports.handler = async (event) => {
   console.log('Payload:', JSON.stringify(body).slice(0, 300));
 
   const apifyToken = process.env.APIFY_API_TOKEN;
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
 
   // Handle all Apify webhook payload formats
   let datasetId = body?.defaultDatasetId 
@@ -113,6 +120,9 @@ exports.handler = async (event) => {
           if (m) drivetrain = m[1].trim();
         }
 
+        const rawDescription = item.description || item.title || '';
+        const dealerInfo = DEALER_INFO_MAP[dealer] || { name: dealer };
+
         const unit = {
           stock, dealer,
           year: item.year ? String(item.year) : '',
@@ -121,13 +131,23 @@ exports.handler = async (event) => {
           mileage, vin: item.vin || '', engine, transmission, drivetrain,
           fuel: item.fuel || 'Diesel',
           condition: item.condition || 'Used',
-          description: item.description || item.title || '',
+          raw_description: rawDescription,
+          description: rawDescription,
           category: item.category || 'Trucks',
           subcategory: '', sold: false, featured: 0, days: '0',
           photos: Array.isArray(item.photos) ? item.photos : [],
           source_type: 'truckpaper_apify',
           source_url: item.source_url || item.url || '',
         };
+
+        if (anthropicKey) {
+          try {
+            const desc = await generateDescription(unit, dealerInfo, anthropicKey);
+            if (desc) unit.description = desc;
+          } catch (e) {
+            console.error(`Description generation failed for ${stock}:`, e.message);
+          }
+        }
 
         const isExisting = existingStocks.has(stock);
         const { error } = isExisting
