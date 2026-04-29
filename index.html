@@ -981,10 +981,6 @@
           <input type="text" id="inv-search" placeholder="Search year, make, model, stock..." oninput="applyFilters()" style="flex:1;min-width:200px;padding:10px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#f8fafc;font-size:14px;font-family:inherit;outline:none">
           <select id="dealer-filter" onchange="applyFilters()" style="padding:10px 14px;background:rgba(17,24,39,0.9);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#f8fafc;font-size:14px;font-family:inherit;outline:none;cursor:pointer">
             <option value="">All Dealers</option>
-            <option value="Davenport Motors">Davenport Motors</option>
-            <option value="Fat Daddy's Truck Sales">Fat Daddy's Truck Sales</option>
-            <option value="Wilson Trailer Sales & Service">Wilson Trailer Sales & Service</option>
-            <option value="HGR's Truck and Trailer">HGR's Truck and Trailer</option>
           </select>
           <select id="condition-filter" onchange="applyFilters()" style="padding:10px 14px;background:rgba(17,24,39,0.9);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#f8fafc;font-size:14px;font-family:inherit;outline:none;cursor:pointer">
             <option value="">New & Used</option>
@@ -1131,12 +1127,26 @@ const DEALERS = [
   { key: "Fat Daddy's Truck Sales", name: "Fat Daddy's Truck Sales", feedUrl: "https://fatdaddystrucksales.netlify.app/.netlify/functions/inventory", phone: "919-759-5434", tel: "9197595434", location: "Goldsboro, NC", desc: "Old school pre-DEF work trucks. Box trucks, flatbeds, dump trucks ready to earn." },
   { key: "Wilson Trailer Sales & Service", name: "Wilson Trailer Sales & Service", feedUrl: "https://wilson-trailer-sales.netlify.app/.netlify/functions/inventory", phone: "252-429-8805", tel: "2524298805", location: "Wilson, NC", desc: "Full-service trailer dealership. Hoppers, dumps, dry vans, reefers, livestock trailers." },
   { key: "HGR's Truck and Trailer", name: "HGR's Truck & Trailer Sales", feedUrl: "https://torquehub.netlify.app/.netlify/functions/hgr-inventory", phone: "910-661-0868", tel: "9106610868", location: "Hope Mills, NC", desc: "Race trailers, enclosed trailers, cargo trailers, and specialty hauling setups." },
-  { key: "Impex Heavy Metal", name: "Impex Heavy Metal", feedUrl: "https://hub.torquedma.com/.netlify/functions/impex-inventory", phone: "336-715-8704", tel: "3367158704", location: "Greensboro, NC", desc: "Commercial trucks, trailers, and specialty vehicles. Day cabs, rollbacks, box trucks, yard spotters, and more." }
+  { key: "Impex Heavy Metal", name: "Impex Heavy Metal", feedUrl: "https://hub.torquedma.com/.netlify/functions/impex-inventory", phone: "336-715-8704", tel: "3367158704", location: "Greensboro, NC", desc: "Commercial trucks, trailers, and specialty vehicles. Day cabs, rollbacks, box trucks, yard spotters, and more." },
+  { key: "Joe's Tractor Sales", name: "Joe's Tractor Sales", feedUrl: null, phone: "336-850-8271", tel: "3368508271", location: "Thomasville, NC", desc: "" },
+  { key: "Auto Connection 210 LLC", name: "Auto Connection 210 LLC", feedUrl: null, phone: "910-490-2596", tel: "9104902596", location: "Angier, NC", desc: "" },
+  { key: "Dick Smith Equipment", name: "Dick Smith Equipment", feedUrl: null, phone: "919-734-1191", tel: "9197341191", location: "Goldsboro, NC", desc: "" }
 ];
 
 let ALL_INV = [], heroItems = [], heroIdx = 0, heroTimer = null, currentCat = '', currentPage = 1;
 let miniItems = [], miniIdx = 0, miniTimer = null;
 const PAGE_SIZE = 12;
+
+function initDealerFilter() {
+  const sel = document.getElementById('dealer-filter');
+  if (!sel) return;
+  DEALERS.forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d.key;
+    opt.textContent = d.name;
+    sel.appendChild(opt);
+  });
+}
 
 function initMiniRotation() {
   miniItems = ALL_INV
@@ -1440,6 +1450,7 @@ function renderInventory(items) {
   }
 }
 
+initDealerFilter();
 loadAll();
 </script>
 
