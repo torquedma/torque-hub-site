@@ -819,6 +819,23 @@
         padding: 4px;
       }
     }
+    /* Browse By Equipment Type */
+    .cat-browser { padding: 40px 0 20px; }
+    .cat-browser-head { text-align: center; margin-bottom: 28px; }
+    .cat-browser-head h2 { font-size: 24px; font-weight: 800; color: #f1f5f9; margin-bottom: 6px; }
+    .cat-browser-head p { font-size: 14px; color: #64748b; }
+    .cat-tile-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .cat-tile { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; padding: 18px; cursor: pointer; transition: border-color 0.2s, background 0.2s; }
+    .cat-tile:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.15); }
+    .cat-tile-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+    .cat-tile-name { font-size: 15px; font-weight: 800; color: #f1f5f9; }
+    .cat-tile-count { font-size: 11px; color: #64748b; font-weight: 600; }
+    .cat-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .subcat-chip { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 4px 10px; font-size: 11px; color: #94a3b8; cursor: pointer; font-family: inherit; transition: background 0.15s, color 0.15s; white-space: nowrap; }
+    .subcat-chip:hover { background: rgba(99,102,241,0.2); border-color: rgba(99,102,241,0.4); color: #c7d2fe; }
+    .cat-browser-seo { margin-top: 28px; font-size: 13px; color: #475569; line-height: 1.75; max-width: 760px; margin-left: auto; margin-right: auto; text-align: center; }
+    @media (max-width: 900px) { .cat-tile-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 480px) { .cat-tile-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -872,56 +889,6 @@
           <p style="margin-top:6px;font-size:12px;color:#64748b;">Secure application &bull; Business-use financing &bull; Fast approvals</p>
           <p style="margin-top:6px;font-size:13px;color:#64748b;">Initial application is intended for matching. If a lender needs a hard credit pull, you should be notified first.</p>
 
-          <div class="hero-mini-strip" id="hero-mini-strip">
-
-            <!-- LIVE NOW: click only, routes to newest -->
-            <a class="mini-unit mini-unit-link" href="#inventory" onclick="document.getElementById('sort-filter').value='year-desc';applyFilters();return true;">
-              <div class="mini-unit-tag">Live</div>
-              <div class="mini-unit-title" id="mini-count-total">— Units</div>
-              <div class="mini-unit-sub" style="margin-bottom:10px">Updated daily ›</div>
-              <div class="mini-bullets">
-                <div>&#10003; New &amp; used inventory</div>
-                <div>&#10003; Trucks &bull; Trailers &bull; Equipment</div>
-                <div>&#10003; Multiple NC dealers</div>
-              </div>
-            </a>
-
-            <!-- FEATURED: shows rotating mini unit card -->
-            <div class="mini-unit mini-unit-featured" id="mini-featured-tile"
-              onmouseenter="miniPause()" onmouseleave="miniResume()">
-              <div class="mini-unit-tag">Featured</div>
-              <div id="mini-featured-inner" style="margin-top:6px">
-                <div style="width:100%;aspect-ratio:4/3;background:rgba(255,255,255,0.04);border-radius:8px;margin-bottom:6px;overflow:hidden">
-                  <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#475569;font-size:11px">Loading...</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- FINANCING: click only -->
-            <a class="mini-unit mini-unit-link" href="/finance.html?src=hero" style="text-decoration:none">
-              <div class="mini-unit-tag">Financing</div>
-              <div class="mini-unit-title">Apply Fast</div>
-              <div class="mini-unit-sub" style="margin-bottom:10px">No credit impact ›</div>
-              <div class="mini-bullets">
-                <div>&#10003; Fast application</div>
-                <div>&#10003; Business-use financing</div>
-                <div>&#10003; Apply before you shop</div>
-              </div>
-            </a>
-
-          </div>
-
-          <!-- TRUST BLOCK -->
-          <div style="margin-top:20px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:20px 24px">
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#94a3b8;margin-bottom:12px">Why Shop Torque Hub?</div>
-            <div style="display:grid;gap:9px;margin-bottom:16px">
-              <div style="font-size:14px;font-weight:600;color:#cbd5e1">&#10003; Real dealer inventory</div>
-              <div style="font-size:14px;font-weight:600;color:#cbd5e1">&#10003; Direct calls to sellers</div>
-              <div style="font-size:14px;font-weight:600;color:#cbd5e1">&#10003; Financing path built in</div>
-              <div style="font-size:14px;font-weight:600;color:#cbd5e1">&#10003; Trucks, trailers, and equipment ready to work</div>
-            </div>
-            <a href="#inventory" onclick="currentCat=\'\';document.querySelectorAll(\'.chip\').forEach(c=>c.classList.remove(\'active\'));document.querySelector(\'.chip\').classList.add(\'active\');applyFilters();" style="display:inline-flex;align-items:center;justify-content:center;padding:10px 20px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:10px;font-size:13px;font-weight:700;color:#f1f5f9;text-decoration:none">Browse All Inventory &#8250;</a>
-          </div>
         </div>
 
         <aside class="hero-panel" aria-label="Featured inventory panel">
@@ -948,6 +915,20 @@
 
 
         </aside>
+      </div>
+    </section>
+
+    <!-- BROWSE BY EQUIPMENT TYPE -->
+    <section class="cat-browser">
+      <div class="container">
+        <div class="cat-browser-head">
+          <h2>Browse By Equipment Type</h2>
+          <p id="cat-browser-count">Loading inventory...</p>
+        </div>
+        <div class="cat-tile-grid" id="cat-tile-grid">
+          <div style="grid-column:1/-1;text-align:center;padding:40px 0;color:#475569;font-size:13px">Loading categories...</div>
+        </div>
+        <p class="cat-browser-seo">Torque Hub is a commercial truck, trailer, and equipment marketplace built for buyers shopping work-ready inventory across North Carolina and beyond. Browse dump trucks, box trucks, rollbacks, equipment trailers, enclosed trailers, skid steers, excavators, tractors, and more from real dealers with direct contact and financing options available.</p>
       </div>
     </section>
 
@@ -1137,7 +1118,7 @@ const SB_URL = 'https://bxsikkmqasydosmblzov.supabase.co';
 const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4c2lra21xYXN5ZG9zbWJsem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTc1OTksImV4cCI6MjA5MDQ3MzU5OX0.JMEI7cx2tddmbvfqm_qxiIWp7f5Phuk5l0Y487DUSZg';
 const SB_HDRS = { 'apikey': SB_ANON, 'Authorization': 'Bearer ' + SB_ANON };
 
-let ALL_INV = [], heroItems = [], heroIdx = 0, heroTimer = null, currentCat = '', currentPage = 1;
+let ALL_INV = [], heroItems = [], heroIdx = 0, heroTimer = null, currentCat = '', currentSub = '', currentPage = 1;
 let miniItems = [], miniIdx = 0, miniTimer = null;
 const PAGE_SIZE = 12;
 
@@ -1161,6 +1142,60 @@ function initDealerFilter() {
     opt.textContent = d.name;
     sel.appendChild(opt);
   });
+}
+
+function renderCategoryBrowser() {
+  const categories = ['Trucks', 'Trailers', 'Construction', 'Farm'];
+  const active = ALL_INV.filter(u => !u.sold);
+  const countEl = document.getElementById('cat-browser-count');
+  if (countEl) countEl.textContent = active.length.toLocaleString('en-US') + ' units live across ' + DEALERS.length + ' dealers';
+  const grid = document.getElementById('cat-tile-grid');
+  if (!grid) return;
+  grid.innerHTML = categories.map(cat => {
+    const catItems = active.filter(u => (u.category || '') === cat);
+    const subcatCounts = {};
+    catItems.forEach(u => {
+      const sub = (u.subcategory || '').trim();
+      if (sub) subcatCounts[sub] = (subcatCounts[sub] || 0) + 1;
+    });
+    const chips = Object.entries(subcatCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([sub, cnt]) => {
+        const safecat = cat.replace(/'/g, "\\'");
+        const safesub = sub.replace(/'/g, "\\'");
+        return `<button class="subcat-chip" onclick="event.stopPropagation();filterByCatSub('${safecat}','${safesub}')">${sub} (${cnt})</button>`;
+      }).join('');
+    return `<div class="cat-tile" onclick="filterByMainCat('${cat.replace(/'/g,"\\'")}')">
+      <div class="cat-tile-head">
+        <span class="cat-tile-name">${cat}</span>
+        <span class="cat-tile-count">${catItems.length} units</span>
+      </div>
+      <div class="cat-chips">${chips || '<span style="font-size:11px;color:#475569">No listings yet</span>'}</div>
+    </div>`;
+  }).join('');
+}
+
+function filterByMainCat(cat) {
+  currentCat = cat;
+  currentSub = '';
+  currentPage = 1;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  const chip = [...document.querySelectorAll('.chip')].find(c => c.textContent.trim() === cat);
+  if (chip) chip.classList.add('active');
+  applyFilters();
+  document.getElementById('inventory').scrollIntoView({ behavior: 'smooth' });
+}
+
+function filterByCatSub(cat, sub) {
+  currentCat = cat;
+  currentSub = sub;
+  currentPage = 1;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  const chip = [...document.querySelectorAll('.chip')].find(c => c.textContent.trim() === cat);
+  if (chip) chip.classList.add('active');
+  applyFilters();
+  document.getElementById('inventory').scrollIntoView({ behavior: 'smooth' });
 }
 
 function initMiniRotation() {
@@ -1230,6 +1265,7 @@ async function loadAll() {
   ALL_INV = results.flatMap(r => r.status === 'fulfilled' ? r.value : []);
   renderFeatured();
   renderDealers();
+  renderCategoryBrowser();
   initMiniRotation();
   applyFilters();
 }
@@ -1366,6 +1402,7 @@ function renderDealers() {
 // FILTERS
 function setCat(cat, el) {
   currentCat = cat;
+  currentSub = '';
   currentPage = 1;
   document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
   el.classList.add('active');
@@ -1383,7 +1420,8 @@ function applyFilters() {
     const matchD = !dealer || u.dealer === dealer || (u._dealer && u._dealer.key === dealer);
     const matchC = !cond || u.condition === cond;
     const matchCat = !currentCat || (u.category || '').includes(currentCat);
-    return matchQ && matchD && matchC && matchCat;
+    const matchSub = !currentSub || (u.subcategory || '').trim() === currentSub;
+    return matchQ && matchD && matchC && matchCat && matchSub;
   });
 
   if (sort === 'featured') filtered.sort((a, b) => (b.featured || 0) - (a.featured || 0));
