@@ -8,14 +8,29 @@ exports.handler = async (event) => {
   let body;
   try { body = JSON.parse(event.body || '{}'); } catch(e) { return { statusCode: 400, body: 'Invalid JSON' }; }
 
-  const datasetId = body?.eventData?.defaultDatasetId || body?.defaultDatasetId;
-  const dealerName = body?.eventData?.actorRunId ? null : body?.dealerName; // passed in webhook or from dataset
-  
-  if (!datasetId) return { statusCode: 400, body: 'No dataset ID in webhook payload' };
-
-  console.log('TruckPaper sync triggered. Dataset:', datasetId);
+  console.log('Webhook payload:', JSON.stringify(body).slice(0, 500));
 
   const apifyToken = process.env.APIFY_API_TOKEN;
+
+  // Handle both direct dataset ID and Apify webhook payload formats
+  let datasetId = body?.defaultDatasetId || body?.eventData?.defaultDatasetId;
+  const actorRunId = body?.actorRunId || body?.eventData?.actorRunId;
+  const dealerName = body?.dealerName || 'Impex Heavy Metal';
+
+  // If no dataset ID but have run ID, fetch dataset ID from run
+  if (!datasetId && actorRunId) {
+    console.log('Fetching dataset from run:', actorRunId);
+    const runRes = await fetch(`https://api.apify.com/v2/actor-runs/${actorRunId}?token=${apifyToken}`);
+    const runData = await runRes.json();
+    datasetId = runData?.data?.defaultDatasetId;
+    console.log('Got dataset ID from run:', datasetId);
+  }
+
+  if (!datasetId) {
+    console.error('No dataset ID found in payload:', JSON.stringify(body));
+    return { statusCode: 400, body: 'No dataset ID found' };
+  }
+
   const datasetUrl = `https://api.apify.com/v2/datasets/${datasetId}/items?token=${apifyToken}&format=json&clean=true&limit=10000`;
 
   let items;
@@ -32,12 +47,11 @@ exports.handler = async (event) => {
     return { statusCode: 200, body: JSON.stringify({ synced: 0, message: 'No items in dataset' }) };
   }
 
-  console.log(`Processing ${items.length} listings`);
+  console.log(`Processing ${items.length} listings for ${dealerName}`);
 
-  // Get dealer name from first item if not passed
   const dealer = dealerName || (items[0] && items[0].dealer) || 'Unknown Dealer';
 
-  // Get existing inventory for this dealer to detect removed units
+  // Get existing inventory for this dealer
   const { data: existing } = await supabase
     .from('inventory')
     .select('stock, id')
@@ -51,44 +65,38 @@ exports.handler = async (event) => {
 
   for (const item of items) {
     try {
-      const stock = item.stock || item.listingId ? `IHM${item.listingId}` : null;
+      const stock = item.stock || (item.listingId ? `IHM${item.listingId}` : null);
       if (!stock) continue;
 
       incomingStocks.add(stock);
 
-      // Map photos array
       const photos = Array.isArray(item.photos) ? item.photos : [];
 
-      // Parse mileage from description if not in field
       let mileage = item.mileage || '';
       if (!mileage && item.description) {
         const m = item.description.match(/Mileage[:\s]+([0-9,]+)/i) || item.description.match(/([0-9,]+)\s*[Mm]iles/);
         if (m) mileage = m[1].replace(/,/g, '');
       }
 
-      // Parse engine from description if not in field
       let engine = item.engine || '';
       if (!engine && item.description) {
         const m = item.description.match(/Engine[:\s•]+([^\n•✔]{5,60})/i);
         if (m) engine = m[1].trim();
       }
 
-      // Parse transmission from description if not in field
       let transmission = item.transmission || '';
       if (!transmission && item.description) {
         const m = item.description.match(/Transmission[:\s•]+([^\n•✔]{5,40})/i);
         if (m) transmission = m[1].trim();
       }
 
-      // Parse drivetrain from description
       let drivetrain = item.drivetrain || '';
       if (!drivetrain && item.description) {
-        const m = item.description.match(/Drivetrain[:\s•]+([^\n•✔]{3,20})/i) 
+        const m = item.description.match(/Drivetrain[:\s•]+([^\n•✔]{3,20})/i)
           || item.description.match(/\b(4WD|RWD|AWD|2WD|4x4|4x2|6x4|6x2)\b/i);
         if (m) drivetrain = m[1].trim();
       }
 
-      // Fix make/model for edge cases like "undefined"
       const make = (item.make && item.make !== 'undefined') ? item.make : '';
       const model = (item.model && item.model !== 'undefined') ? item.model : '';
 
@@ -117,12 +125,7 @@ exports.handler = async (event) => {
         source_url: item.source_url || item.url || '',
       };
 
-      // POST (new) or PATCH (update existing)
       const isExisting = existingStocks.has(stock);
-      const method = isExisting ? 'PATCH' : 'POST';
-      const url = isExisting
-        ? `${process.env.SUPABASE_URL}/rest/v1/inventory?stock=eq.${encodeURIComponent(stock)}&dealer=eq.${encodeURIComponent(dealer)}`
-        : `${process.env.SUPABASE_URL}/rest/v1/inventory`;
 
       const { error } = isExisting
         ? await supabase.from('inventory').update(unit).eq('stock', stock).eq('dealer', dealer)
@@ -144,16 +147,12 @@ exports.handler = async (event) => {
   let markedSold = 0;
   for (const stock of existingStocks) {
     if (!incomingStocks.has(stock)) {
-      await supabase
-        .from('inventory')
-        .update({ sold: true, sold_type: 'feed_removed' })
-        .eq('stock', stock)
-        .eq('dealer', dealer);
+      await supabase.from('inventory').update({ sold: true, sold_type: 'feed_removed' }).eq('stock', stock).eq('dealer', dealer);
       markedSold++;
     }
   }
 
   const result = { synced, errors, markedSold, total: items.length, dealer };
-  console.log('TruckPaper sync complete:', result);
+  console.log('Sync complete:', result);
   return { statusCode: 200, body: JSON.stringify(result) };
 };
