@@ -396,6 +396,11 @@
 </div>
 
 <script>
+// ─── SUPABASE ───────────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://bxsikkmqasydosmblzov.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4c2lra21xYXN5ZG9zbWJsem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTc1OTksImV4cCI6MjA5MDQ3MzU5OX0.JMEI7cx2tddmbvfqm_qxiIWp7f5Phuk5l0Y487DUSZg';
+const SB_HEADERS = { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON };
+
 // ─── DEALER CONFIG ──────────────────────────────────────────────────────────
 const DEALERS = {
   "Davenport Motors": {
@@ -469,6 +474,12 @@ const DEALERS = {
     phone: "757-663-4444", tel: "7576634444",
     address: "Norfolk, VA",
     mapsUrl: "https://maps.google.com/?q=Norfolk+VA"
+  },
+  "Joe's Tractor Sales": {
+    feedUrl: null,
+    phone: "910-375-4400", tel: "9103754400",
+    address: "Elizabethtown, NC",
+    mapsUrl: "https://maps.google.com/?q=Elizabethtown+NC"
   }
 };
 
@@ -716,27 +727,37 @@ function render(unit, dealerKey) {
 }
 
 // ─── SIMILAR UNITS ──────────────────────────────────────────────────────────
-function renderSimilar(currentUnit, allUnits, dealerKey) {
-  const similar = allUnits.filter(u =>
-    !u.sold &&
-    u.stock !== currentUnit.stock &&
-    (u.category === currentUnit.category || u.dealer === currentUnit.dealer)
-  ).slice(0, 6);
+async function loadSimilar(currentUnit, dealerKey) {
+  try {
+    // Primary: same category + same dealer
+    const url1 = `${SUPABASE_URL}/rest/v1/inventory?sold=eq.false&category=eq.${encodeURIComponent(currentUnit.category || '')}&dealer=eq.${encodeURIComponent(dealerKey)}&limit=7&select=stock,year,make,model,price,photos,dealer,category`;
+    let items = (await (await fetch(url1, { headers: SB_HEADERS })).json() || []).filter(u => u.stock !== currentUnit.stock);
 
-  if (!similar.length) return;
-  document.getElementById('similar-card').style.display = 'block';
-  document.getElementById('similar-grid').innerHTML = similar.map(u => {
-    const photo = u.photos && u.photos.length ? (u.photos[0].url || u.photos[0].dataUrl || '') : '';
-    const title = [u.year, u.make, u.model].filter(Boolean).join(' ');
-    const url = `vehicle.html?stock=${encodeURIComponent(u.stock)}&dealer=${encodeURIComponent(dealerKey || u.dealer || '')}`;
-    return `<a class="sim-item" href="${url}">
-      <div class="sim-img">${photo ? `<img src="${photo}" alt="${title}" loading="lazy">` : `<div style="width:100%;height:100%;background:var(--panel);display:flex;align-items:center;justify-content:center;color:var(--soft);font-size:12px">No Photo</div>`}</div>
-      <div class="sim-body">
-        <div class="sim-title">${title}</div>
-        <div class="sim-price">${u.price || 'Call'}</div>
-      </div>
-    </a>`;
-  }).join('');
+    // Fallback: same category only if fewer than 3
+    if (items.length < 3 && currentUnit.category) {
+      const url2 = `${SUPABASE_URL}/rest/v1/inventory?sold=eq.false&category=eq.${encodeURIComponent(currentUnit.category)}&limit=10&select=stock,year,make,model,price,photos,dealer,category`;
+      const more = (await (await fetch(url2, { headers: SB_HEADERS })).json() || []).filter(u => u.stock !== currentUnit.stock);
+      const seen = new Set(items.map(u => u.stock));
+      for (const u of more) { if (!seen.has(u.stock)) items.push(u); }
+    }
+
+    items = items.slice(0, 6);
+    if (!items.length) return;
+
+    document.getElementById('similar-card').style.display = 'block';
+    document.getElementById('similar-grid').innerHTML = items.map(u => {
+      const photo = u.photos && u.photos.length ? (u.photos[0].url || u.photos[0].dataUrl || '') : '';
+      const title = [u.year, u.make, u.model].filter(Boolean).join(' ');
+      const href = `vehicle.html?stock=${encodeURIComponent(u.stock)}&dealer=${encodeURIComponent(u.dealer || dealerKey || '')}`;
+      return `<a class="sim-item" href="${href}">
+        <div class="sim-img">${photo ? `<img src="${photo}" alt="${title}" loading="lazy">` : `<div style="width:100%;height:100%;background:var(--panel);display:flex;align-items:center;justify-content:center;color:var(--soft);font-size:12px">No Photo</div>`}</div>
+        <div class="sim-body">
+          <div class="sim-title">${title}</div>
+          <div class="sim-price">${u.price || 'Call'}</div>
+        </div>
+      </a>`;
+    }).join('');
+  } catch (e) { console.warn('Similar units error:', e.message); }
 }
 
 // ─── LEAD FORM ──────────────────────────────────────────────────────────────
@@ -761,22 +782,29 @@ function submitLead() {
     return;
   }
 
-  const subject = encodeURIComponent(`Torque Hub Lead — ${listingTitle}`);
-  const body = encodeURIComponent(
-    `Name: ${name}\nPhone: ${phone || 'N/A'}\nEmail: ${email || 'N/A'}\n\n${msg}\n\n---\nStock #: ${stock}\nDealer: ${dealer}\nListing: ${pageUrl}\nReferrer: ${referrer || 'Direct'}`
-  );
-
-  // Submit to Netlify function for reliable lead tracking
-  fetch('/.netlify/functions/submit-lead', {
+  fetch(`${SUPABASE_URL}/rest/v1/leads`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, phone, email, message: msg, stock, dealer, listingTitle, pageUrl, referrer: referrer || document.referrer || 'Direct' })
+    headers: { ...SB_HEADERS, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+    body: JSON.stringify({
+      customer_name: name,
+      customer_phone: phone || null,
+      customer_email: email || null,
+      dealer_name: dealer,
+      source: 'vdp',
+      message: msg,
+      status: 'new',
+      stock: stock || null,
+      unit_title: listingTitle || null,
+      source_url: pageUrl || null
+    })
   }).then(r => {
-    if (!r.ok) throw new Error('Submit failed');
+    if (!r.ok) throw new Error('Submit failed: ' + r.status);
     document.getElementById('form-inner').style.display = 'none';
     document.getElementById('form-success').style.display = 'block';
-  }).catch(() => {
-    // Fallback to mailto if function fails
+  }).catch(err => {
+    console.error('Lead submit error:', err);
+    const subject = encodeURIComponent(`Torque Hub Lead — ${listingTitle}`);
+    const body = encodeURIComponent(`Name: ${name}\nPhone: ${phone || 'N/A'}\nEmail: ${email || 'N/A'}\n\n${msg}\n\n---\nStock #: ${stock}\nDealer: ${dealer}\nListing: ${pageUrl}\nReferrer: ${referrer || 'Direct'}`);
     window.location.href = `mailto:leads@torquedma.com?subject=${subject}&body=${body}`;
     document.getElementById('form-inner').style.display = 'none';
     document.getElementById('form-success').style.display = 'block';
@@ -787,7 +815,7 @@ function submitLead() {
 async function init() {
   const params = new URLSearchParams(window.location.search);
   const stock = params.get('stock');
-  const dealerKey = params.get('dealer');
+  const dealerParam = params.get('dealer');
 
   if (!stock) {
     document.getElementById('vdp-loading').style.display = 'none';
@@ -795,27 +823,31 @@ async function init() {
     return;
   }
 
-  // Try to find in dealer feed
-  const dealerConfig = (dealerKey && DEALERS[dealerKey]) || Object.values(DEALERS).find(d => d.feedUrl);
-  const feedsToTry = dealerKey && DEALERS[dealerKey]
-    ? [{ key: dealerKey, config: DEALERS[dealerKey] }]
-    : Object.entries(DEALERS).map(([k, v]) => ({ key: k, config: v }));
-
   let unit = null;
-  let foundDealerKey = dealerKey;
-  let allUnitsFromDealer = [];
+  let foundDealerKey = dealerParam || '';
 
-  for (const { key, config } of feedsToTry) {
+  // Primary: stock + dealer exact match
+  if (dealerParam) {
     try {
-      const items = await fetch(config.feedUrl).then(r => r.json());
-      const found = items.find(u => u.stock === stock);
-      if (found) {
-        unit = found;
-        foundDealerKey = key;
-        allUnitsFromDealer = items;
-        break;
-      }
-    } catch (e) { console.warn('Feed error:', key, e.message); }
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/inventory?stock=eq.${encodeURIComponent(stock)}&dealer=eq.${encodeURIComponent(dealerParam)}&limit=1`,
+        { headers: SB_HEADERS }
+      );
+      const data = await res.json();
+      if (data && data.length) unit = data[0];
+    } catch (e) { console.warn('Primary fetch failed:', e.message); }
+  }
+
+  // Fallback: stock-only (handles dealer key formatting mismatches)
+  if (!unit) {
+    try {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/inventory?stock=eq.${encodeURIComponent(stock)}&limit=1`,
+        { headers: SB_HEADERS }
+      );
+      const data = await res.json();
+      if (data && data.length) { unit = data[0]; foundDealerKey = unit.dealer || dealerParam || ''; }
+    } catch (e) { console.warn('Fallback fetch failed:', e.message); }
   }
 
   if (!unit) {
@@ -824,8 +856,9 @@ async function init() {
     return;
   }
 
+  foundDealerKey = foundDealerKey || unit.dealer || '';
   render(unit, foundDealerKey);
-  renderSimilar(unit, allUnitsFromDealer, foundDealerKey);
+  loadSimilar(unit, foundDealerKey);
 }
 
 init();
