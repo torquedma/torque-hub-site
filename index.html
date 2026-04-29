@@ -862,6 +862,59 @@
     .cat-sub-item.has-count { color: #cbd5e1; }
     @media (max-width: 900px) { .trust-stats { grid-template-columns: repeat(2, 1fr); } .cat-discovery-grid { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 500px) { .hero-search-bar .btn { width: 100%; } .cat-discovery-grid { grid-template-columns: 1fr; } }
+
+    /* ── COLOR HIERARCHY ──────────────────────────────────────── */
+
+    /* H1 — centered green rule beneath */
+    .hero-header h1::after {
+      content: '';
+      display: block;
+      width: 52px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #365943 40%, transparent);
+      margin: 14px auto 0;
+      border-radius: 2px;
+    }
+
+    /* Section titles — green left accent bar */
+    .section-title {
+      border-left: 3px solid #365943;
+      padding-left: 14px;
+    }
+
+    /* Category discovery column heads — green bottom rule */
+    .cat-col-head { border-bottom-color: rgba(54,89,67,0.45); }
+    .cat-col-head:hover { color: #86efac; }
+
+    /* Subcategory link hover — green signal */
+    .cat-sub-item:hover { color: #86efac; background: rgba(54,89,67,0.12); }
+
+    /* Trust stat: numbers white, listing count green */
+    .trust-stat strong { color: #ffffff; }
+    #trust-listing-count { color: #86efac; }
+
+    /* Active category chip — green accent */
+    .chip.active {
+      background: rgba(54,89,67,0.22);
+      border-color: rgba(54,89,67,0.65);
+      color: #86efac;
+    }
+    .chip:hover:not(.active) { background: rgba(255,255,255,0.06); color: #f1f5f9; }
+
+    /* Eyebrow indicator dot — brand green */
+    .eyebrow::before { background: #365943; box-shadow: 0 0 6px rgba(54,89,67,0.5); }
+
+    /* Search inputs — green focus border */
+    .hero-search-bar input:focus { border-color: #365943; background: rgba(54,89,67,0.06); }
+    #inv-search:focus { border-color: #365943; background: rgba(54,89,67,0.06); }
+
+    /* Inventory cards — subtle green border on hover */
+    .card { transition: border-color 0.18s; }
+    .card:hover { border-color: rgba(54,89,67,0.4); }
+
+    /* Price stays dominant white — no change needed */
+    /* spec-label already muted #94a3b8 — correct */
+    /* inventory-title already #f8fafc — correct */
   </style>
 </head>
 <body>
