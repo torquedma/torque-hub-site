@@ -111,13 +111,7 @@
 
     /* DESCRIPTION */
     .desc-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin-top: 20px; }
-    .desc-body { padding: 18px; font-size: 14px; line-height: 1.8; color: var(--muted); white-space: pre-line; }
-
-    /* BEST FOR */
-    .bestfor-card { background: #111827; border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius); padding: 18px; margin-top: 20px; }
-    .bestfor-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; margin-bottom: 12px; }
-    .bestfor-items { display: flex; flex-wrap: wrap; gap: 8px; }
-    .bestfor-item { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text); font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 8px; }
+    .desc-body { padding: 18px; font-size: 14px; line-height: 1.8; color: var(--muted); }
 
     /* SIMILAR */
     .similar-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin-top: 20px; }
@@ -287,12 +281,6 @@
         <div class="specs-card">
           <div class="card-head">Unit Details</div>
           <div class="specs-grid" id="specs-grid"></div>
-        </div>
-
-        <!-- Best For -->
-        <div class="bestfor-card" id="bestfor-card" style="display:none">
-          <div class="bestfor-title">Perfect For</div>
-          <div class="bestfor-items" id="bestfor-items"></div>
         </div>
 
         <!-- Finance Block -->
@@ -483,42 +471,26 @@ const DEALERS = {
   }
 };
 
-// BEST FOR LOGIC
-function getBestFor(u) {
-  const cat = (u.category || '').toLowerCase();
-  const model = (u.model || '').toLowerCase();
-  const make = (u.make || '').toLowerCase();
-  const desc = (u.description || '').toLowerCase();
-  const items = [];
+// ─── HELPERS ────────────────────────────────────────────────────────────────
+function formatPrice(raw) {
+  if (!raw) return 'Call for Price';
+  const n = parseFloat(String(raw).replace(/[^0-9.]/g, ''));
+  if (!n) return 'Call for Price';
+  return '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+}
 
-  if (cat.includes('truck') || make.includes('ford') || make.includes('chevy') || make.includes('gmc') || make.includes('freightliner') || make.includes('international') || make.includes('kenworth') || make.includes('peterbilt') || make.includes('mack')) {
-    if (desc.includes('dump') || model.includes('dump')) { items.push('excavation crews', 'contractors', 'material hauling', 'landscaping'); }
-    else if (desc.includes('box') || model.includes('box') || model.includes('fuso')) { items.push('delivery routes', 'landscaping crews', 'small business logistics', 'equipment hauling'); }
-    else if (desc.includes('flat') || model.includes('flat')) { items.push('contractors', 'farm use', 'material hauling', 'equipment transport'); }
-    else if (desc.includes('semi') || desc.includes('tractor') || u.year && parseInt(u.year) < 2012) { items.push('long haul', 'regional freight', 'owner-operators', 'fleet expansion'); }
-    else { items.push('contractors', 'daily work routes', 'small businesses', 'farm use'); }
-  } else if (cat.includes('trailer')) {
-    if (desc.includes('livestock') || desc.includes('cattle') || desc.includes('hog')) { items.push('cattle ranchers', 'hog farmers', 'livestock transport', 'farm operations'); }
-    else if (desc.includes('dump') || desc.includes('hopper')) { items.push('grain hauling', 'bulk material transport', 'coal hauling', 'aggregate delivery'); }
-    else if (desc.includes('race') || desc.includes('enclosed') && desc.includes('car')) { items.push('race teams', 'car hauling', 'show transport', 'weekend events'); }
-    else if (desc.includes('dry van') || desc.includes('reefer') || desc.includes('refriger')) { items.push('freight carriers', 'food distribution', 'cold chain logistics', 'owner-operators'); }
-    else { items.push('hauling equipment', 'freight transport', 'agricultural use', 'contractors'); }
-  } else if (cat.includes('construction') || cat.includes('equipment')) {
-    items.push('construction crews', 'site work', 'excavation', 'property development');
-  } else if (cat.includes('farm') || cat.includes('agri')) {
-    items.push('farm operations', 'property maintenance', 'rural land work', 'small acreage');
-  } else {
-    items.push('work operations', 'contractors', 'small businesses', 'daily use');
-  }
-
-  return items.slice(0, 5);
+function formatDescription(text) {
+  if (!text) return '';
+  return text
+    .replace(/^- /gm, '• ')
+    .replace(/\n/g, '<br>');
 }
 
 // ─── GALLERY ────────────────────────────────────────────────────────────────
 let photos = [], photoIdx = 0;
 
-function initGallery(rawPhotos, videoUrl) {
-  photos = (rawPhotos || []).filter(p => p.url || p.dataUrl);
+function initGallery(rawPhotos) {
+  photos = (rawPhotos || []).filter(p => p && p.url);
   const mainEl = document.getElementById('gallery-main');
   const thumbsEl = document.getElementById('gallery-thumbs');
   const prevBtn = document.getElementById('gallery-prev');
@@ -527,45 +499,28 @@ function initGallery(rawPhotos, videoUrl) {
 
   if (!photos.length) return;
 
-  // Add video slide if present
-  if (videoUrl) photos = [...photos, { url: '__video__', videoUrl }];
+  // Place main image (single element we'll swap src on)
+  mainEl.innerHTML = `<img id="gallery-img" src="${photos[0].url}" alt="Photo 1" loading="eager">`;
 
   if (photos.length > 1) {
     prevBtn.style.display = 'flex';
     nextBtn.style.display = 'flex';
     counter.style.display = 'block';
+    counter.textContent = `1 / ${photos.length}`;
   }
 
   thumbsEl.innerHTML = photos.map((p, i) =>
-    p.url === '__video__'
-      ? `<div class="thumb${i===0?' active':''}" onclick="showPhoto(${i})" style="background:#111;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px">▶</div>`
-      : `<div class="thumb${i===0?' active':''}" onclick="showPhoto(${i})"><img src="${p.url||p.dataUrl}" loading="lazy" alt="Photo ${i+1}"></div>`
+    `<div class="thumb${i === 0 ? ' active' : ''}" onclick="showPhoto(${i})"><img src="${p.url}" loading="lazy" alt="Photo ${i + 1}"></div>`
   ).join('');
-
-  showPhoto(0);
 }
 
 function showPhoto(i) {
-  photoIdx = (i + photos.length) % photos.length;
-  const p = photos[photoIdx];
-  const mainEl = document.getElementById('gallery-main');
+  if (!photos.length) return;
+  photoIdx = ((i % photos.length) + photos.length) % photos.length;
+  const img = document.getElementById('gallery-img');
+  if (img) img.src = photos[photoIdx].url;
   const counter = document.getElementById('gallery-counter');
-
-  if (p.url === '__video__') {
-    window.open(p.videoUrl, '_blank');
-    return;
-  }
-
-  const url = p.url || p.dataUrl;
-  const existImg = mainEl.querySelector('img');
-  if (existImg) { existImg.src = url; }
-  else {
-    mainEl.innerHTML = `<img src="${url}" alt="Photo ${photoIdx+1}" loading="eager">
-      <button class="gallery-arrow gallery-prev" onclick="galleryNav(-1)">‹</button>
-      <button class="gallery-arrow gallery-next" onclick="galleryNav(1)">›</button>
-      <div class="gallery-counter" id="gallery-counter">${photoIdx+1} / ${photos.length}</div>`;
-  }
-  if (counter) counter.textContent = `${photoIdx+1} / ${photos.length}`;
+  if (counter) counter.textContent = `${photoIdx + 1} / ${photos.length}`;
   document.querySelectorAll('.thumb').forEach((t, j) => t.classList.toggle('active', j === photoIdx));
 }
 
@@ -575,14 +530,14 @@ function galleryNav(dir) { showPhoto(photoIdx + dir); }
 function render(unit, dealerKey) {
   const d = DEALERS[dealerKey] || DEALERS[unit.dealer] || {};
   const title = [unit.year, unit.make, unit.model].filter(Boolean).join(' ') || 'Unit Available';
-  const price = unit.price || 'Call for Price';
+  const price = formatPrice(unit.price);
   const isSold = unit.sold === true;
 
   // Page meta
   const pageUrl = `https://hub.torquedma.com/vehicle.html?stock=${encodeURIComponent(unit.stock)}&dealer=${encodeURIComponent(dealerKey)}`;
   document.title = `${title}${price !== 'Call for Price' ? ' — ' + price : ''} | Torque Hub`;
   document.getElementById('page-title').textContent = document.title;
-  document.getElementById('page-desc').content = `${title} for sale${d.address ? ' in ' + d.address.split('\n')[1] : ' in NC'}. ${price}. Call ${d.phone || 'dealer'} or apply for financing. Torque Hub powered by Torque DMA.`;
+  document.getElementById('page-desc').content = `${title} for sale${d.address ? ' in ' + d.address : ' in NC'}. ${price}. Call ${d.phone || 'dealer'} or apply for financing. Torque Hub powered by Torque DMA.`;
   document.getElementById('canonical-url').href = pageUrl;
   document.getElementById('og-title').content = document.title;
   document.getElementById('og-desc').content = document.getElementById('page-desc').content;
@@ -611,7 +566,7 @@ function render(unit, dealerKey) {
     "url": pageUrl,
     "offers": {
       "@type": "Offer",
-      "price": parseFloat(String(price).replace(/[^0-9.]/g, '')) || undefined,
+      "price": parseFloat(String(unit.price || '').replace(/[^0-9.]/g, '')) || undefined,
       "priceCurrency": "USD",
       "availability": isSold ? "https://schema.org/SoldOut" : "https://schema.org/InStock",
       "seller": {
@@ -633,7 +588,7 @@ function render(unit, dealerKey) {
   const hlTitle = document.getElementById('hl-title');
   if (hlTitle) hlTitle.textContent = title;
   const hlPrice = document.getElementById('hl-price');
-  if (hlPrice) hlPrice.textContent = price !== 'Call for Price' ? price : 'Call for Price';
+  if (hlPrice) hlPrice.textContent = price;
   const hlDealer = document.getElementById('hl-dealer');
   if (hlDealer) hlDealer.textContent = dealerKey || unit.dealer || '';
   const hlLocation = document.getElementById('hl-location');
@@ -646,14 +601,14 @@ function render(unit, dealerKey) {
   if (isSold) document.getElementById('sold-banner').style.display = 'flex';
 
   // Gallery
-  initGallery(unit.photos, unit.video_url);
+  initGallery(unit.photos);
 
   // Sidebar price
   document.getElementById('s-title').textContent = title;
   document.getElementById('s-stock').textContent = unit.stock ? `Stock # ${unit.stock}` : '';
   const priceEl = document.getElementById('s-price');
   priceEl.textContent = price;
-  if (price === 'Call for Price' || price === 'Call') priceEl.classList.add('call');
+  if (price === 'Call for Price') priceEl.classList.add('call');
   const urgencyEl = document.getElementById('price-urgency');
   if (urgencyEl && !isSold) urgencyEl.style.display = 'block';
 
@@ -667,7 +622,7 @@ function render(unit, dealerKey) {
 
   // Finance URLs with context
   const unitSlug = title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-  const priceNum = parseFloat(String(price).replace(/[^0-9.]/g, '')) || '';
+  const priceNum = parseFloat(String(unit.price || '').replace(/[^0-9.]/g, '')) || '';
   const financeUrl = `/finance.html?stock=${encodeURIComponent(unit.stock || '')}&unit=${encodeURIComponent(unitSlug)}&price=${priceNum}&src=listing`;
   document.getElementById('cta-finance').href = financeUrl;
   document.getElementById('mobile-finance').href = financeUrl;
@@ -700,17 +655,10 @@ function render(unit, dealerKey) {
     `<div class="spec-row"><div class="spec-label">${l}</div><div class="spec-val">${v}</div></div>`
   ).join('');
 
-  // Best For
-  const bestFor = getBestFor(unit);
-  if (bestFor.length) {
-    document.getElementById('bestfor-card').style.display = 'block';
-    document.getElementById('bestfor-items').innerHTML = bestFor.map(b => `<span class="bestfor-item">✓ ${b}</span>`).join('');
-  }
-
   // Description
   if (unit.description) {
     document.getElementById('desc-card').style.display = 'block';
-    document.getElementById('desc-body').innerHTML = unit.description.replace(/\n/g, '<br>');
+    document.getElementById('desc-body').innerHTML = formatDescription(unit.description);
   }
 
   // Lead form hidden fields
@@ -753,7 +701,7 @@ async function loadSimilar(currentUnit, dealerKey) {
         <div class="sim-img">${photo ? `<img src="${photo}" alt="${title}" loading="lazy">` : `<div style="width:100%;height:100%;background:var(--panel);display:flex;align-items:center;justify-content:center;color:var(--soft);font-size:12px">No Photo</div>`}</div>
         <div class="sim-body">
           <div class="sim-title">${title}</div>
-          <div class="sim-price">${u.price || 'Call'}</div>
+          <div class="sim-price">${formatPrice(u.price)}</div>
         </div>
       </a>`;
     }).join('');
