@@ -1170,7 +1170,7 @@ function showMini(i) {
   if (!inner) return;
   inner.innerHTML = `<a href="${vdpUrl}">
     <div class="mini-card-img">${photo ? `<img src="${photo}" alt="${title}" loading="eager">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#475569;font-size:11px">No Photo</div>`}</div>
-    <div class="mini-card-price">${u.price || 'Call'}</div>
+    <div class="mini-card-price">${u.price ? "$" + Number(u.price).toLocaleString() : "Call"}</div>
     <span class="mini-card-cta">View Details</span>
   </a>`;
 }
@@ -1416,7 +1416,7 @@ function renderInventory(items) {
         </div>
         <div class="inventory-bottom">
           <div>
-            <div class="price">${u.price || 'Call'}</div>
+            <div class="price">${u.price ? "$" + Number(u.price).toLocaleString() : "Call"}</div>
             <div class="location">${d.phone || ''}</div>
           </div>
           <div class="featured-actions">
