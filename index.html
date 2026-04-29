@@ -1141,6 +1141,17 @@ let ALL_INV = [], heroItems = [], heroIdx = 0, heroTimer = null, currentCat = ''
 let miniItems = [], miniIdx = 0, miniTimer = null;
 const PAGE_SIZE = 12;
 
+function fmtMileage(val) {
+  if (!val) return '—';
+  const n = parseInt(String(val).replace(/[^0-9]/g, ''), 10);
+  return isNaN(n) ? String(val) : n.toLocaleString('en-US');
+}
+
+function trimEngine(val) {
+  if (!val) return '—';
+  return val.split(/\s+[-–—]\s+/)[0].trim();
+}
+
 function initDealerFilter() {
   const sel = document.getElementById('dealer-filter');
   if (!sel) return;
@@ -1419,11 +1430,11 @@ function renderInventory(items) {
     const title = [u.year, u.make, u.model].filter(Boolean).join(' ') || 'Unit Available';
     const vdpUrl = `vehicle.html?stock=${encodeURIComponent(u.stock || '')}&dealer=${encodeURIComponent(d.key || u.dealer || '')}`;
     const mileageLabel = u.hours ? 'Hours' : 'Miles';
-    const mileageValue = u.hours || u.mileage || '—';
+    const mileageValue = fmtMileage(u.hours || u.mileage);
     const specs = [
       ['Fuel', u.fuel || '—'],
       [mileageLabel, mileageValue],
-      ['Engine', u.engine || '—'],
+      ['Engine', trimEngine(u.engine)],
       ['Dealer', d.name || u.dealer || '—']
     ];
 
