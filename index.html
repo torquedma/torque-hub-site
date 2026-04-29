@@ -1133,6 +1133,10 @@ const DEALERS = [
   { key: "Dick Smith Equipment", name: "Dick Smith Equipment", feedUrl: null, phone: "919-734-1191", tel: "9197341191", location: "Goldsboro, NC", desc: "" }
 ];
 
+const SB_URL = 'https://bxsikkmqasydosmblzov.supabase.co';
+const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4c2lra21xYXN5ZG9zbWJsem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTc1OTksImV4cCI6MjA5MDQ3MzU5OX0.JMEI7cx2tddmbvfqm_qxiIWp7f5Phuk5l0Y487DUSZg';
+const SB_HDRS = { 'apikey': SB_ANON, 'Authorization': 'Bearer ' + SB_ANON };
+
 let ALL_INV = [], heroItems = [], heroIdx = 0, heroTimer = null, currentCat = '', currentPage = 1;
 let miniItems = [], miniIdx = 0, miniTimer = null;
 const PAGE_SIZE = 12;
@@ -1192,13 +1196,22 @@ function miniPause() { if (miniTimer) { clearInterval(miniTimer); miniTimer = nu
 function miniResume() { if (miniItems.length > 1) miniTimer = setInterval(() => showMini(miniIdx + 1), 4500); }
 
 async function loadAll() {
-  const results = await Promise.allSettled(
-    DEALERS.filter(d => d.feedUrl).map(d =>
-      fetch(d.feedUrl).then(r => r.json()).then(items =>
-        items.filter(u => !u.sold).map(u => ({ ...u, _dealer: d }))
-      ).catch(() => [])
-    )
+  const feedPromises = DEALERS.filter(d => d.feedUrl).map(d =>
+    fetch(d.feedUrl).then(r => r.json()).then(items =>
+      items.filter(u => !u.sold).map(u => ({ ...u, _dealer: d }))
+    ).catch(() => [])
   );
+
+  const sbPromises = DEALERS.filter(d => !d.feedUrl).map(d =>
+    fetch(
+      `${SB_URL}/rest/v1/inventory?dealer=eq.${encodeURIComponent(d.key)}&sold=eq.false&limit=1000`,
+      { headers: SB_HDRS }
+    ).then(r => r.json()).then(items =>
+      (items || []).map(u => ({ ...u, _dealer: d }))
+    ).catch(() => [])
+  );
+
+  const results = await Promise.allSettled([...feedPromises, ...sbPromises]);
   ALL_INV = results.flatMap(r => r.status === 'fulfilled' ? r.value : []);
   renderFeatured();
   renderDealers();
