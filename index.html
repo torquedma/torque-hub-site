@@ -997,11 +997,12 @@
             <option value="Used">Used Only</option>
           </select>
           <select id="sort-filter" onchange="applyFilters()" style="padding:10px 14px;background:rgba(17,24,39,0.9);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#f8fafc;font-size:14px;font-family:inherit;outline:none;cursor:pointer">
-            <option value="year-desc">Newest First</option>
+            <option value="created-desc">Recently Added</option>
             <option value="featured">Featured First</option>
+            <option value="year-desc">Model Year: Newest</option>
+            <option value="year-asc">Model Year: Oldest</option>
             <option value="price-asc">Price: Low to High</option>
             <option value="price-desc">Price: High to Low</option>
-            <option value="year-asc">Year: Oldest</option>
             <option value="days-desc">Days Listed: High to Low</option>
             <option value="days-asc">Days Listed: Low to High</option>
           </select>
@@ -1453,7 +1454,7 @@ function applyFilters() {
   const q = (document.getElementById('inv-search') || {value:''}).value.toLowerCase();
   const dealer = (document.getElementById('dealer-filter') || {value:''}).value;
   const cond = (document.getElementById('condition-filter') || {value:''}).value;
-  const sort = (document.getElementById('sort-filter') || {value:'year-desc'}).value;
+  const sort = (document.getElementById('sort-filter') || {value:'created-desc'}).value;
 
   let filtered = ALL_INV.filter(u => {
     const matchQ = !q || `${u.year} ${u.make} ${u.model} ${u.stock} ${u.dealer}`.toLowerCase().includes(q);
@@ -1464,7 +1465,8 @@ function applyFilters() {
     return matchQ && matchD && matchC && matchCat && matchSub;
   });
 
-  if (sort === 'featured') filtered.sort((a, b) => (b.featured || 0) - (a.featured || 0));
+  if (sort === 'created-desc') filtered.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+  else if (sort === 'featured') filtered.sort((a, b) => (b.featured || 0) - (a.featured || 0));
   else if (sort === 'price-asc') filtered.sort((a, b) => pp(a.price) - pp(b.price));
   else if (sort === 'price-desc') filtered.sort((a, b) => pp(b.price) - pp(a.price));
   else if (sort === 'year-desc') filtered.sort((a, b) => (parseInt(b.year) || 0) - (parseInt(a.year) || 0));
