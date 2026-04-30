@@ -1,6 +1,14 @@
 const { createClient } = require('@supabase/supabase-js');
 const { generateDescription } = require('./lib/generate-description');
 
+// Strip marketing filler after a dash/em-dash separator, e.g.
+// "Cummins ISB 6.7L - Powerful and efficient" → "Cummins ISB 6.7L"
+// Leaves spec-embedded dashes intact: "6-Speed", "DT-466", "ISB6.7L"
+function trimSpec(val) {
+  if (!val) return val;
+  return val.split(/\s*[—–]\s*|\s+-\s+/)[0].trim();
+}
+
 const DEALER_INFO_MAP = {
   'Impex Heavy Metal': { name: 'Impex Heavy Metal', phone: '336-715-8704', location: 'Greensboro, NC' },
   "HGR's Truck and Trailer": { name: "HGR's Truck and Trailer", phone: '910-661-0868', location: 'Hope Mills, NC' },
@@ -107,12 +115,14 @@ exports.handler = async (event) => {
           const m = item.description.match(/Engine[:\s•]+([^\n•✔]{5,60})/i);
           if (m) engine = m[1].trim();
         }
+        engine = trimSpec(engine);
 
         let transmission = item.transmission || '';
         if (!transmission && item.description) {
           const m = item.description.match(/Transmission[:\s•]+([^\n•✔]{5,40})/i);
           if (m) transmission = m[1].trim();
         }
+        transmission = trimSpec(transmission);
 
         let drivetrain = item.drivetrain || '';
         if (!drivetrain && item.description) {

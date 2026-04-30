@@ -1,3 +1,8 @@
+function trimSpec(val) {
+  if (!val) return val;
+  return val.split(/\s*[—–]\s*|\s+-\s+/)[0].trim();
+}
+
 function buildPrompt(unit, dealer) {
   const d = dealer || {};
   const price = unit.price ? '$' + Number(unit.price).toLocaleString() : 'Call for Price';
@@ -12,8 +17,8 @@ Make: ${unit.make || ''}
 Model: ${unit.model || ''}
 Price: ${price}
 Mileage: ${unit.mileage || ''}
-Engine: ${unit.engine || ''}
-Transmission: ${unit.transmission || ''}
+Engine: ${trimSpec(unit.engine) || ''}
+Transmission: ${trimSpec(unit.transmission) || ''}
 Drivetrain: ${unit.drivetrain || ''}
 Fuel: ${unit.fuel || ''}
 VIN: ${unit.vin || ''}
