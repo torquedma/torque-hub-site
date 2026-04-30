@@ -339,8 +339,9 @@ export default async function handler(request, context) {
   const stock = url.searchParams.get('stock');
   const dealerParam = url.searchParams.get('dealer');
   const isDebug = url.searchParams.get('__debug') === '1';
+  const ua = request.headers.get('user-agent') || '';
 
-  console.log(`[vehicle edge] hit — stock:${stock} dealer:${dealerParam} debug:${isDebug}`);
+  console.log(`[vehicle edge] hit — stock:${stock} dealer:${dealerParam} debug:${isDebug} ua:${ua.slice(0, 80)}`);
 
   if (!stock) {
     console.log('[vehicle edge] no stock param, passing through');
@@ -366,7 +367,7 @@ export default async function handler(request, context) {
       supabaseUrl: SUPABASE_URL,
       found: !!result,
       dealerKey: result?.dealerKey ?? null,
-      // Photos diagnosis — shows exactly what comes out of Supabase
+      userAgent: ua,
       photos: {
         rawType:   typeof rawUnit?.photos,
         isArray:   Array.isArray(rawUnit?.photos),
@@ -393,96 +394,111 @@ export default async function handler(request, context) {
   // ── Normal path: fetch listing + base HTML in parallel ────────────────────
   const log = [];
   let fetchError = null;
+  let baseResponse;
+  let baseHtml = null;
 
-  const [result, baseResponse] = await Promise.all([
-    (async () => {
-      try {
-        return await fetchUnit(stock, dealerParam, log);
-      } catch (e) {
-        fetchError = e.message;
-        console.error('[vehicle edge] fetchUnit threw:', e.message);
-        return null;
-      }
-    })(),
-    context.next(),
-  ]);
+  try {
+    let result;
+    [result, baseResponse] = await Promise.all([
+      (async () => {
+        try {
+          return await fetchUnit(stock, dealerParam, log);
+        } catch (e) {
+          fetchError = e.message;
+          console.error('[vehicle edge] fetchUnit threw:', e.message);
+          return null;
+        }
+      })(),
+      context.next(),
+    ]);
 
-  console.log(`[vehicle edge] result: ${result ? 'found ' + result.unit?.stock : 'null'} | error: ${fetchError ?? 'none'}`);
+    console.log(`[vehicle edge] baseResponse status: ${baseResponse.status}`);
+    console.log(`[vehicle edge] result: ${result ? 'found ' + result.unit?.stock : 'null'} | error: ${fetchError ?? 'none'}`);
 
-  // Not found — inject error template so client JS can build the error state
-  if (!result) {
-    let html = await baseResponse.text();
-    const errorTpl = '<template id="vdp-error-tpl">'
-      + '<h2>Listing Not Available</h2>'
-      + '<p>This unit may have been sold or removed. Browse current inventory below.</p>'
-      + '<a href="/#inventory" class="back-btn">Browse All Inventory</a>'
-      + '</template>';
-    html = html.replace('</body>', errorTpl + '\n</body>');
+    baseHtml = await baseResponse.text();
+    console.log(`[vehicle edge] base HTML length: ${baseHtml.length}`);
+
+    // Not found — inject error template so client JS can build the error state
+    if (!result) {
+      const errorTpl = '<template id="vdp-error-tpl">'
+        + '<h2>Listing Not Available</h2>'
+        + '<p>This unit may have been sold or removed. Browse current inventory below.</p>'
+        + '<a href="/#inventory" class="back-btn">Browse All Inventory</a>'
+        + '</template>';
+      const html = baseHtml.replace('</body>', errorTpl + '\n</body>');
+      return new Response(html, {
+        status: 200,
+        headers: { 'Content-Type': 'text/html; charset=UTF-8', 'Cache-Control': 'no-store, no-cache' },
+      });
+    }
+
+    const { unit, dealerKey } = result;
+    const d = DEALERS[dealerKey] || {};
+
+    console.log(`[vehicle edge] photos raw — type:${typeof unit.photos} isArray:${Array.isArray(unit.photos)} sample:${JSON.stringify(unit.photos)?.slice(0, 150)}`);
+
+    const title      = [unit.year, unit.make, unit.model].filter(Boolean).join(' ') || 'Unit Available';
+    const price      = formatPrice(unit.price);
+    const subcat     = unit.subcategory || '';
+    const photos     = getPhotos(unit);
+    const firstPhoto = photos[0]?.url || photos[0]?.dataUrl || '';
+
+    console.log(`[vehicle edge] photos parsed — count:${photos.length} first:${photos[0]?.url ?? 'none'}`);
+
+    const addrLines = (d.address || '').split('\n');
+    const cityLine  = addrLines[addrLines.length - 1] || '';
+    const city      = cityLine.split(',')[0].trim();
+    const stateCode = (cityLine.split(',')[1] || '').trim().split(' ')[0];
+    const cityState = city && stateCode ? `${city}, ${stateCode}` : city || 'NC';
+    const loc       = addrLines.length > 1 ? addrLines[1] : addrLines[0] || '';
+
+    const pageUrl   = `${SITE}/vehicle.html?stock=${encodeURIComponent(unit.stock)}&dealer=${encodeURIComponent(dealerKey)}`;
+    const pageTitle = `${[unit.year, unit.make, unit.model, subcat].filter(Boolean).join(' ')} for Sale in ${cityState} | Torque Hub`;
+    const pageDesc  = `${title}${subcat ? ' ' + subcat : ''} for sale in ${cityState}. ${price}. Call ${d.phone || 'the dealer'} or apply for financing online. Torque Hub.`;
+
+    const specsHtml = buildSpecsHtml(unit);
+    const descHtml  = buildDescHtml(unit.description);
+    const schema    = buildSchema(unit, d, pageUrl, dealerKey);
+
+    const unitForClient = { ...unit, photos };
+    console.log(`[vehicle edge] injecting __VDP_UNIT__ photos count:${photos.length} first url:${photos[0]?.url ?? 'none'}`);
+    const dataScript = `<script>window.__VDP_UNIT__=${safeJson(unitForClient)};window.__VDP_DEALER_KEY__=${safeJson(dealerKey)};</script>`;
+
+    let html = baseHtml;
+    html = injectMeta(html, { pageTitle, pageDesc, pageUrl, firstPhoto, schema });
+    html = html.replace('</head>', dataScript + '\n</head>');
+    html = injectBody(html, { unit, dealerKey, title, price, subcat, loc, cityState, specsHtml, descHtml, firstPhoto });
+
+    if (unit.sold) {
+      const soldTpl = '<template id="sold-banner-tpl">'
+        + '<div><div class="sold-banner-text">🚫 This unit has been sold</div>'
+        + '<div class="sold-banner-sub">Check out similar available units below.</div></div>'
+        + '</template>';
+      html = html.replace('</body>', soldTpl + '\n</body>');
+    }
+
+    console.log(`[vehicle edge] transformed OK — title: ${pageTitle}`);
+
     return new Response(html, {
-      headers: { 'Content-Type': 'text/html; charset=UTF-8', 'Cache-Control': 'no-store, no-cache' },
+      status: 200,
+      headers: {
+        'Content-Type': 'text/html; charset=UTF-8',
+        'Cache-Control': 'no-store, no-cache',
+        'X-VDP-SSR': '1',
+      },
     });
+
+  } catch (e) {
+    // Unhandled error — log it and fall back to raw static HTML so crawlers
+    // always get a 200 even if SSR injection fails.
+    console.error(`[vehicle edge] unhandled error (ua: ${ua.slice(0, 80)}):`, e.message, e.stack);
+    if (baseHtml) {
+      return new Response(baseHtml, {
+        status: 200,
+        headers: { 'Content-Type': 'text/html; charset=UTF-8', 'Cache-Control': 'no-store, no-cache' },
+      });
+    }
+    // baseHtml not yet read — pass through to static file
+    return context.next();
   }
-
-  const { unit, dealerKey } = result;
-  const d = DEALERS[dealerKey] || {};
-
-  // Log raw photos value straight from Supabase before any manipulation
-  console.log(`[vehicle edge] photos raw — type:${typeof unit.photos} isArray:${Array.isArray(unit.photos)} sample:${JSON.stringify(unit.photos)?.slice(0, 150)}`);
-
-  const title      = [unit.year, unit.make, unit.model].filter(Boolean).join(' ') || 'Unit Available';
-  const price      = formatPrice(unit.price);
-  const subcat     = unit.subcategory || '';
-  const photos     = getPhotos(unit);
-  const firstPhoto = photos[0]?.url || photos[0]?.dataUrl || '';
-
-  console.log(`[vehicle edge] photos parsed — count:${photos.length} first:${photos[0]?.url ?? 'none'}`);
-
-  const addrLines = (d.address || '').split('\n');
-  const cityLine  = addrLines[addrLines.length - 1] || '';
-  const city      = cityLine.split(',')[0].trim();
-  const stateCode = (cityLine.split(',')[1] || '').trim().split(' ')[0];
-  const cityState = city && stateCode ? `${city}, ${stateCode}` : city || 'NC';
-  const loc       = addrLines.length > 1 ? addrLines[1] : addrLines[0] || '';
-
-  const pageUrl   = `${SITE}/vehicle.html?stock=${encodeURIComponent(unit.stock)}&dealer=${encodeURIComponent(dealerKey)}`;
-  const pageTitle = `${[unit.year, unit.make, unit.model, subcat].filter(Boolean).join(' ')} for Sale in ${cityState} | Torque Hub`;
-  const pageDesc  = `${title}${subcat ? ' ' + subcat : ''} for sale in ${cityState}. ${price}. Call ${d.phone || 'the dealer'} or apply for financing online. Torque Hub.`;
-
-  const specsHtml = buildSpecsHtml(unit);
-  const descHtml  = buildDescHtml(unit.description);
-  const schema    = buildSchema(unit, d, pageUrl, dealerKey);
-
-  // Normalize photos: always send a parsed array to the client regardless of how
-  // Supabase stores the column (jsonb comes back as an array; text comes back as
-  // a JSON string). Use the already-computed `photos` array rather than calling
-  // getPhotos() a second time so both paths use the same parsed value.
-  const unitForClient = { ...unit, photos };
-  console.log(`[vehicle edge] injecting __VDP_UNIT__ photos count:${photos.length} first url:${photos[0]?.url ?? 'none'}`);
-  const dataScript = `<script>window.__VDP_UNIT__=${safeJson(unitForClient)};window.__VDP_DEALER_KEY__=${safeJson(dealerKey)};</script>`;
-
-  let html = await baseResponse.text();
-  console.log(`[vehicle edge] base HTML length: ${html.length}`);
-
-  html = injectMeta(html, { pageTitle, pageDesc, pageUrl, firstPhoto, schema });
-  html = html.replace('</head>', dataScript + '\n</head>');
-  html = injectBody(html, { unit, dealerKey, title, price, subcat, loc, cityState, specsHtml, descHtml, firstPhoto });
-
-  // Sold listing — inject template so client JS can build the sold banner
-  if (unit.sold) {
-    const soldTpl = '<template id="sold-banner-tpl">'
-      + '<div><div class="sold-banner-text">🚫 This unit has been sold</div>'
-      + '<div class="sold-banner-sub">Check out similar available units below.</div></div>'
-      + '</template>';
-    html = html.replace('</body>', soldTpl + '\n</body>');
-  }
-
-  console.log(`[vehicle edge] transformed OK — title: ${pageTitle}`);
-
-  return new Response(html, {
-    headers: {
-      'Content-Type': 'text/html; charset=UTF-8',
-      'Cache-Control': 'no-store, no-cache',
-      'X-VDP-SSR': '1',
-    },
-  });
 }
