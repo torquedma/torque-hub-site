@@ -1,5 +1,6 @@
 [build]
   publish = "."
+  edge_functions = "netlify/edge-functions"
 
 [functions]
   directory = "netlify/functions"
@@ -7,3 +8,7 @@
 
 [functions."sync-truckpaper"]
   timeout = 300
+
+[[edge_functions]]
+  path = "/vehicle.html"
+  function = "vehicle"

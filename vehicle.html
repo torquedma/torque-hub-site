@@ -810,6 +810,15 @@ function submitLead() {
 
 // ─── INIT ────────────────────────────────────────────────────────────────────
 async function init() {
+  // Edge function pre-fetched the listing and injected it as window.__VDP_UNIT__.
+  // Skip the Supabase round-trip and go straight to render.
+  if (window.__VDP_UNIT__) {
+    console.log('[VDP] init — using SSR data for', window.__VDP_UNIT__.stock);
+    render(window.__VDP_UNIT__, window.__VDP_DEALER_KEY__ || '');
+    loadSimilar(window.__VDP_UNIT__, window.__VDP_DEALER_KEY__ || '');
+    return;
+  }
+
   const params = new URLSearchParams(window.location.search);
   const stock = params.get('stock');
   const dealerParam = params.get('dealer');
