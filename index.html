@@ -944,7 +944,6 @@
             <option value="price-desc">Price: High to Low</option>
             <option value="year-desc">Model Year: Newest</option>
             <option value="year-asc">Model Year: Oldest</option>
-            <option value="days-desc">Oldest First</option>
           </select>
         </div>
         <div style="font-size:12px;color:#94a3b8;margin-bottom:8px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">Browse by Category</div>
@@ -965,19 +964,6 @@
       </div>
     </section>
 
-    <section class="section" id="dealers">
-      <div class="container">
-        <div class="section-header">
-          <div>
-            <h2 class="section-title">Featured dealers</h2>
-            <p class="section-sub">Browse inventory from real dealers with trucks, trailers, and equipment ready for commercial use.</p>
-          </div>
-        </div>
-
-        <div class="dealer-grid" id="dealer-grid"></div>
-      </div>
-    </section>
-
     <section class="section" id="sell">
       <div class="container">
         <div class="cta-band">
@@ -992,6 +978,19 @@
         </div>
       </div>
     </section>
+    <section class="section" id="dealers">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Featured dealers</h2>
+            <p class="section-sub">Browse inventory from real dealers with trucks, trailers, and equipment ready for commercial use.</p>
+          </div>
+        </div>
+
+        <div class="dealer-grid" id="dealer-grid"></div>
+      </div>
+    </section>
+
   <!-- WHY FINANCE HERE -->
   <div class="container">
     <section class="finance-why">
@@ -1353,7 +1352,6 @@ function applyFilters() {
   else if (sort === 'price-desc') filtered.sort((a, b) => pp(b.price) - pp(a.price));
   else if (sort === 'year-desc') filtered.sort((a, b) => (parseInt(b.year) || 0) - (parseInt(a.year) || 0));
   else if (sort === 'year-asc') filtered.sort((a, b) => (parseInt(a.year) || 0) - (parseInt(b.year) || 0));
-  else if (sort === 'days-desc') filtered.sort((a, b) => (parseFloat(b.days) || 0) - (parseFloat(a.days) || 0));
 
   renderInventory(filtered);
 }
