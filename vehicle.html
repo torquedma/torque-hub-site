@@ -105,10 +105,10 @@
     .specs-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin-top: 20px; }
     .card-head { padding: 14px 18px; border-bottom: 1px solid var(--line); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
     .specs-grid { display: grid; grid-template-columns: 1fr 1fr; }
-    .spec-row { padding: 12px 18px; border-bottom: 1px solid var(--line); }
+    .spec-row { padding: 12px 18px; border-bottom: 1px solid var(--line); min-width: 0; }
     .spec-row:last-child, .spec-row:nth-last-child(2):nth-child(odd) { border-bottom: none; }
     .spec-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--soft); margin-bottom: 3px; }
-    .spec-val { font-size: 14px; font-weight: 700; color: var(--text); }
+    .spec-val { font-size: 14px; font-weight: 700; color: var(--text); overflow-wrap: break-word; word-break: break-word; }
 
     /* DESCRIPTION */
     .desc-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin-top: 20px; }
