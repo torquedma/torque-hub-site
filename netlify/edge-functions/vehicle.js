@@ -471,7 +471,8 @@ export default async function handler(request, context) {
   return new Response(html, {
     headers: {
       'Content-Type': 'text/html; charset=UTF-8',
-      'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+      'Cache-Control': 'no-store, no-cache',
+      'X-VDP-SSR': '1',
     },
   });
 }
