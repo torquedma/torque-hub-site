@@ -525,14 +525,22 @@ function formatDescription(text) {
 let photos = [], photoIdx = 0;
 
 function initGallery(rawPhotos) {
+  const rawCount = Array.isArray(rawPhotos) ? rawPhotos.length : (rawPhotos ? 'non-array:' + typeof rawPhotos : 0);
   photos = (rawPhotos || []).filter(p => p && p.url);
+  console.log('[gallery] initGallery called — raw:', rawCount, '| after filter:', photos.length, '| first url:', photos[0]?.url ?? 'none');
+
   const mainEl = document.getElementById('gallery-main');
   const thumbsEl = document.getElementById('gallery-thumbs');
   const prevBtn = document.getElementById('gallery-prev');
   const nextBtn = document.getElementById('gallery-next');
   const counter = document.getElementById('gallery-counter');
 
-  if (!photos.length) return;
+  console.log('[gallery] mainEl:', mainEl ? 'found' : 'NULL — element missing from DOM');
+
+  if (!photos.length) {
+    console.warn('[gallery] no photos passed filter — skipping render');
+    return;
+  }
 
   // Place main image (single element we'll swap src on)
   mainEl.innerHTML = `<img id="gallery-img" src="${photos[0].url}" alt="Photo 1" loading="eager">`;
@@ -650,6 +658,7 @@ function render(unit, dealerKey) {
   if (isSold) document.getElementById('sold-banner').style.display = 'flex';
 
   // Gallery
+  console.log('[render] calling initGallery — unit.photos type:', typeof unit.photos, '| isArray:', Array.isArray(unit.photos), '| length:', Array.isArray(unit.photos) ? unit.photos.length : 'n/a', '| first:', unit.photos?.[0] ?? 'none');
   initGallery(unit.photos);
 
   // Sidebar price
