@@ -538,7 +538,6 @@
       .hero-metrics,
       .quick-links,
       .specs,
-      .inventory-grid,
       .dealer-grid {
         grid-template-columns: 1fr;
       }
@@ -553,35 +552,96 @@
       }
     }
 
-    /* Card alignment fix */
-    .inventory-grid {
-      align-items: stretch;
-    }
-    .card {
+    /* Card base (shared with dealer cards) */
+    .inventory-grid { align-items: stretch; }
+    .card { display: flex; flex-direction: column; height: 100%; }
+
+    /* Inventory listing card */
+    .inv-card {
+      background: linear-gradient(180deg, #111827, #0b1220);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
       display: flex;
       flex-direction: column;
       height: 100%;
     }
-    .inventory-body {
+    .inv-card:hover {
+      border-color: rgba(54,89,67,0.65);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35), 0 0 0 1px rgba(54,89,67,0.25);
+    }
+    .inv-card-link {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      text-decoration: none;
+      color: inherit;
+    }
+    .inv-photo {
+      position: relative;
+      aspect-ratio: 4 / 3;
+      background: #060e1c;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .inv-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .inv-no-photo { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #475569; font-size: 13px; }
+    .inv-badge { position: absolute; top: 10px; left: 10px; background: rgba(51,65,85,0.95); border: 1px solid rgba(255,255,255,0.14); color: #f1f5f9; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 3px 9px; border-radius: 6px; }
+    .inv-body {
+      padding: 16px;
       display: flex;
       flex-direction: column;
       flex: 1;
+      gap: 6px;
     }
-    .inventory-title {
-      min-height: 58px;
+    .inv-title {
+      margin: 0;
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 1.1;
+      text-transform: uppercase;
+      color: #f1f5f9;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      min-height: 48px;
     }
-    .inventory-copy {
-      min-height: 24px;
+    .inv-price {
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: 30px;
+      font-weight: 900;
+      line-height: 1;
+      color: #f8fafc;
     }
-    .specs {
-      min-height: 158px;
-      align-content: start;
+    .inv-dealer { font-size: 13px; color: #94a3b8; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .inv-specs { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 2px; }
+    .inv-spec { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 3px 9px; font-size: 11px; color: #94a3b8; font-weight: 600; white-space: nowrap; }
+    .inv-cta-wrap { margin-top: auto; padding-top: 14px; }
+    .inv-cta {
+      display: block;
+      width: 100%;
+      min-height: 44px;
+      line-height: 44px;
+      background: linear-gradient(135deg, #365943, #294434);
+      color: #f8fafc;
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      text-align: center;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.1);
     }
-    .inventory-bottom {
-      margin-top: auto;
-      min-height: 78px;
-      align-items: flex-end;
-    }
+    .inv-card:hover .inv-cta { background: linear-gradient(135deg, #426b51, #365943); }
+
+    @media (min-width: 1400px) { .inventory-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+    @media (max-width: 600px) { .inventory-grid { grid-template-columns: 1fr; } }
 
     /* Partner Program Dropdown */
     .nav-dropdown {
@@ -1392,40 +1452,35 @@ function renderInventory(items) {
     const photo = u.photos && u.photos.length ? (u.photos[0].url || u.photos[0].dataUrl || '') : '';
     const title = [u.year, u.make, u.model].filter(Boolean).join(' ') || 'Unit Available';
     const vdpUrl = `vehicle.html?stock=${encodeURIComponent(u.stock || '')}&dealer=${encodeURIComponent(d.key || u.dealer || '')}`;
-    const mileageLabel = u.hours ? 'Hours' : 'Miles';
-    const mileageValue = fmtMileage(u.hours || u.mileage);
-    const specs = [
-      ['Fuel', u.fuel || '—'],
-      [mileageLabel, mileageValue],
-      ['Engine', trimEngine(u.engine)],
-      ['Dealer', d.name || u.dealer || '—']
-    ];
 
-    return `<article class="card">
-      <div class="inventory-media" style="position:relative">
-        ${u.featured ? '<span class="badge">Featured</span>' : ''}
-        ${photo
-          ? `<img src="${photo}" alt="${title}" loading="lazy" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0">`
-          : `<div style="color:#64748b;font-size:14px">No Photo</div>`}
-      </div>
-      <div class="inventory-body">
-        <h3 class="inventory-title">${title}</h3>
-        <p class="inventory-copy">${d.location || u.dealer || ''}</p>
-        <div class="specs">
-          ${specs.map(([l, v]) => `<div class="spec"><span class="spec-label">${l}</span><span class="spec-value">${v}</span></div>`).join('')}
+    const priceStr = u.price && !isNaN(parseFloat(String(u.price).replace(/[^0-9.]/g, '')))
+      ? '$' + Number(String(u.price).replace(/[^0-9.]/g, '')).toLocaleString()
+      : (u.price && u.price !== '0' ? u.price : 'Call');
+
+    const dealerLine = [d.name || u.dealer, d.location || ''].filter(Boolean).join(' &middot; ');
+
+    const mileageVal = fmtMileage(u.hours || u.mileage);
+    const engineVal = trimEngine(u.engine);
+    const chips = [];
+    if (mileageVal && mileageVal !== '—') chips.push(mileageVal + (u.hours ? ' hrs' : ' mi'));
+    if (chips.length < 2 && engineVal && engineVal !== '—') chips.push(engineVal);
+    if (chips.length < 2 && u.fuel && u.fuel !== '—') chips.push(u.fuel);
+    if (chips.length < 2 && u.condition) chips.push(u.condition);
+
+    return `<article class="inv-card" aria-label="${title}">
+      <a class="inv-card-link" href="${vdpUrl}" aria-label="View listing: ${title}">
+        <div class="inv-photo">
+          ${photo ? `<img src="${photo}" alt="${title}" loading="lazy">` : '<div class="inv-no-photo">No Photo</div>'}
+          ${u.featured ? '<span class="inv-badge">Featured</span>' : ''}
         </div>
-        <div class="inventory-bottom">
-          <div>
-            <div class="price">${u.price && !isNaN(parseFloat(String(u.price).replace(/[^0-9.]/g,""))) ? "$" + Number(String(u.price).replace(/[^0-9.]/g,"")).toLocaleString() : (u.price && u.price !== "0" ? u.price : "Call")}</div>
-            <div class="location">${d.phone || ''}</div>
-          </div>
-          <div class="featured-actions">
-            <a class="btn btn-primary" href="${vdpUrl}">View</a>
-            <a class="btn btn-green" href="${financeUrl(u, 'inventory')}" style="padding:9px 10px;font-size:11px">Finance</a>
-            <a class="btn btn-secondary" href="tel:${d.tel || ''}">Call</a>
-          </div>
+        <div class="inv-body">
+          <h3 class="inv-title">${title}</h3>
+          <div class="inv-price">${priceStr}</div>
+          <div class="inv-dealer">${dealerLine}</div>
+          ${chips.length ? `<div class="inv-specs">${chips.map(c => `<span class="inv-spec">${c}</span>`).join('')}</div>` : ''}
+          <div class="inv-cta-wrap"><span class="inv-cta">View Listing</span></div>
         </div>
-      </div>
+      </a>
     </article>`;
   }).join('');
 
