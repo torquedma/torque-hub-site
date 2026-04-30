@@ -585,17 +585,17 @@ function render(unit, dealerKey) {
   const isSold = unit.sold === true;
   const subcat = unit.subcategory || '';
 
-  // Create sold banner dynamically when unit is sold — not in static HTML
+  // Create sold banner — content injected by edge function as #sold-banner-tpl
   if (isSold && !el('sold-banner')) {
-    const banner = document.createElement('div');
-    banner.id = 'sold-banner';
-    banner.className = 'sold-banner';
-    const inner = document.createElement('div');
-    const t = document.createElement('div'); t.className = 'sold-banner-text'; t.textContent = '\u{1F6AB} This unit has been sold';
-    const s = document.createElement('div'); s.className = 'sold-banner-sub'; s.textContent = 'Check out similar available units below.';
-    inner.appendChild(t); inner.appendChild(s); banner.appendChild(inner);
-    const vdpContainer = document.querySelector('#vdp > .container');
-    if (vdpContainer) vdpContainer.insertBefore(banner, vdpContainer.firstChild);
+    const tpl = document.getElementById('sold-banner-tpl');
+    if (tpl) {
+      const banner = document.createElement('div');
+      banner.id = 'sold-banner';
+      banner.className = 'sold-banner';
+      banner.appendChild(tpl.content.cloneNode(true));
+      const vdpContainer = document.querySelector('#vdp > .container');
+      if (vdpContainer) vdpContainer.insertBefore(banner, vdpContainer.firstChild);
+    }
   }
 
   // Derive city/state for SEO strings
@@ -835,16 +835,15 @@ function submitLead() {
 function showError() {
   const loadingEl = document.getElementById('vdp-loading');
   if (loadingEl) loadingEl.style.display = 'none';
+  const tpl = document.getElementById('vdp-error-tpl');
+  if (!tpl) { window.location.replace('/#inventory'); return; }
   let errEl = document.getElementById('vdp-error');
   if (!errEl) {
     errEl = document.createElement('div');
     errEl.id = 'vdp-error';
     errEl.className = 'container error-state';
     errEl.setAttribute('aria-live', 'polite');
-    const h2 = document.createElement('h2'); h2.textContent = 'Listing Not Available';
-    const p = document.createElement('p'); p.textContent = 'This unit may have been sold or removed. Browse current inventory below.';
-    const a = document.createElement('a'); a.href = '/#inventory'; a.className = 'back-btn'; a.textContent = 'Browse All Inventory';
-    errEl.appendChild(h2); errEl.appendChild(p); errEl.appendChild(a);
+    errEl.appendChild(tpl.content.cloneNode(true));
     const vdp = document.getElementById('vdp');
     if (vdp) vdp.parentNode.insertBefore(errEl, vdp);
     else document.body.appendChild(errEl);

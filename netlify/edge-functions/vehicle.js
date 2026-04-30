@@ -409,8 +409,19 @@ export default async function handler(request, context) {
 
   console.log(`[vehicle edge] result: ${result ? 'found ' + result.unit?.stock : 'null'} | error: ${fetchError ?? 'none'}`);
 
-  // Not found — pass through unchanged; client JS shows the error state
-  if (!result) return baseResponse;
+  // Not found — inject error template so client JS can build the error state
+  if (!result) {
+    let html = await baseResponse.text();
+    const errorTpl = '<template id="vdp-error-tpl">'
+      + '<h2>Listing Not Available</h2>'
+      + '<p>This unit may have been sold or removed. Browse current inventory below.</p>'
+      + '<a href="/#inventory" class="back-btn">Browse All Inventory</a>'
+      + '</template>';
+    html = html.replace('</body>', errorTpl + '\n</body>');
+    return new Response(html, {
+      headers: { 'Content-Type': 'text/html; charset=UTF-8', 'Cache-Control': 'no-store, no-cache' },
+    });
+  }
 
   const { unit, dealerKey } = result;
   const d = DEALERS[dealerKey] || {};
@@ -455,6 +466,15 @@ export default async function handler(request, context) {
   html = injectMeta(html, { pageTitle, pageDesc, pageUrl, firstPhoto, schema });
   html = html.replace('</head>', dataScript + '\n</head>');
   html = injectBody(html, { unit, dealerKey, title, price, subcat, loc, cityState, specsHtml, descHtml, firstPhoto });
+
+  // Sold listing — inject template so client JS can build the sold banner
+  if (unit.sold) {
+    const soldTpl = '<template id="sold-banner-tpl">'
+      + '<div><div class="sold-banner-text">🚫 This unit has been sold</div>'
+      + '<div class="sold-banner-sub">Check out similar available units below.</div></div>'
+      + '</template>';
+    html = html.replace('</body>', soldTpl + '\n</body>');
+  }
 
   console.log(`[vehicle edge] transformed OK — title: ${pageTitle}`);
 
