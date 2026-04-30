@@ -339,20 +339,30 @@ export default async function handler(request, context) {
     } catch (e) {
       fetchError = e.message;
     }
+    const rawUnit = result?.unit ?? null;
+    const parsedPhotos = rawUnit ? getPhotos(rawUnit) : [];
     return new Response(JSON.stringify({
       stock,
       dealer: dealerParam,
       supabaseUrl: SUPABASE_URL,
       found: !!result,
       dealerKey: result?.dealerKey ?? null,
-      unit: result?.unit ? {
-        stock: result.unit.stock,
-        dealer: result.unit.dealer,
-        year: result.unit.year,
-        make: result.unit.make,
-        model: result.unit.model,
-        price: result.unit.price,
-        sold: result.unit.sold,
+      // Photos diagnosis — shows exactly what comes out of Supabase
+      photos: {
+        rawType:   typeof rawUnit?.photos,
+        isArray:   Array.isArray(rawUnit?.photos),
+        rawSample: JSON.stringify(rawUnit?.photos)?.slice(0, 400) ?? null,
+        parsedCount: parsedPhotos.length,
+        parsedFirst: parsedPhotos[0] ?? null,
+      },
+      unit: rawUnit ? {
+        stock: rawUnit.stock,
+        dealer: rawUnit.dealer,
+        year: rawUnit.year,
+        make: rawUnit.make,
+        model: rawUnit.model,
+        price: rawUnit.price,
+        sold: rawUnit.sold,
       } : null,
       fetchError,
       log,
@@ -386,11 +396,16 @@ export default async function handler(request, context) {
   const { unit, dealerKey } = result;
   const d = DEALERS[dealerKey] || {};
 
+  // Log raw photos value straight from Supabase before any manipulation
+  console.log(`[vehicle edge] photos raw — type:${typeof unit.photos} isArray:${Array.isArray(unit.photos)} sample:${JSON.stringify(unit.photos)?.slice(0, 150)}`);
+
   const title      = [unit.year, unit.make, unit.model].filter(Boolean).join(' ') || 'Unit Available';
   const price      = formatPrice(unit.price);
   const subcat     = unit.subcategory || '';
   const photos     = getPhotos(unit);
   const firstPhoto = photos[0]?.url || photos[0]?.dataUrl || '';
+
+  console.log(`[vehicle edge] photos parsed — count:${photos.length} first:${photos[0]?.url ?? 'none'}`);
 
   const addrLines = (d.address || '').split('\n');
   const cityLine  = addrLines[addrLines.length - 1] || '';
@@ -407,9 +422,12 @@ export default async function handler(request, context) {
   const descHtml  = buildDescHtml(unit.description);
   const schema    = buildSchema(unit, d, pageUrl, dealerKey);
 
-  // Normalize photos to a parsed array — Supabase may return it as a JSON string
-  // if the column is text rather than jsonb. The client gallery expects an array.
-  const unitForClient = { ...unit, photos: getPhotos(unit) };
+  // Normalize photos: always send a parsed array to the client regardless of how
+  // Supabase stores the column (jsonb comes back as an array; text comes back as
+  // a JSON string). Use the already-computed `photos` array rather than calling
+  // getPhotos() a second time so both paths use the same parsed value.
+  const unitForClient = { ...unit, photos };
+  console.log(`[vehicle edge] injecting __VDP_UNIT__ photos count:${photos.length} first url:${photos[0]?.url ?? 'none'}`);
   const dataScript = `<script>window.__VDP_UNIT__=${safeJson(unitForClient)};window.__VDP_DEALER_KEY__=${safeJson(dealerKey)};</script>`;
 
   let html = await baseResponse.text();
