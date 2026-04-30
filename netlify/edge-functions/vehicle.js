@@ -248,7 +248,7 @@ function injectMeta(html, { pageTitle, pageDesc, pageUrl, firstPhoto, schema }) 
   return html;
 }
 
-function injectBody(html, { unit, dealerKey, title, price, subcat, loc, specsHtml, descHtml, firstPhoto }) {
+function injectBody(html, { unit, dealerKey, title, price, subcat, loc, cityState, specsHtml, descHtml, firstPhoto }) {
   // Breadcrumb
   html = html.replace(
     '<span id="bc-title">Listing Details</span>',
@@ -295,6 +295,14 @@ function injectBody(html, { unit, dealerKey, title, price, subcat, loc, specsHtm
     html = html.replace('id="hl-badge" style="display:none"', 'id="hl-badge"');
     html = html.replace('id="hl-subcat"></span>', `id="hl-subcat">${esc(subcat)}</span>`);
   }
+
+  // SEO h2 — always shown; includes subcategory when present
+  const seoLine = `${title}${subcat ? ' ' + subcat : ''} for Sale${cityState ? ' in ' + cityState : ''}`;
+  html = html.replace(
+    'id="vdp-seo-h2" style="display:none">',
+    `id="vdp-seo-h2">${esc(seoLine)}`
+  );
+
   if (price && dealerKey) {
     html = html.replace('id="hl-sep" style="display:none">&bull;', 'id="hl-sep">&bull;');
   }
@@ -452,7 +460,7 @@ export default async function handler(request, context) {
 
   html = injectMeta(html, { pageTitle, pageDesc, pageUrl, firstPhoto, schema });
   html = html.replace('</head>', dataScript + '\n</head>');
-  html = injectBody(html, { unit, dealerKey, title, price, subcat, loc, specsHtml, descHtml, firstPhoto });
+  html = injectBody(html, { unit, dealerKey, title, price, subcat, loc, cityState, specsHtml, descHtml, firstPhoto });
 
   console.log(`[vehicle edge] transformed OK — title: ${pageTitle}`);
 
