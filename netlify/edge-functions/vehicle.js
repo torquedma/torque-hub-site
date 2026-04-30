@@ -262,13 +262,22 @@ function injectBody(html, { unit, dealerKey, title, price, subcat, loc, specsHtm
   );
   html = html.replace('<div id="vdp" style="display:none">', '<div id="vdp">');
 
-  // Sold banner
-  if (unit.sold) {
-    html = html.replace(
-      'id="sold-banner" class="sold-banner" style="display:none"',
-      'id="sold-banner" class="sold-banner"'
-    );
-  }
+  // Error state — always hidden when a listing is found
+  html = html.replace(
+    /<div id="vdp-error"([^>]*)>/,
+    (_, attrs) => `<div id="vdp-error"${attrs.replace(/\s*style="[^"]*"/g, '')} style="display:none">`
+  );
+
+  // Sold banner — visible only for sold units
+  html = html.replace(
+    /<div id="sold-banner"([^>]*)>/,
+    (_, attrs) => {
+      const cleaned = attrs.replace(/\s*style="[^"]*"/g, '');
+      return unit.sold
+        ? `<div id="sold-banner"${cleaned} style="display:flex">`
+        : `<div id="sold-banner"${cleaned} style="display:none">`;
+    }
+  );
 
   // Gallery — replace placeholder with first photo when available
   if (firstPhoto) {
