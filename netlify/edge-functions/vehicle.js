@@ -298,10 +298,7 @@ function injectBody(html, { unit, dealerKey, title, price, subcat, loc, cityStat
 
   // SEO h2 — always shown; includes subcategory when present
   const seoLine = `${title}${subcat ? ' ' + subcat : ''} for Sale${cityState ? ' in ' + cityState : ''}`;
-  html = html.replace(
-    'id="vdp-seo-h2" style="display:none">',
-    `id="vdp-seo-h2">${esc(seoLine)}`
-  );
+  html = html.replace('id="vdp-seo-h2">', `id="vdp-seo-h2">${esc(seoLine)}`);
 
   if (price && dealerKey) {
     html = html.replace('id="hl-sep" style="display:none">&bull;', 'id="hl-sep">&bull;');
