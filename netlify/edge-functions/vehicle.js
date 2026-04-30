@@ -284,13 +284,15 @@ function injectBody(html, { unit, dealerKey, title, price, subcat, loc, cityStat
     }
   );
 
-  // Gallery — replace placeholder with first photo when available
-  if (firstPhoto) {
-    html = html.replace(
-      '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--soft)">No photos available</div>',
-      `<img id="gallery-img" src="${escAttr(firstPhoto)}" alt="${escAttr(title)}" style="width:100%;height:100%;object-fit:cover;display:block;" loading="eager">`
-    );
-  }
+  // Gallery — always suppress the placeholder text; replace with first photo when available.
+  // Without this, the display:flex placeholder is visible in SSR output whenever firstPhoto is empty.
+  const noPhotosPlaceholder = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--soft)">No photos available</div>';
+  html = html.replace(
+    noPhotosPlaceholder,
+    firstPhoto
+      ? `<img id="gallery-img" src="${escAttr(firstPhoto)}" alt="${escAttr(title)}" style="width:100%;height:100%;object-fit:cover;display:block;" loading="eager">`
+      : ''
+  );
 
   // Headline strip
   html = html.replace('id="vdp-headline" style="display:none"', 'id="vdp-headline"');
