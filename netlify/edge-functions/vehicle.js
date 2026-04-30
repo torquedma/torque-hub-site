@@ -267,32 +267,13 @@ function injectBody(html, { unit, dealerKey, title, price, subcat, loc, cityStat
   );
   html = html.replace('<div id="vdp" style="display:none">', '<div id="vdp">');
 
-  // Error state — always hidden when a listing is found
-  html = html.replace(
-    /<div id="vdp-error"([^>]*)>/,
-    (_, attrs) => `<div id="vdp-error"${attrs.replace(/\s*style="[^"]*"/g, '')} style="display:none">`
-  );
-
-  // Sold banner — visible only for sold units
-  html = html.replace(
-    /<div id="sold-banner"([^>]*)>/,
-    (_, attrs) => {
-      const cleaned = attrs.replace(/\s*style="[^"]*"/g, '');
-      return unit.sold
-        ? `<div id="sold-banner"${cleaned} style="display:flex">`
-        : `<div id="sold-banner"${cleaned} style="display:none">`;
-    }
-  );
-
-  // Gallery — always suppress the placeholder text; replace with first photo when available.
-  // Without this, the display:flex placeholder is visible in SSR output whenever firstPhoto is empty.
-  const noPhotosPlaceholder = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--soft)">No photos available</div>';
-  html = html.replace(
-    noPhotosPlaceholder,
-    firstPhoto
-      ? `<img id="gallery-img" src="${escAttr(firstPhoto)}" alt="${escAttr(title)}" style="width:100%;height:100%;object-fit:cover;display:block;" loading="eager">`
-      : ''
-  );
+  // Gallery — inject first photo into the empty gallery-main for SSR crawlers
+  if (firstPhoto) {
+    html = html.replace(
+      '<div class="gallery-main" id="gallery-main">',
+      `<div class="gallery-main" id="gallery-main"><img id="gallery-img" src="${escAttr(firstPhoto)}" alt="${escAttr(title)}" style="width:100%;height:100%;object-fit:cover;display:block;" loading="eager">`
+    );
+  }
 
   // Headline strip
   html = html.replace('id="vdp-headline" style="display:none"', 'id="vdp-headline"');
@@ -339,11 +320,13 @@ function injectBody(html, { unit, dealerKey, title, price, subcat, loc, cityStat
     `class="price-amount${price === 'Call for Price' ? ' call' : ''}" id="s-price">${esc(price)}</div>`
   );
 
-  // Scrub fallback message strings from JS source — listing is found so these
-  // text nodes will never be created, and crawlers must not see them in source.
-  html = html.replace(/errEl\.innerHTML = '[^']+';/, "errEl.innerHTML = '';");
+  // Scrub fallback message text from JS source — listing is found so these
+  // functions never execute; crawlers must not see the strings in source.
+  html = html.replace("h2.textContent = 'Listing Not Available';", "h2.textContent = '';");
+  html = html.replace("p.textContent = 'This unit may have been sold or removed. Browse current inventory below.';", "p.textContent = '';");
   if (!unit.sold) {
-    html = html.replace(/banner\.innerHTML = '[^']+';/, "banner.innerHTML = '';");
+    html = html.replace("t.textContent = '\\u{1F6AB} This unit has been sold';", "t.textContent = '';");
+    html = html.replace("s.textContent = 'Check out similar available units below.';", "s.textContent = '';");
   }
 
   return html;
