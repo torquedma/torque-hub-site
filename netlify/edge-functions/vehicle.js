@@ -407,7 +407,10 @@ export default async function handler(request, context) {
   const descHtml  = buildDescHtml(unit.description);
   const schema    = buildSchema(unit, d, pageUrl, dealerKey);
 
-  const dataScript = `<script>window.__VDP_UNIT__=${safeJson(unit)};window.__VDP_DEALER_KEY__=${safeJson(dealerKey)};</script>`;
+  // Normalize photos to a parsed array — Supabase may return it as a JSON string
+  // if the column is text rather than jsonb. The client gallery expects an array.
+  const unitForClient = { ...unit, photos: getPhotos(unit) };
+  const dataScript = `<script>window.__VDP_UNIT__=${safeJson(unitForClient)};window.__VDP_DEALER_KEY__=${safeJson(dealerKey)};</script>`;
 
   let html = await baseResponse.text();
   console.log(`[vehicle edge] base HTML length: ${html.length}`);
