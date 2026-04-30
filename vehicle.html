@@ -570,6 +570,8 @@ function showPhoto(i) {
 function galleryNav(dir) { showPhoto(photoIdx + dir); }
 
 // ─── RENDER VDP ─────────────────────────────────────────────────────────────
+function el(id) { return document.getElementById(id); }
+
 function render(unit, dealerKey) {
   const d = DEALERS[dealerKey] || DEALERS[unit.dealer] || {};
   const title = [unit.year, unit.make, unit.model].filter(Boolean).join(' ') || 'Unit Available';
@@ -584,21 +586,23 @@ function render(unit, dealerKey) {
   const stateCode = (cityLine.split(',')[1] || '').trim().split(' ')[0];
   const cityState = city && stateCode ? `${city}, ${stateCode}` : city || 'NC';
 
-  // Page meta
+  // Page meta — all guarded; edge function may have already set these
   const pageUrl = `https://hub.torquedma.com/vehicle.html?stock=${encodeURIComponent(unit.stock)}&dealer=${encodeURIComponent(dealerKey)}`;
   const titleTag = [unit.year, unit.make, unit.model, subcat].filter(Boolean).join(' ');
   document.title = `${titleTag} for Sale in ${cityState} | Torque Hub`;
-  document.getElementById('page-title').textContent = document.title;
-  document.getElementById('page-desc').content = `${title}${subcat ? ' ' + subcat : ''} for sale in ${cityState}. ${price}. Call ${d.phone || 'the dealer'} or apply for financing online. Torque Hub.`;
-  document.getElementById('canonical-url').href = pageUrl;
-  document.getElementById('og-title').content = document.title;
-  document.getElementById('og-desc').content = document.getElementById('page-desc').content;
-  document.getElementById('og-url').content = pageUrl;
+  const descContent = `${title}${subcat ? ' ' + subcat : ''} for sale in ${cityState}. ${price}. Call ${d.phone || 'the dealer'} or apply for financing online. Torque Hub.`;
+
+  const pageTitleEl = el('page-title');   if (pageTitleEl) pageTitleEl.textContent = document.title;
+  const pageDescEl  = el('page-desc');    if (pageDescEl)  pageDescEl.content      = descContent;
+  const canonicalEl = el('canonical-url');if (canonicalEl) canonicalEl.href        = pageUrl;
+  const ogTitleEl   = el('og-title');     if (ogTitleEl)   ogTitleEl.content       = document.title;
+  const ogDescEl    = el('og-desc');      if (ogDescEl)    ogDescEl.content        = descContent;
+  const ogUrlEl     = el('og-url');       if (ogUrlEl)     ogUrlEl.content         = pageUrl;
 
   const firstPhoto = unit.photos && unit.photos.length ? (unit.photos[0].url || unit.photos[0].dataUrl || '') : '';
   if (firstPhoto) {
-    document.getElementById('og-image').content = firstPhoto;
-    document.getElementById('twitter-image').content = firstPhoto;
+    const ogImgEl      = el('og-image');      if (ogImgEl)      ogImgEl.content      = firstPhoto;
+    const twitterImgEl = el('twitter-image'); if (twitterImgEl) twitterImgEl.content = firstPhoto;
   }
 
   // Schema.org
@@ -630,106 +634,99 @@ function render(unit, dealerKey) {
       }
     }
   };
-  document.getElementById('schema-data').textContent = JSON.stringify(schema, (k, v) => v === undefined ? undefined : v);
+  const schemaEl = el('schema-data');
+  if (schemaEl) schemaEl.textContent = JSON.stringify(schema, (k, v) => v === undefined ? undefined : v);
 
   // Breadcrumb
-  document.getElementById('bc-title').textContent = title;
+  const bcTitleEl = el('bc-title'); if (bcTitleEl) bcTitleEl.textContent = title;
 
   // Headline strip
-  const hlEl = document.getElementById('vdp-headline');
-  if (hlEl) hlEl.style.display = 'block';
-  const hlTitle = document.getElementById('hl-title');
-  if (hlTitle) hlTitle.textContent = title;
+  const hlEl = el('vdp-headline'); if (hlEl) hlEl.style.display = 'block';
+  const hlTitle = el('hl-title');  if (hlTitle) hlTitle.textContent = title;
   if (subcat) {
-    document.getElementById('hl-subcat').textContent = subcat;
-    document.getElementById('hl-badge').style.display = 'block';
+    const hlSubcat = el('hl-subcat'); if (hlSubcat) hlSubcat.textContent = subcat;
+    const hlBadge  = el('hl-badge');  if (hlBadge)  hlBadge.style.display = 'block';
   }
-  const hlPrice = document.getElementById('hl-price');
-  if (hlPrice) hlPrice.textContent = price;
-  const hlDealer = document.getElementById('hl-dealer');
-  if (hlDealer) hlDealer.textContent = dealerKey || unit.dealer || '';
-  const hlLocation = document.getElementById('hl-location');
+  const hlPrice  = el('hl-price');   if (hlPrice)  hlPrice.textContent  = price;
+  const hlDealer = el('hl-dealer');  if (hlDealer) hlDealer.textContent = dealerKey || unit.dealer || '';
   const loc = d.address ? d.address.split('\n')[1] || '' : '';
-  if (hlLocation) hlLocation.textContent = loc;
-  document.getElementById('hl-sep').style.display = (price && dealerKey) ? 'inline' : 'none';
-  document.getElementById('hl-loc-sep').style.display = loc ? 'inline' : 'none';
+  const hlLoc    = el('hl-location');if (hlLoc)    hlLoc.textContent    = loc;
+  const hlSep    = el('hl-sep');     if (hlSep)    hlSep.style.display    = (price && dealerKey) ? 'inline' : 'none';
+  const hlLocSep = el('hl-loc-sep'); if (hlLocSep) hlLocSep.style.display = loc ? 'inline' : 'none';
 
   // Sold banner
-  if (isSold) document.getElementById('sold-banner').style.display = 'flex';
+  if (isSold) { const sb = el('sold-banner'); if (sb) sb.style.display = 'flex'; }
 
-  // Gallery
+  // Gallery — called after VDP is visible so dimensions are available
   console.log('[render] calling initGallery — unit.photos type:', typeof unit.photos, '| isArray:', Array.isArray(unit.photos), '| length:', Array.isArray(unit.photos) ? unit.photos.length : 'n/a', '| first:', unit.photos?.[0] ?? 'none');
   initGallery(unit.photos);
 
-  // Sidebar price
-  document.getElementById('s-title').textContent = title;
-  document.getElementById('s-stock').textContent = unit.stock ? `Stock # ${unit.stock}` : '';
-  const priceEl = document.getElementById('s-price');
-  priceEl.textContent = price;
-  if (price === 'Call for Price') priceEl.classList.add('call');
-  const urgencyEl = document.getElementById('price-urgency');
-  if (urgencyEl && !isSold) urgencyEl.style.display = 'block';
+  // Sidebar price card
+  const sTitleEl = el('s-title'); if (sTitleEl) sTitleEl.textContent = title;
+  const sStockEl = el('s-stock'); if (sStockEl) sStockEl.textContent = unit.stock ? `Stock # ${unit.stock}` : '';
+  const priceEl  = el('s-price');
+  if (priceEl) { priceEl.textContent = price; if (price === 'Call for Price') priceEl.classList.add('call'); }
+  const urgencyEl = el('price-urgency'); if (urgencyEl && !isSold) urgencyEl.style.display = 'block';
 
   // CTAs
   const callHref = `tel:${d.tel || ''}`;
-  document.getElementById('cta-call').href = callHref;
-  document.getElementById('cta-call').textContent = `📞 Call ${d.phone || 'Dealer'}`;
-  document.getElementById('mobile-call').href = callHref;
-  document.getElementById('mobile-call').textContent = `📞 Call ${d.phone || 'Now'}`;
-  document.getElementById('mobile-bar').style.display = 'flex';
+  const ctaCall = el('cta-call');
+  if (ctaCall) { ctaCall.href = callHref; ctaCall.textContent = `📞 Call ${d.phone || 'Dealer'}`; }
+  const mobileCall = el('mobile-call');
+  if (mobileCall) { mobileCall.href = callHref; mobileCall.textContent = `📞 Call ${d.phone || 'Now'}`; }
+  const mobileBar = el('mobile-bar'); if (mobileBar) mobileBar.style.display = 'flex';
 
-  // Finance URLs with context
+  // Finance URLs
   const unitSlug = title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
   const priceNum = parseFloat(String(unit.price || '').replace(/[^0-9.]/g, '')) || '';
   const financeUrl = `/finance.html?stock=${encodeURIComponent(unit.stock || '')}&unit=${encodeURIComponent(unitSlug)}&price=${priceNum}&src=listing`;
-  document.getElementById('cta-finance').href = financeUrl;
-  document.getElementById('mobile-finance').href = financeUrl;
-  const financeBlockBtn = document.getElementById('finance-block-btn');
-  if (financeBlockBtn) financeBlockBtn.href = financeUrl;
+  const ctaFinance = el('cta-finance');     if (ctaFinance)    ctaFinance.href    = financeUrl;
+  const mobileFinance = el('mobile-finance');if (mobileFinance) mobileFinance.href = financeUrl;
+  const financeBlockBtn = el('finance-block-btn'); if (financeBlockBtn) financeBlockBtn.href = financeUrl;
 
   // Dealer card
-  document.getElementById('d-name').textContent = dealerKey || unit.dealer;
-  document.getElementById('d-addr').textContent = `${d.address || ''}\nCall: ${d.phone || ''}`;
-  document.getElementById('d-call').href = callHref;
-  document.getElementById('d-directions').href = d.mapsUrl || '#';
+  const dName = el('d-name'); if (dName) dName.textContent = dealerKey || unit.dealer;
+  const dAddr = el('d-addr'); if (dAddr) dAddr.textContent = `${d.address || ''}\nCall: ${d.phone || ''}`;
+  const dCall = el('d-call'); if (dCall) dCall.href = callHref;
+  const dDir  = el('d-directions'); if (dDir) dDir.href = d.mapsUrl || '#';
 
-  // Specs
+  // Specs grid
   const specs = [
-    unit.year ? ['Year', unit.year] : null,
-    unit.make ? ['Make', unit.make] : null,
-    unit.model ? ['Model', unit.model] : null,
-    unit.condition ? ['Condition', unit.condition] : null,
-    unit.fuel ? ['Fuel', unit.fuel] : null,
-    unit.mileage ? ['Mileage', formatMileage(unit.mileage)] : null,
-    unit.engine ? ['Engine', unit.engine] : null,
-    unit.transmission ? ['Transmission', unit.transmission] : null,
-    unit.drivetrain ? ['Drivetrain', unit.drivetrain] : null,
-    unit.vin ? ['VIN', unit.vin] : null,
-    unit.stock ? ['Stock #', unit.stock] : null,
-    unit.subcategory ? ['Type', unit.subcategory] : null,
+    unit.year         ? ['Year',         unit.year]                  : null,
+    unit.make         ? ['Make',         unit.make]                  : null,
+    unit.model        ? ['Model',        unit.model]                 : null,
+    unit.condition    ? ['Condition',    unit.condition]             : null,
+    unit.fuel         ? ['Fuel',         unit.fuel]                  : null,
+    unit.mileage      ? ['Mileage',      formatMileage(unit.mileage)]: null,
+    unit.engine       ? ['Engine',       unit.engine]                : null,
+    unit.transmission ? ['Transmission', unit.transmission]          : null,
+    unit.drivetrain   ? ['Drivetrain',   unit.drivetrain]            : null,
+    unit.vin          ? ['VIN',          unit.vin]                   : null,
+    unit.stock        ? ['Stock #',      unit.stock]                 : null,
+    unit.subcategory  ? ['Type',         unit.subcategory]           : null,
   ].filter(Boolean);
-
-  document.getElementById('specs-grid').innerHTML = specs.map(([l, v]) =>
+  const specsGrid = el('specs-grid');
+  if (specsGrid) specsGrid.innerHTML = specs.map(([l, v]) =>
     `<div class="spec-row"><div class="spec-label">${l}</div><div class="spec-val">${v}</div></div>`
   ).join('');
 
   // Description
   if (unit.description) {
-    document.getElementById('desc-card').style.display = 'block';
-    document.getElementById('desc-body').innerHTML = formatDescription(unit.description);
+    const descCard = el('desc-card'); if (descCard) descCard.style.display = 'block';
+    const descBody = el('desc-body'); if (descBody) descBody.innerHTML = formatDescription(unit.description);
   }
 
   // Lead form hidden fields
-  document.getElementById('f-msg').value = `I'm interested in the ${title}${unit.stock ? ' (Stock # ' + unit.stock + ')' : ''}. Please contact me.`;
-  document.getElementById('f-stock').value = unit.stock || '';
-  document.getElementById('f-dealer').value = dealerKey || unit.dealer || '';
-  document.getElementById('f-listing-title').value = title;
-  document.getElementById('f-page-url').value = pageUrl;
-  document.getElementById('f-referrer').value = document.referrer || '';
+  const fMsg = el('f-msg');          if (fMsg)  fMsg.value  = `I'm interested in the ${title}${unit.stock ? ' (Stock # ' + unit.stock + ')' : ''}. Please contact me.`;
+  const fStock = el('f-stock');      if (fStock) fStock.value = unit.stock || '';
+  const fDealer = el('f-dealer');    if (fDealer) fDealer.value = dealerKey || unit.dealer || '';
+  const fListingTitle = el('f-listing-title'); if (fListingTitle) fListingTitle.value = title;
+  const fPageUrl = el('f-page-url'); if (fPageUrl) fPageUrl.value = pageUrl;
+  const fRef = el('f-referrer');     if (fRef) fRef.value = document.referrer || '';
 
-  // Show VDP
-  document.getElementById('vdp-loading').style.display = 'none';
-  document.getElementById('vdp').style.display = 'block';
+  // Show VDP, hide spinner
+  const loadingEl = el('vdp-loading'); if (loadingEl) loadingEl.style.display = 'none';
+  const vdpEl = el('vdp');             if (vdpEl)     vdpEl.style.display     = 'block';
 }
 
 // ─── SIMILAR UNITS ──────────────────────────────────────────────────────────

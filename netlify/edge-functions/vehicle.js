@@ -215,7 +215,7 @@ async function fetchUnit(stock, dealer, log) {
 // ─── HTML transformer ─────────────────────────────────────────────────────────
 
 function injectMeta(html, { pageTitle, pageDesc, pageUrl, firstPhoto, schema }) {
-  html = html.replace(/<title[^>]*>[^<]*<\/title>/, `<title>${esc(pageTitle)}</title>`);
+  html = html.replace(/<title[^>]*>[^<]*<\/title>/, `<title id="page-title">${esc(pageTitle)}</title>`);
 
   html = html.replace(
     /<meta name="description"[^>]*>/,
