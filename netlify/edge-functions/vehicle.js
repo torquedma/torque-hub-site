@@ -248,7 +248,7 @@ function injectMeta(html, { pageTitle, pageDesc, pageUrl, firstPhoto, schema }) 
   return html;
 }
 
-function injectBody(html, { unit, dealerKey, title, price, subcat, loc, specsHtml, descHtml }) {
+function injectBody(html, { unit, dealerKey, title, price, subcat, loc, specsHtml, descHtml, firstPhoto }) {
   // Breadcrumb
   html = html.replace(
     '<span id="bc-title">Listing Details</span>',
@@ -267,6 +267,14 @@ function injectBody(html, { unit, dealerKey, title, price, subcat, loc, specsHtm
     html = html.replace(
       'id="sold-banner" class="sold-banner" style="display:none"',
       'id="sold-banner" class="sold-banner"'
+    );
+  }
+
+  // Gallery — replace placeholder with first photo when available
+  if (firstPhoto) {
+    html = html.replace(
+      '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--soft)">No photos available</div>',
+      `<img id="gallery-img" src="${escAttr(firstPhoto)}" alt="${escAttr(title)}" style="width:100%;height:100%;object-fit:cover;display:block;" loading="eager">`
     );
   }
 
@@ -435,7 +443,7 @@ export default async function handler(request, context) {
 
   html = injectMeta(html, { pageTitle, pageDesc, pageUrl, firstPhoto, schema });
   html = html.replace('</head>', dataScript + '\n</head>');
-  html = injectBody(html, { unit, dealerKey, title, price, subcat, loc, specsHtml, descHtml });
+  html = injectBody(html, { unit, dealerKey, title, price, subcat, loc, specsHtml, descHtml, firstPhoto });
 
   console.log(`[vehicle edge] transformed OK — title: ${pageTitle}`);
 
