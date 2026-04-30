@@ -157,19 +157,44 @@ function buildSchema(unit, d, pageUrl, dealerKey) {
 
 // ─── Supabase fetch with MPX variant handling ─────────────────────────────────
 
-async function fetchUnit(stock, dealer) {
+// log array is populated with one entry per Supabase request — used by ?__debug=1
+async function fetchUnit(stock, dealer, log) {
   const variants = [stock];
-  if (/^MPX-/i.test(stock))   variants.push(stock.replace(/^MPX-/i, 'MPX'));
+  if (/^MPX-/i.test(stock))        variants.push(stock.replace(/^MPX-/i, 'MPX'));
   else if (/^MPX[^-]/i.test(stock)) variants.push('MPX-' + stock.slice(3));
+
+  console.log('[vehicle edge] fetchUnit variants:', variants, '| dealer:', dealer);
 
   const sbFetch = async (sv, dealerFilter) => {
     const q = dealerFilter
       ? `stock=eq.${encodeURIComponent(sv)}&dealer=eq.${encodeURIComponent(dealerFilter)}&limit=1`
       : `stock=eq.${encodeURIComponent(sv)}&limit=1`;
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/inventory?${q}`, { headers: SB_HEADERS });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data?.[0] ?? null;
+    const fullUrl = `${SUPABASE_URL}/rest/v1/inventory?${q}`;
+    const entry = { url: fullUrl, sv, dealerFilter, status: null, rowCount: null, error: null };
+
+    try {
+      const res = await fetch(fullUrl, { headers: SB_HEADERS });
+      entry.status = res.status;
+
+      if (!res.ok) {
+        entry.error = `HTTP ${res.status}`;
+        entry.body = (await res.text()).slice(0, 300);
+        log.push(entry);
+        console.error(`[vehicle edge] Supabase error ${res.status} — ${entry.body}`);
+        return null;
+      }
+
+      const data = await res.json();
+      entry.rowCount = Array.isArray(data) ? data.length : -1;
+      log.push(entry);
+      console.log(`[vehicle edge] Supabase OK — stock:${sv} dealer:${dealerFilter} rows:${entry.rowCount}`);
+      return data?.[0] ?? null;
+    } catch (e) {
+      entry.error = e.message;
+      log.push(entry);
+      console.error(`[vehicle edge] fetch threw — ${e.message}`);
+      return null;
+    }
   };
 
   if (dealer) {
@@ -294,26 +319,77 @@ export default async function handler(request, context) {
   const url = new URL(request.url);
   const stock = url.searchParams.get('stock');
   const dealerParam = url.searchParams.get('dealer');
+  const isDebug = url.searchParams.get('__debug') === '1';
 
-  // No stock param — serve the static page as-is (index page, etc.)
-  if (!stock) return context.next();
+  console.log(`[vehicle edge] hit — stock:${stock} dealer:${dealerParam} debug:${isDebug}`);
 
-  // Fetch listing data and the base HTML in parallel
+  if (!stock) {
+    console.log('[vehicle edge] no stock param, passing through');
+    return context.next();
+  }
+
+  // ── Debug mode: return JSON showing exactly what Supabase returned ──────────
+  // Usage: /vehicle.html?stock=XXX&dealer=YYY&__debug=1
+  if (isDebug) {
+    const log = [];
+    let result = null;
+    let fetchError = null;
+    try {
+      result = await fetchUnit(stock, dealerParam, log);
+    } catch (e) {
+      fetchError = e.message;
+    }
+    return new Response(JSON.stringify({
+      stock,
+      dealer: dealerParam,
+      supabaseUrl: SUPABASE_URL,
+      found: !!result,
+      dealerKey: result?.dealerKey ?? null,
+      unit: result?.unit ? {
+        stock: result.unit.stock,
+        dealer: result.unit.dealer,
+        year: result.unit.year,
+        make: result.unit.make,
+        model: result.unit.model,
+        price: result.unit.price,
+        sold: result.unit.sold,
+      } : null,
+      fetchError,
+      log,
+    }, null, 2), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  // ── Normal path: fetch listing + base HTML in parallel ────────────────────
+  const log = [];
+  let fetchError = null;
+
   const [result, baseResponse] = await Promise.all([
-    fetchUnit(stock, dealerParam).catch(() => null),
+    (async () => {
+      try {
+        return await fetchUnit(stock, dealerParam, log);
+      } catch (e) {
+        fetchError = e.message;
+        console.error('[vehicle edge] fetchUnit threw:', e.message);
+        return null;
+      }
+    })(),
     context.next(),
   ]);
 
-  // Unit not found — pass through; client-side JS will show the error state
+  console.log(`[vehicle edge] result: ${result ? 'found ' + result.unit?.stock : 'null'} | error: ${fetchError ?? 'none'}`);
+
+  // Not found — pass through unchanged; client JS shows the error state
   if (!result) return baseResponse;
 
   const { unit, dealerKey } = result;
   const d = DEALERS[dealerKey] || {};
 
-  const title     = [unit.year, unit.make, unit.model].filter(Boolean).join(' ') || 'Unit Available';
-  const price     = formatPrice(unit.price);
-  const subcat    = unit.subcategory || '';
-  const photos    = getPhotos(unit);
+  const title      = [unit.year, unit.make, unit.model].filter(Boolean).join(' ') || 'Unit Available';
+  const price      = formatPrice(unit.price);
+  const subcat     = unit.subcategory || '';
+  const photos     = getPhotos(unit);
   const firstPhoto = photos[0]?.url || photos[0]?.dataUrl || '';
 
   const addrLines = (d.address || '').split('\n');
@@ -331,15 +407,16 @@ export default async function handler(request, context) {
   const descHtml  = buildDescHtml(unit.description);
   const schema    = buildSchema(unit, d, pageUrl, dealerKey);
 
-  // Inline unit data as a script tag — lets the client skip the Supabase round-trip
-  // and go straight to render() on load. window.__VDP_UNIT__ is checked in init().
   const dataScript = `<script>window.__VDP_UNIT__=${safeJson(unit)};window.__VDP_DEALER_KEY__=${safeJson(dealerKey)};</script>`;
 
   let html = await baseResponse.text();
+  console.log(`[vehicle edge] base HTML length: ${html.length}`);
 
   html = injectMeta(html, { pageTitle, pageDesc, pageUrl, firstPhoto, schema });
   html = html.replace('</head>', dataScript + '\n</head>');
   html = injectBody(html, { unit, dealerKey, title, price, subcat, loc, specsHtml, descHtml });
+
+  console.log(`[vehicle edge] transformed OK — title: ${pageTitle}`);
 
   return new Response(html, {
     headers: {
