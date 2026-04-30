@@ -97,7 +97,7 @@ exports.handler = async (event) => {
     const batch = items.slice(i, i + batchSize);
     await Promise.all(batch.map(async (item) => {
       try {
-        const stock = item.stock || (item.listingId ? `MPX${item.listingId}` : null);
+        const stock = item.stock || item.stockNumber || (item.listingId ? `MPX-${item.listingId}` : null);
         if (!stock) return;
         incomingStocks.add(stock);
 
