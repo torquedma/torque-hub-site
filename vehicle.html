@@ -591,6 +591,12 @@ function render(unit, dealerKey) {
   const isSold = unit.sold === true;
   const subcat = unit.subcategory || '';
 
+  // Hide fallback states unconditionally — SSR or a previous failed load may have
+  // left them visible. Do this before any other DOM work so they never flash.
+  const errorEl = el('vdp-error'); if (errorEl) errorEl.style.display = 'none';
+  const soldBannerEl = el('sold-banner');
+  if (soldBannerEl) soldBannerEl.style.display = isSold ? 'flex' : 'none';
+
   // Derive city/state for SEO strings
   const addrLines = (d.address || '').split('\n');
   const cityLine = addrLines[addrLines.length - 1] || '';
@@ -666,9 +672,6 @@ function render(unit, dealerKey) {
   const hlSep    = el('hl-sep');     if (hlSep)    hlSep.style.display    = (price && dealerKey) ? 'inline' : 'none';
   const hlLocSep = el('hl-loc-sep'); if (hlLocSep) hlLocSep.style.display = loc ? 'inline' : 'none';
 
-  // Sold banner
-  if (isSold) { const sb = el('sold-banner'); if (sb) sb.style.display = 'flex'; }
-
   // Gallery — called after VDP is visible so dimensions are available
   console.log('[render] calling initGallery — unit.photos type:', typeof unit.photos, '| isArray:', Array.isArray(unit.photos), '| length:', Array.isArray(unit.photos) ? unit.photos.length : 'n/a', '| first:', unit.photos?.[0] ?? 'none');
   initGallery(unit.photos);
@@ -736,8 +739,11 @@ function render(unit, dealerKey) {
   const fPageUrl = el('f-page-url'); if (fPageUrl) fPageUrl.value = pageUrl;
   const fRef = el('f-referrer');     if (fRef) fRef.value = document.referrer || '';
 
-  // Show VDP, hide spinner
+  // Show VDP, hide spinner — re-hide fallback elements right before reveal so
+  // nothing flashes even if an earlier path left them visible
   const loadingEl = el('vdp-loading'); if (loadingEl) loadingEl.style.display = 'none';
+  if (errorEl)     errorEl.style.display     = 'none';
+  if (soldBannerEl) soldBannerEl.style.display = isSold ? 'flex' : 'none';
   const vdpEl = el('vdp');             if (vdpEl)     vdpEl.style.display     = 'block';
 }
 
