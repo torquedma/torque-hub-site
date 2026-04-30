@@ -82,7 +82,7 @@
     .vdp-headline-price { font-family: "Barlow Condensed", sans-serif; font-size: 26px; font-weight: 900; color: #e2e8f0; }
     .vdp-headline-sep { color: var(--soft); }
     .subcat-badge { display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; padding: 4px 12px; border-radius: 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); color: #94a3b8; margin-top: 8px; }
-    .vdp-seo-line { position: absolute; left: -9999px; width: 1px; overflow: hidden; }
+    .vdp-seo-line { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
     /* GALLERY */
     .gallery { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
@@ -481,10 +481,15 @@ const DEALERS = {
 
 // ─── HELPERS ────────────────────────────────────────────────────────────────
 function formatPrice(raw) {
-  if (!raw) return 'Call for Price';
-  const n = parseFloat(String(raw).replace(/[^0-9.]/g, ''));
-  if (!n) return 'Call for Price';
-  return '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  if (raw === null || raw === undefined || raw === '') return 'Call for Price';
+  const num = typeof raw === 'number' ? raw : parseFloat(String(raw).replace(/[^0-9.]/g, ''));
+  if (isNaN(num) || num <= 0) return 'Call for Price';
+  return '$' + num.toLocaleString('en-US', { maximumFractionDigits: 0 });
+}
+
+function trimSpec(val) {
+  if (!val) return val;
+  return String(val).split(/\s*[—–]\s*|\s+-\s+/)[0].trim();
 }
 
 function formatMileage(raw) {
@@ -717,8 +722,8 @@ function render(unit, dealerKey) {
     unit.condition    ? ['Condition',    unit.condition]             : null,
     unit.fuel         ? ['Fuel',         unit.fuel]                  : null,
     unit.mileage      ? ['Mileage',      formatMileage(unit.mileage)]: null,
-    unit.engine       ? ['Engine',       unit.engine]                : null,
-    unit.transmission ? ['Transmission', unit.transmission]          : null,
+    unit.engine       ? ['Engine',       trimSpec(unit.engine)]       : null,
+    unit.transmission ? ['Transmission', trimSpec(unit.transmission)] : null,
     unit.drivetrain   ? ['Drivetrain',   unit.drivetrain]            : null,
     unit.vin          ? ['VIN',          unit.vin]                   : null,
     unit.stock        ? ['Stock #',      unit.stock]                 : null,

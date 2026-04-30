@@ -42,10 +42,15 @@ function safeJson(data) {
 // ─── Formatters ──────────────────────────────────────────────────────────────
 
 function formatPrice(raw) {
-  if (!raw) return 'Call for Price';
-  const n = parseFloat(String(raw).replace(/[^0-9.]/g, ''));
-  if (!n) return 'Call for Price';
-  return '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  if (raw === null || raw === undefined || raw === '') return 'Call for Price';
+  const num = typeof raw === 'number' ? raw : parseFloat(String(raw).replace(/[^0-9.]/g, ''));
+  if (isNaN(num) || num <= 0) return 'Call for Price';
+  return '$' + num.toLocaleString('en-US', { maximumFractionDigits: 0 });
+}
+
+function trimSpec(val) {
+  if (!val) return val;
+  return String(val).split(/\s*[—–]\s*|\s+-\s+/)[0].trim();
 }
 
 function formatMileage(raw) {
@@ -71,8 +76,8 @@ function buildSpecsHtml(unit) {
     unit.condition    && ['Condition',    unit.condition],
     unit.fuel         && ['Fuel',         unit.fuel],
     unit.mileage      && ['Mileage',      formatMileage(unit.mileage)],
-    unit.engine       && ['Engine',       unit.engine],
-    unit.transmission && ['Transmission', unit.transmission],
+    unit.engine       && ['Engine',       trimSpec(unit.engine)],
+    unit.transmission && ['Transmission', trimSpec(unit.transmission)],
     unit.drivetrain   && ['Drivetrain',   unit.drivetrain],
     unit.vin          && ['VIN',          unit.vin],
     unit.stock        && ['Stock #',      unit.stock],
