@@ -241,21 +241,9 @@
   <div class="loading-spinner"></div>
 </div>
 
-<div id="vdp-error" class="container error-state" style="display:none" aria-live="polite">
-  <h2>Listing Not Available</h2>
-  <p>This unit may have been sold or removed. Browse current inventory below.</p>
-  <a href="/#inventory" class="back-btn">Browse All Inventory</a>
-</div>
 
 <div id="vdp" style="display:none">
   <div class="container">
-    <div id="sold-banner" class="sold-banner" style="display:none">
-      <div>
-        <div class="sold-banner-text">🚫 This unit has been sold</div>
-        <div class="sold-banner-sub">Check out similar available units below.</div>
-      </div>
-    </div>
-
     <div class="vdp-grid">
       <!-- LEFT COLUMN -->
       <div>
@@ -598,11 +586,15 @@ function render(unit, dealerKey) {
   const isSold = unit.sold === true;
   const subcat = unit.subcategory || '';
 
-  // Hide fallback states unconditionally — SSR or a previous failed load may have
-  // left them visible. Do this before any other DOM work so they never flash.
-  const errorEl = el('vdp-error'); if (errorEl) errorEl.style.display = 'none';
-  const soldBannerEl = el('sold-banner');
-  if (soldBannerEl) soldBannerEl.style.display = isSold ? 'flex' : 'none';
+  // Create sold banner dynamically when unit is sold — not in static HTML
+  if (isSold && !el('sold-banner')) {
+    const banner = document.createElement('div');
+    banner.id = 'sold-banner';
+    banner.className = 'sold-banner';
+    banner.innerHTML = '<div><div class="sold-banner-text">🚫 This unit has been sold</div><div class="sold-banner-sub">Check out similar available units below.</div></div>';
+    const vdpContainer = document.querySelector('#vdp > .container');
+    if (vdpContainer) vdpContainer.insertBefore(banner, vdpContainer.firstChild);
+  }
 
   // Derive city/state for SEO strings
   const addrLines = (d.address || '').split('\n');
@@ -748,11 +740,8 @@ function render(unit, dealerKey) {
   const fPageUrl = el('f-page-url'); if (fPageUrl) fPageUrl.value = pageUrl;
   const fRef = el('f-referrer');     if (fRef) fRef.value = document.referrer || '';
 
-  // Show VDP, hide spinner — re-hide fallback elements right before reveal so
-  // nothing flashes even if an earlier path left them visible
+  // Show VDP, hide spinner
   const loadingEl = el('vdp-loading'); if (loadingEl) loadingEl.style.display = 'none';
-  if (errorEl)     errorEl.style.display     = 'none';
-  if (soldBannerEl) soldBannerEl.style.display = isSold ? 'flex' : 'none';
   const vdpEl = el('vdp');             if (vdpEl)     vdpEl.style.display     = 'block';
 }
 
@@ -841,6 +830,23 @@ function submitLead() {
   });
 }
 
+function showError() {
+  const loadingEl = document.getElementById('vdp-loading');
+  if (loadingEl) loadingEl.style.display = 'none';
+  let errEl = document.getElementById('vdp-error');
+  if (!errEl) {
+    errEl = document.createElement('div');
+    errEl.id = 'vdp-error';
+    errEl.className = 'container error-state';
+    errEl.setAttribute('aria-live', 'polite');
+    errEl.innerHTML = '<h2>Listing Not Available</h2><p>This unit may have been sold or removed. Browse current inventory below.</p><a href="/#inventory" class="back-btn">Browse All Inventory</a>';
+    const vdp = document.getElementById('vdp');
+    if (vdp) vdp.parentNode.insertBefore(errEl, vdp);
+    else document.body.appendChild(errEl);
+  }
+  errEl.style.display = 'block';
+}
+
 // ─── INIT ────────────────────────────────────────────────────────────────────
 async function init() {
   // Edge function pre-fetched the listing and injected it as window.__VDP_UNIT__.
@@ -867,8 +873,7 @@ async function init() {
   }
 
   if (!stock) {
-    document.getElementById('vdp-loading').style.display = 'none';
-    document.getElementById('vdp-error').style.display = 'block';
+    showError();
     return;
   }
 
@@ -916,8 +921,7 @@ async function init() {
 
   if (!unit) {
     console.warn('[VDP] Unit not found — stock:', stock, '| dealer:', dealerParam, '| variants tried:', stockVariants);
-    document.getElementById('vdp-loading').style.display = 'none';
-    document.getElementById('vdp-error').style.display = 'block';
+    showError();
     return;
   }
 
