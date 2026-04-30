@@ -320,6 +320,15 @@ function injectBody(html, { unit, dealerKey, title, price, subcat, loc, cityStat
     `class="price-amount${price === 'Call for Price' ? ' call' : ''}" id="s-price">${esc(price)}</div>`
   );
 
+  // Scrub fallback message text from JS source — listing is found so these
+  // functions never execute; crawlers must not see the strings in source.
+  html = html.replace("h2.textContent = 'Listing Not Available';", "h2.textContent = '';");
+  html = html.replace("p.textContent = 'This unit may have been sold or removed. Browse current inventory below.';", "p.textContent = '';");
+  if (!unit.sold) {
+    html = html.replace("t.textContent = '\\u{1F6AB} This unit has been sold';", "t.textContent = '';");
+    html = html.replace("s.textContent = 'Check out similar available units below.';", "s.textContent = '';");
+  }
+
   return html;
 }
 
