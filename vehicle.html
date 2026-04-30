@@ -232,18 +232,17 @@
     <span>›</span>
     <a href="/#inventory">Inventory</a>
     <span>›</span>
-    <span id="bc-title">Loading...</span>
+    <span id="bc-title">Listing Details</span>
   </div>
 </div>
 
-<div id="vdp-loading" class="container loading-state">
+<div id="vdp-loading" class="container loading-state" aria-hidden="true">
   <div class="loading-spinner"></div>
-  <div>Loading listing details...</div>
 </div>
 
-<div id="vdp-error" class="container error-state" style="display:none">
-  <h2>Unit Not Found</h2>
-  <p>This listing may no longer be available or may have been sold.</p>
+<div id="vdp-error" class="container error-state" style="display:none" aria-live="polite">
+  <h2>Listing Not Available</h2>
+  <p>This unit may have been sold or removed. Browse current inventory below.</p>
   <a href="/#inventory" class="back-btn">Browse All Inventory</a>
 </div>
 
@@ -815,40 +814,66 @@ async function init() {
   const stock = params.get('stock');
   const dealerParam = params.get('dealer');
 
+  console.log('[VDP] init — stock:', stock, '| dealer:', dealerParam);
+
+  // Pre-set title/meta from URL params immediately so crawlers see something meaningful
+  if (stock) {
+    const preTitle = (dealerParam ? dealerParam + ' — ' : '') + stock + ' — Torque Hub';
+    document.getElementById('page-title').textContent = preTitle;
+    document.getElementById('og-title').setAttribute('content', preTitle);
+    document.getElementById('bc-title').textContent = 'Listing Details';
+  }
+
   if (!stock) {
     document.getElementById('vdp-loading').style.display = 'none';
     document.getElementById('vdp-error').style.display = 'block';
     return;
   }
 
+  // Build stock variants to handle MPX-XXXXXX vs MPXXXXXXX stored formats
+  const stockVariants = [stock];
+  if (/^MPX-/i.test(stock)) {
+    stockVariants.push(stock.replace(/^MPX-/i, 'MPX'));
+  } else if (/^MPX[^-]/i.test(stock)) {
+    stockVariants.push('MPX-' + stock.slice(3));
+  }
+
+  async function tryFetch(sv, dealer) {
+    const url = dealer
+      ? `${SUPABASE_URL}/rest/v1/inventory?stock=eq.${encodeURIComponent(sv)}&dealer=eq.${encodeURIComponent(dealer)}&limit=1`
+      : `${SUPABASE_URL}/rest/v1/inventory?stock=eq.${encodeURIComponent(sv)}&limit=1`;
+    const res = await fetch(url, { headers: SB_HEADERS });
+    const data = await res.json();
+    return (data && data.length) ? data[0] : null;
+  }
+
   let unit = null;
   let foundDealerKey = dealerParam || '';
 
-  // Primary: stock + dealer exact match
+  // Pass 1: try each stock variant with dealer
   if (dealerParam) {
-    try {
-      const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/inventory?stock=eq.${encodeURIComponent(stock)}&dealer=eq.${encodeURIComponent(dealerParam)}&limit=1`,
-        { headers: SB_HEADERS }
-      );
-      const data = await res.json();
-      if (data && data.length) unit = data[0];
-    } catch (e) { console.warn('Primary fetch failed:', e.message); }
+    for (const sv of stockVariants) {
+      try {
+        const row = await tryFetch(sv, dealerParam);
+        console.log(`[VDP] pass1 — stock:${sv} dealer:${dealerParam} rows:${row ? 1 : 0}`);
+        if (row) { unit = row; break; }
+      } catch (e) { console.warn('[VDP] pass1 error:', e.message); }
+    }
   }
 
-  // Fallback: stock-only (handles dealer key formatting mismatches)
+  // Pass 2: try each stock variant without dealer constraint
   if (!unit) {
-    try {
-      const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/inventory?stock=eq.${encodeURIComponent(stock)}&limit=1`,
-        { headers: SB_HEADERS }
-      );
-      const data = await res.json();
-      if (data && data.length) { unit = data[0]; foundDealerKey = unit.dealer || dealerParam || ''; }
-    } catch (e) { console.warn('Fallback fetch failed:', e.message); }
+    for (const sv of stockVariants) {
+      try {
+        const row = await tryFetch(sv, null);
+        console.log(`[VDP] pass2 — stock:${sv} rows:${row ? 1 : 0}`);
+        if (row) { unit = row; foundDealerKey = unit.dealer || dealerParam || ''; break; }
+      } catch (e) { console.warn('[VDP] pass2 error:', e.message); }
+    }
   }
 
   if (!unit) {
+    console.warn('[VDP] Unit not found — stock:', stock, '| dealer:', dealerParam, '| variants tried:', stockVariants);
     document.getElementById('vdp-loading').style.display = 'none';
     document.getElementById('vdp-error').style.display = 'block';
     return;
