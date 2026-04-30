@@ -339,6 +339,13 @@ function injectBody(html, { unit, dealerKey, title, price, subcat, loc, cityStat
     `class="price-amount${price === 'Call for Price' ? ' call' : ''}" id="s-price">${esc(price)}</div>`
   );
 
+  // Scrub fallback message strings from JS source — listing is found so these
+  // text nodes will never be created, and crawlers must not see them in source.
+  html = html.replace(/errEl\.innerHTML = '[^']+';/, "errEl.innerHTML = '';");
+  if (!unit.sold) {
+    html = html.replace(/banner\.innerHTML = '[^']+';/, "banner.innerHTML = '';");
+  }
+
   return html;
 }
 
