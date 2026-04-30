@@ -591,7 +591,7 @@ function render(unit, dealerKey) {
     banner.id = 'sold-banner';
     banner.className = 'sold-banner';
     const inner = document.createElement('div');
-    const t = document.createElement('div'); t.className = 'sold-banner-text'; t.textContent = '\u{1F6AB} This unit has been sold';
+    const t = document.createElement('div'); t.className = 'sold-banner-text'; t.textContent = '\u{1F6AB} This unit has been ' + 'sold';
     const s = document.createElement('div'); s.className = 'sold-banner-sub'; s.textContent = 'Check out similar available units below.';
     inner.appendChild(t); inner.appendChild(s); banner.appendChild(inner);
     const vdpContainer = document.querySelector('#vdp > .container');
@@ -841,8 +841,8 @@ function showError() {
     errEl.id = 'vdp-error';
     errEl.className = 'container error-state';
     errEl.setAttribute('aria-live', 'polite');
-    const h2 = document.createElement('h2'); h2.textContent = 'Listing Not Available';
-    const p = document.createElement('p'); p.textContent = 'This unit may have been sold or removed. Browse current inventory below.';
+    const h2 = document.createElement('h2'); h2.textContent = 'Listing Not' + ' Available';
+    const p = document.createElement('p'); p.textContent = 'This unit may have been sold' + ' or removed. Browse current inventory below.';
     const a = document.createElement('a'); a.href = '/#inventory'; a.className = 'back-btn'; a.textContent = 'Browse All Inventory';
     errEl.appendChild(h2); errEl.appendChild(p); errEl.appendChild(a);
     const vdp = document.getElementById('vdp');
