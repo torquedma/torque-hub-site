@@ -52,9 +52,61 @@ function normalizeStockNumber(rawStock, dealerName) {
 }
 
 function deriveSubcategory(item) {
+  // 1. Direct field from Apify (rare but cheap to check)
   const direct = (item.subcategory || item.bodyType || item.body_type || item.vehicleType || '').toString().trim();
   if (direct) return direct;
 
+  // 2. URL slug match (TruckPaper's own category taxonomy)
+  const url = (item.source_url || item.url || '').toLowerCase();
+  if (url) {
+    const URL_SLUGS = [
+      [/\/day-cab-trucks?\b/, 'Day Cab Tractor'],
+      [/\/sleeper-trucks?\b/, 'Sleeper Tractor'],
+      [/\/cab-and-chassis-trucks?\b/, 'Cab & Chassis'],
+      [/\/yard-spotter-trucks?\b/, 'Yard Spotter'],
+      [/\/service-trucks?(?:-slash-utility-trucks?)?(?:-slash-mechanic-trucks?)?\b/, 'Service Truck'],
+      [/\/utility-trucks?\b/, 'Service Truck'],
+      [/\/mechanic-trucks?\b/, 'Service Truck'],
+      [/\/fire-trucks?\b/, 'Fire Truck'],
+      [/\/dump-trucks?\b/, 'Dump Truck'],
+      [/\/box-trucks?\b/, 'Box Truck'],
+      [/\/flatbed-trucks?\b/, 'Flatbed Truck'],
+      [/\/refrigerated-trucks?\b/, 'Refrigerated Truck'],
+      [/\/rollback-trucks?\b/, 'Rollback Tow Truck'],
+      [/\/tow-trucks?\b/, 'Tow Truck'],
+      [/\/wrecker-trucks?\b/, 'Tow Truck'],
+      [/\/car-hauler-trucks?\b/, 'Car Hauler'],
+      [/\/car-carrier-trucks?\b/, 'Car Hauler'],
+      [/\/bucket-trucks?\b/, 'Bucket Truck'],
+      [/\/aerial-trucks?\b/, 'Bucket Truck'],
+      [/\/garbage-trucks?\b/, 'Garbage Truck'],
+      [/\/refuse-trucks?\b/, 'Garbage Truck'],
+      [/\/mixer-trucks?\b/, 'Mixer Truck'],
+      [/\/tanker-trucks?\b/, 'Tanker Truck'],
+      [/\/fuel-trucks?\b/, 'Tanker Truck'],
+      [/\/crane-trucks?\b/, 'Crane Truck'],
+      [/\/cargo-vans?\b/, 'Cargo Van'],
+      [/\/passenger-vans?\b/, 'Passenger Van'],
+      [/\/pickup-trucks?\b/, 'Pickup Truck'],
+      [/\/dovetail-trailers?\b/, 'Dovetail Trailer'],
+      [/\/gooseneck-trailers?\b/, 'Gooseneck Trailer'],
+      [/\/dump-trailers?\b/, 'Dump Trailer'],
+      [/\/utility-trailers?\b/, 'Utility Trailer'],
+      [/\/equipment-trailers?\b/, 'Equipment Trailer'],
+      [/\/cargo-trailers?\b/, 'Cargo Trailer'],
+      [/\/enclosed-trailers?\b/, 'Cargo Trailer'],
+      [/\/lowboy-trailers?\b/, 'Lowboy Trailer'],
+      [/\/dry-van-trailers?\b/, 'Dry Van Trailer'],
+      [/\/flatbed-trailers?\b/, 'Flatbed Trailer'],
+      [/\/reefer-trailers?\b/, 'Refrigerated Trailer'],
+      [/\/refrigerated-trailers?\b/, 'Refrigerated Trailer'],
+    ];
+    for (const [rx, label] of URL_SLUGS) {
+      if (rx.test(url)) return label;
+    }
+  }
+
+  // 3. Keyword regex fallback against title/description/model
   const haystack = `${item.title || ''} ${item.description || ''} ${item.model || ''}`.toLowerCase();
   if (!haystack.trim()) return '';
 
