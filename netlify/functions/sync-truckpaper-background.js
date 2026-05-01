@@ -9,6 +9,17 @@ function trimSpec(val) {
   return val.split(/\s*[—–]\s*|\s+-\s+/)[0].trim();
 }
 
+const DEALER_PREFIXES = {
+  'Impex Heavy Metal': 'MPX-',
+};
+
+function normalizeStockNumber(rawStock, dealerName) {
+  if (!rawStock) return null;
+  const prefix = DEALER_PREFIXES[dealerName];
+  if (!prefix) return rawStock;
+  return rawStock.startsWith(prefix) ? rawStock : `${prefix}${rawStock}`;
+}
+
 const DEALER_INFO_MAP = {
   'Impex Heavy Metal': { name: 'Impex Heavy Metal', phone: '336-715-8704', location: 'Greensboro, NC' },
   "HGR's Truck and Trailer": { name: "HGR's Truck and Trailer", phone: '910-661-0868', location: 'Hope Mills, NC' },
@@ -97,7 +108,8 @@ exports.handler = async (event) => {
     const batch = items.slice(i, i + batchSize);
     await Promise.all(batch.map(async (item) => {
       try {
-        const stock = item.stock || item.stockNumber || (item.listingId ? `MPX-${item.listingId}` : null);
+        const rawStock = item.stock || item.stockNumber || (item.listingId ? String(item.listingId) : null);
+        const stock = normalizeStockNumber(rawStock, dealer);
         if (!stock) return;
         incomingStocks.add(stock);
 
