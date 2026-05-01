@@ -6,7 +6,7 @@
   directory = "netlify/functions"
   node_bundler = "esbuild"
 
-[functions."sync-truckpaper"]
+[functions."sync-truckpaper-background"]
   timeout = 300
 
 [[edge_functions]]
