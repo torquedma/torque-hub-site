@@ -816,6 +816,41 @@
     /* Price stays dominant white — no change needed */
     /* spec-label already muted #94a3b8 — correct */
     /* inventory-title already #f8fafc — correct */
+
+    /* ── Mobile sticky bottom CTA bar ─────────────────────────── */
+    .mobile-sticky-cta { display: none; }
+
+    @media (max-width: 767px) {
+      .mobile-sticky-cta {
+        display: flex;
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        width: 100%;
+        z-index: 9999;
+        background: var(--panel-2);
+        border-top: 2px solid var(--green);
+        padding-bottom: env(safe-area-inset-bottom, 0);
+        box-shadow: 0 -2px 8px rgba(0,0,0,0.25);
+      }
+      .mobile-sticky-cta__link {
+        flex: 1;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 8px;
+        color: var(--text);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        letter-spacing: 0.02em;
+        border-right: 1px solid var(--line);
+        transition: background 0.15s ease;
+      }
+      .mobile-sticky-cta__link:last-child { border-right: none; }
+      .mobile-sticky-cta__link:active { background: rgba(54,89,67,0.35); }
+      body { padding-bottom: calc(60px + env(safe-area-inset-bottom, 0)); }
+    }
   </style>
 </head>
 <body>
@@ -1495,6 +1530,18 @@ function renderInventory(items) {
 initDealerFilter();
 loadAll();
 </script>
+
+<nav class="mobile-sticky-cta" aria-label="Mobile quick actions">
+  <a href="#inventory" class="mobile-sticky-cta__link">
+    <span class="mobile-sticky-cta__label">Inventory</span>
+  </a>
+  <a href="/finance.html" class="mobile-sticky-cta__link">
+    <span class="mobile-sticky-cta__label">Financing</span>
+  </a>
+  <a href="/dealer-partners.html" class="mobile-sticky-cta__link">
+    <span class="mobile-sticky-cta__label">Contact</span>
+  </a>
+</nav>
 
 </body>
 </html>
