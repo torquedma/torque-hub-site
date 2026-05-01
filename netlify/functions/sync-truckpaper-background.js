@@ -51,6 +51,49 @@ function normalizeStockNumber(rawStock, dealerName) {
   return rawStock.startsWith(prefix) ? rawStock : `${prefix}${rawStock}`;
 }
 
+function deriveSubcategory(item) {
+  const direct = (item.subcategory || item.bodyType || item.body_type || item.vehicleType || '').toString().trim();
+  if (direct) return direct;
+
+  const haystack = `${item.title || ''} ${item.description || ''} ${item.model || ''}`.toLowerCase();
+  if (!haystack.trim()) return '';
+
+  const PATTERNS = [
+    [/\bcar\s*haul(er|ing)?\b|\bcar\s*carrier\b/, 'Car Hauler'],
+    [/\brollback\b|\broll[\s-]*back\b/, 'Rollback Tow Truck'],
+    [/\btow\s*truck\b|\bwrecker\b/, 'Tow Truck'],
+    [/\bdump\s*truck\b|\bdump\s*body\b/, 'Dump Truck'],
+    [/\bbox\s*truck\b|\bbox\s*van\b|\bcube\s*van\b/, 'Box Truck'],
+    [/\brefrigerated\b|\breefer\b/, 'Refrigerated Truck'],
+    [/\bflatbed\b/, 'Flatbed Truck'],
+    [/\bcargo\s*van\b/, 'Cargo Van'],
+    [/\bpassenger\s*van\b/, 'Passenger Van'],
+    [/\btractor\b.*\bsleeper\b|\bsleeper\b.*\btractor\b/, 'Sleeper Tractor'],
+    [/\bday\s*cab\b/, 'Day Cab Tractor'],
+    [/\btractor\b/, 'Tractor'],
+    [/\bservice\s*truck\b|\bmechanic\s*truck\b/, 'Service Truck'],
+    [/\bbucket\s*truck\b|\baerial\s*truck\b/, 'Bucket Truck'],
+    [/\bgarbage\s*truck\b|\brefuse\s*truck\b/, 'Garbage Truck'],
+    [/\bcement\s*mixer\b|\bmixer\s*truck\b/, 'Mixer Truck'],
+    [/\bfuel\s*truck\b|\btanker\b/, 'Tanker Truck'],
+    [/\bcrane\s*truck\b/, 'Crane Truck'],
+    [/\bdovetail\b/, 'Dovetail Trailer'],
+    [/\bgooseneck\b/, 'Gooseneck Trailer'],
+    [/\bdump\s*trailer\b/, 'Dump Trailer'],
+    [/\butility\s*trailer\b/, 'Utility Trailer'],
+    [/\bequipment\s*trailer\b/, 'Equipment Trailer'],
+    [/\bcargo\s*trailer\b|\benclosed\s*trailer\b/, 'Cargo Trailer'],
+    [/\blowboy\b/, 'Lowboy Trailer'],
+    [/\bdry\s*van\b/, 'Dry Van Trailer'],
+    [/\bpickup\b/, 'Pickup Truck'],
+  ];
+
+  for (const [rx, label] of PATTERNS) {
+    if (rx.test(haystack)) return label;
+  }
+  return '';
+}
+
 const DEALER_INFO_MAP = {
   'Impex Heavy Metal': { name: 'Impex Heavy Metal', phone: '336-715-8704', location: 'Greensboro, NC' },
   "HGR's Truck and Trailer": { name: "HGR's Truck and Trailer", phone: '910-661-0868', location: 'Hope Mills, NC' },
@@ -187,7 +230,7 @@ exports.handler = async (event) => {
           raw_description: rawDescription,
           description: rawDescription,
           category: item.category || 'Trucks',
-          subcategory: '', sold: false, featured: 0, days: '0',
+          subcategory: deriveSubcategory(item), sold: false, featured: 0, days: '0',
           photos: Array.isArray(item.photos) ? item.photos : [],
           source_type: 'truckpaper_apify',
           source_url: item.source_url || item.url || '',
