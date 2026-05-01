@@ -9,6 +9,37 @@ function trimSpec(val) {
   return val.split(/\s*[—–]\s*|\s+-\s+/)[0].trim();
 }
 
+const MAKE_ACRONYMS = new Set(['GMC', 'RAM', 'JCB', 'BMW', 'KTM', 'ASV', 'CAT', 'JLG', 'GM', 'PJ']);
+
+function normalizeMake(rawMake) {
+  if (!rawMake) return null;
+  const trimmed = rawMake.trim();
+  if (!trimmed) return null;
+
+  // If already mixed-case (not all-caps), trust it and leave alone
+  // This preserves brands like CargoPro, Alcom-Stealth, Harley-Davidson
+  if (trimmed !== trimmed.toUpperCase()) {
+    // Exception: fix wrong-cased acronyms like "Gmc" → "GMC", "Ram" → "RAM"
+    if (MAKE_ACRONYMS.has(trimmed.toUpperCase())) {
+      return trimmed.toUpperCase();
+    }
+    return trimmed;
+  }
+
+  // String is all-caps — check if it's a known acronym first
+  if (MAKE_ACRONYMS.has(trimmed)) return trimmed;
+
+  // Otherwise, title-case each word, preserving acronyms mid-string
+  return trimmed
+    .toLowerCase()
+    .split(/\s+/)
+    .map(word => {
+      if (MAKE_ACRONYMS.has(word.toUpperCase())) return word.toUpperCase();
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(' ');
+}
+
 const DEALER_PREFIXES = {
   'Impex Heavy Metal': 'MPX-',
 };
@@ -113,7 +144,7 @@ exports.handler = async (event) => {
         if (!stock) return;
         incomingStocks.add(stock);
 
-        const make = (item.make && item.make !== 'undefined') ? item.make : '';
+        const make = normalizeMake((item.make && item.make !== 'undefined') ? item.make : '') || '';
         const model = (item.model && item.model !== 'undefined') ? item.model : '';
 
         let mileage = item.mileage || '';
