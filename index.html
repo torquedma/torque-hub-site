@@ -1421,7 +1421,7 @@ async function loadAll() {
 
   const sbPromises = DEALERS.filter(d => !d.feedUrl).map(d =>
     fetch(
-      `${SB_URL}/rest/v1/inventory?dealer=eq.${encodeURIComponent(d.key)}&sold=eq.false&limit=1000`,
+      `${SB_URL}/rest/v1/inventory_cards?dealer=eq.${encodeURIComponent(d.key)}&sold=eq.false&limit=1000`,
       { headers: SB_HDRS }
     ).then(r => r.json()).then(items =>
       (items || []).map(u => ({ ...u, _dealer: d }))
