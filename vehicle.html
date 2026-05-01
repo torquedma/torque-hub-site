@@ -998,7 +998,7 @@ window.addEventListener('load', () => {
   console.log('VIEWPORT:', vw);
   console.log('OFFENDERS:', offenders);
   if (offenders.length) {
-    document.title = `WIDE: ${offenders[0].tag}.${offenders[0].cls || offenders[0].id} ${offenders[0].width}px`;
+    document.title = offenders.slice(0, 5).map(o => `${o.tag}.${(o.cls || o.id || '?').toString().slice(0,15)}=${o.width}`).join(' | ');
   }
 });
 </script>
