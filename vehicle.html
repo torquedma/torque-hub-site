@@ -304,7 +304,7 @@
             <li>Work trucks &amp; equipment</li>
             <li>All credit situations considered</li>
           </ul>
-          <a class="btn btn-finance" id="finance-block-btn" href="/finance.html">Apply Now →</a>
+          <a class="btn btn-finance" id="finance-block-btn" href="/finance.html">Get Pre-Approved for This Truck →</a>
         </div>
 
         <!-- Description -->
@@ -731,7 +731,7 @@ function render(unit, dealerKey) {
   // Dealer card
   const dName = el('d-name'); if (dName) dName.textContent = dealerKey || unit.dealer;
   const dAddr = el('d-addr'); if (dAddr) dAddr.textContent = `${d.address || ''}\nCall: ${d.phone || ''}`;
-  const dCall = el('d-call'); if (dCall) dCall.href = callHref;
+  const dCall = el('d-call'); if (dCall) { dCall.href = callHref; dCall.textContent = d.phone ? `Call ${d.phone}` : 'Call'; }
   const dDir  = el('d-directions'); if (dDir) dDir.href = d.mapsUrl || '#';
 
   // Specs grid
@@ -807,6 +807,8 @@ async function loadSimilar(currentUnit, dealerKey) {
     }
 
     items = items.slice(0, matchQuality === 'category' ? 3 : 4);
+    const similarCard = document.getElementById('similar-card');
+    if (similarCard) similarCard.style.display = 'none';
     if (!items.length) return;
 
     const sectionTitle = matchQuality === 'category'
