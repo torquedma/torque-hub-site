@@ -859,6 +859,10 @@
       .hero-sub { display: none; }
       .hero-hook { display: none; }
       #inv-trust-line { display: none; }
+      .trust-stats { display: none; }
+      #inventory .section-header { display: none; }
+      #browse-by-cat-label { display: none; }
+      .chip-row { display: none; }
       .section { padding: 12px 0; }
     }
 
@@ -1077,7 +1081,7 @@
             <option value="year-asc">Model Year: Oldest</option>
           </select>
         </div>
-        <div style="font-size:12px;color:#94a3b8;margin-bottom:8px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">Browse by Category</div>
+        <div id="browse-by-cat-label" style="font-size:12px;color:#94a3b8;margin-bottom:8px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">Browse by Category</div>
         <div class="chip-row">
           <div class="chip active" onclick="setCat('',this)" style="cursor:pointer">All</div>
           <div class="chip" onclick="setCat('Trucks',this)" style="cursor:pointer">Trucks</div>
