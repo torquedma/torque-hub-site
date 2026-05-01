@@ -40,6 +40,34 @@ function normalizeMake(rawMake) {
     .join(' ');
 }
 
+function normalizeModel(model) {
+  if (!model) return '';
+  const s = String(model).trim();
+  if (!s) return '';
+
+  const letters = s.replace(/[^A-Za-z]/g, '');
+  if (letters && letters !== letters.toUpperCase()) return s;
+
+  const KEEP_UPPER = new Set([
+    'GMC','RAM','BMW','KTM','ASV','CAT','JLG','GM','PJ','LLC','INC','CO',
+    'HD','XL','XLT','SE','LE','LT','LTZ','SS','GT','GTS','RS','SR',
+    'SXT','RT','EX','LX','DX','EXL','EXR','SEL','TRD','AWD','4WD',
+    'RWD','FWD','M2','M3','M5','MX','SRT','XLE','XSE','XS',
+    'II','III','IV','VI','VII','VIII','IX','X','XI','XII'
+  ]);
+
+  return s.split(/\s+/).map(word => {
+    if (!word) return word;
+    if (/^\d+$/.test(word)) return word;
+    const alphaOnly = word.replace(/[^A-Za-z]/g, '');
+    if (alphaOnly && KEEP_UPPER.has(alphaOnly.toUpperCase())) {
+      return word.toUpperCase();
+    }
+    if (/\d/.test(word)) return word.toUpperCase();
+    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+  }).join(' ');
+}
+
 const DEALER_PREFIXES = {
   'Impex Heavy Metal': 'MPX-',
 };
@@ -240,7 +268,7 @@ exports.handler = async (event) => {
         incomingStocks.add(stock);
 
         const make = normalizeMake((item.make && item.make !== 'undefined') ? item.make : '') || '';
-        const model = (item.model && item.model !== 'undefined') ? item.model : '';
+        const model = normalizeModel((item.model && item.model !== 'undefined') ? item.model : '');
 
         let mileage = item.mileage || '';
         if (!mileage && item.description) {
