@@ -53,7 +53,16 @@ function normalizeModel(model) {
     'HD','XL','XLT','SE','LE','LT','LTZ','SS','GT','GTS','RS','SR',
     'SXT','RT','EX','LX','DX','EXL','EXR','SEL','TRD','AWD','4WD',
     'RWD','FWD','M2','M3','M5','MX','SRT','XLE','XSE','XS',
-    'II','III','IV','VI','VII','VIII','IX','X','XI','XII'
+    'II','III','IV','VI','VII','VIII','IX','X','XI','XII',
+    'SD','NPR','NQR','NRR','FRR','FTR','FXR',
+    'CXU','CHU','CXP','CHP','CXN',
+    'DT','ISC','ISL','ISM','ISX',
+    'HX','RD','RH','MR','MK',
+    'PB','KW','FL','IH','IHC',
+    'GVW','GVWR','DOT','EPA','EGR','DPF','DEF',
+    'ACERT','MBE',
+    'TT','BT','ST','MT','NT',
+    'SLT','MV'
   ]);
 
   return s.split(/\s+/).map(word => {
