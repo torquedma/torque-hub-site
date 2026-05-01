@@ -830,11 +830,11 @@
         background: var(--panel-2);
         border-top: 2px solid var(--green);
         padding-bottom: env(safe-area-inset-bottom, 0);
-        box-shadow: 0 -2px 8px rgba(0,0,0,0.25);
+        box-shadow: 0 -6px 24px rgba(0,0,0,0.55), 0 -1px 0 rgba(255,255,255,0.06);
       }
       .mobile-sticky-cta__link {
         flex: 1;
-        min-height: 44px;
+        min-height: 48px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -850,7 +850,33 @@
       .mobile-sticky-cta__link:last-child { border-right: none; }
       .mobile-sticky-cta__link:active { background: rgba(54,89,67,0.35); }
       body { padding-bottom: calc(60px + env(safe-area-inset-bottom, 0)); }
+      /* 48px tap targets */
+      .btn, .inv-cta { min-height: 48px; }
+      /* tighter vertical flow to listings */
+      .hero { padding: 20px 0 10px; }
+      .hero-header { margin-bottom: 14px; }
+      .hero-search-bar { margin-bottom: 14px; }
+      .cat-discovery { padding: 12px 0 6px; }
+      .section { padding: 12px 0; }
     }
+
+    /* ── Hero trust line ──────────────────────────────────── */
+    .hero-trust-line {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      flex-wrap: wrap;
+      margin: 10px 0 0;
+      font-size: 13px; font-weight: 500; letter-spacing: 0.02em;
+      color: #94a3b8;
+    }
+    .hero-trust-line__count { color: var(--green); font-weight: 700; }
+    .hero-trust-line__sep  { color: rgba(255,255,255,0.2); }
+    .hero-hook {
+      margin: 10px 0 0;
+      font-size: 13px;
+      color: #64748b;
+      font-style: italic;
+    }
+
   </style>
 </head>
 <body>
@@ -892,6 +918,14 @@
           <div class="eyebrow">Torque Hub — Commercial Marketplace</div>
           <h1>Commercial Trucks, Trailers &amp; Equipment For Sale</h1>
           <p class="hero-sub">Browse work-ready dealer inventory across North Carolina and beyond. Real listings, direct seller access, and financing built for commercial buyers.</p>
+          <p class="hero-trust-line">
+            <span><span id="trust-listing-count" class="hero-trust-line__count">450+</span> Listings</span>
+            <span class="hero-trust-line__sep">·</span>
+            <span><span id="trust-dealer-count" class="hero-trust-line__count">8+</span> Trusted Dealers</span>
+            <span class="hero-trust-line__sep">·</span>
+            <span>Updated Regularly</span>
+          </p>
+          <p class="hero-hook">Work trucks, trailers &amp; equipment from real dealers — no junk listings.</p>
         </div>
         <div class="hero-search-bar">
           <input type="text" id="hero-kw" placeholder="Search trucks, trailers, equipment, stock #..." autocomplete="off" onkeydown="if(event.key==='Enter')heroSearch()">
@@ -1390,8 +1424,13 @@ async function loadAll() {
   const results = await Promise.allSettled([...feedPromises, ...sbPromises]);
   ALL_INV = results.flatMap(r => r.status === 'fulfilled' ? r.value : []);
 
+  const active = ALL_INV.filter(u => !u.sold);
+  const listingFloor = Math.floor(active.length / 50) * 50;
+  const dealerCount = new Set(active.map(u => u._dealer?.key || u.dealer)).size;
   const countEl = document.getElementById('trust-listing-count');
-  if (countEl) countEl.textContent = ALL_INV.filter(u => !u.sold).length.toLocaleString('en-US') + '+';
+  if (countEl) countEl.textContent = listingFloor.toLocaleString('en-US') + '+';
+  const dealerEl = document.getElementById('trust-dealer-count');
+  if (dealerEl) dealerEl.textContent = dealerCount + '+';
 
   renderDealers();
   renderCategoryDiscovery();
