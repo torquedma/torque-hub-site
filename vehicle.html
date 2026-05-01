@@ -508,6 +508,13 @@ function formatMileage(raw) {
   return isNaN(n) ? String(raw) : n.toLocaleString('en-US') + ' mi';
 }
 
+function buildResponsiveUrl(rawUrl) {
+  if (!rawUrl || typeof rawUrl !== 'string') return rawUrl;
+  if (!rawUrl.includes('media.sandhills.com')) return rawUrl;
+  if (window.innerWidth >= 768) return rawUrl;
+  return rawUrl.replace(/([?&])w=\d+/i, '$1w=800').replace(/([?&])h=\d+/i, '$1h=600');
+}
+
 function formatDescription(text) {
   if (!text) return '';
   const HEADINGS = new Set(['Key Details', 'Overview', 'Interested In This Unit?']);
@@ -563,7 +570,7 @@ function initGallery(rawPhotos) {
   // Setting innerHTML piecemeal destroys sibling nodes, so we write everything
   // at once then re-query the buttons and counter from the live DOM.
   mainEl.innerHTML = `
-    ${photos.map((p, i) => `<div class="gallery-slide"><img src="${p.url}" alt="Photo ${i + 1}" loading="${i === 0 ? 'eager' : 'lazy'}"></div>`).join('')}
+    ${photos.map((p, i) => `<div class="gallery-slide"><img src="${buildResponsiveUrl(p.url)}" alt="Photo ${i + 1}" loading="${i === 0 ? 'eager' : 'lazy'}" decoding="async"></div>`).join('')}
     <button class="gallery-arrow gallery-prev" id="gallery-prev" onclick="galleryNav(-1)">&#x2039;</button>
     <button class="gallery-arrow gallery-next" id="gallery-next" onclick="galleryNav(1)">&#x203a;</button>
     <div class="gallery-counter" id="gallery-counter">1 / ${photos.length}</div>
@@ -585,7 +592,7 @@ function initGallery(rawPhotos) {
   }
 
   thumbsEl.innerHTML = photos.map((p, i) =>
-    `<div class="thumb${i === 0 ? ' active' : ''}" onclick="showPhoto(${i})"><img src="${p.url}" loading="lazy" alt="Photo ${i + 1}"></div>`
+    `<div class="thumb${i === 0 ? ' active' : ''}" onclick="showPhoto(${i})"><img src="${buildResponsiveUrl(p.url)}" loading="lazy" decoding="async" alt="Photo ${i + 1}"></div>`
   ).join('');
 
   mainEl.addEventListener('scroll', () => {
