@@ -440,7 +440,8 @@ function submitFinance() {
     status: "new",
     dealer_name: dealer || "Torque Hub Finance Lead",
     lender: lender || null,
-    rep: rep || null
+    rep: rep || null,
+    credit_score: credit || null
   };
 
   fetch("/.netlify/functions/submit-lead", {
