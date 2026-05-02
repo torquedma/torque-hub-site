@@ -806,7 +806,8 @@
 
     /* Search inputs — green focus border */
     .hero-search-bar input:focus { border-color: #365943; background: rgba(54,89,67,0.06); }
-    #inv-search:focus { border-color: #365943; background: rgba(54,89,67,0.06); }
+    #inv-search::placeholder { color: #94a3b8; }
+    #inv-search:focus { border-color: #365943 !important; background: rgba(54,89,67,0.06); }
 
     /* Inventory cards — subtle green border on hover */
     .card { transition: border-color 0.18s; }
@@ -1065,7 +1066,7 @@
           <span style="color:#94a3b8">Direct dealer contact</span>
         </div>
         <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
-          <input type="text" id="inv-search" placeholder="Search year, make, model, stock..." oninput="applyFilters()" style="flex:1;min-width:200px;padding:10px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#f8fafc;font-size:14px;font-family:inherit;outline:none">
+          <input type="text" id="inv-search" placeholder="Search year, make, model, stock..." oninput="applyFilters()" style="flex:1;min-width:200px;padding:10px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:#f8fafc;font-size:14px;font-family:inherit;outline:none">
           <select id="dealer-filter" onchange="applyFilters()" style="padding:10px 14px;background:rgba(17,24,39,0.9);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#f8fafc;font-size:14px;font-family:inherit;outline:none;cursor:pointer">
             <option value="">All Dealers</option>
           </select>
