@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Browse Commercial Trucks, Trailers &amp; Equipment | Torque Hub</title>
+  <meta name="description" content="Browse work-ready commercial trucks, trailers, and equipment from real North Carolina dealers. Search by category, dealer, or keyword." />
+  <meta name="robots" content="index,follow" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Browse Commercial Trucks, Trailers &amp; Equipment | Torque Hub" />
+  <meta property="og:description" content="Browse work-ready commercial trucks, trailers, and equipment from real North Carolina dealers." />
+  <meta property="og:url" content="https://hub.torquedma.com/inventory.html" />
+  <meta property="og:image" content="https://hub.torquedma.com/torque-logo.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://hub.torquedma.com/torque-logo.png" />
+  <meta property="og:site_name" content="Torque Hub" />
+
+  <link rel="canonical" href="https://hub.torquedma.com/inventory.html" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800;900&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel-2: #1f2937;
+      --panel-3: #0b1220;
+      --line: rgba(255,255,255,0.08);
+      --text: #f8fafc;
+      --muted: #cbd5e1;
+      --soft: #94a3b8;
+      --blue: #334155;
+      --blue-2: #1f2937;
+      --orange: #f97316;
+      --green: #365943;
+      --green-2: #294434;
+      --gold: #fbbf24;
+      --shadow: 0 20px 50px rgba(0,0,0,0.28);
+      --radius: 18px;
+      --radius-sm: 12px;
+      --max: 1280px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: "Barlow", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(30,41,59,0.4), transparent 26%),
+        radial-gradient(circle at top right, rgba(15,23,42,0.2), transparent 18%),
+        linear-gradient(180deg, #08101d 0%, #0f172a 38%, #0a1220 100%);
+      min-height: 100vh;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+    .container { width: min(var(--max), calc(100% - 32px)); margin: 0 auto; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(14px);
+      background: rgba(8, 16, 29, 0.82);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      min-height: 76px;
+    }
+
+    .brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
+    .brand-logo { width: 58px; height: 58px; object-fit: contain; display: block; flex-shrink: 0; filter: drop-shadow(0 10px 18px rgba(0,0,0,0.25)); }
+    .brand-copy { min-width: 0; }
+    .brand-title { font-family: "Barlow Condensed", sans-serif; font-size: 28px; font-weight: 900; line-height: 0.95; text-transform: uppercase; letter-spacing: 0.02em; }
+    .brand-sub { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.16em; margin-top: 4px; white-space: nowrap; }
+
+    .nav-links { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+    .nav-links a { padding: 11px 14px; border-radius: 999px; color: var(--muted); font-weight: 600; font-size: 14px; transition: 0.2s ease; }
+    .nav-links a:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+    .nav-links .cta { background: linear-gradient(135deg, #365943, #294434); color: white; box-shadow: 0 4px 16px rgba(21,128,61,0.2); }
+    .nav-links .cta:hover { background: linear-gradient(135deg, #426b51, #365943); }
+    .nav-links .active-link { color: var(--text); }
+
+    .nav-dropdown { position: relative; }
+    .nav-dropdown > a { display: flex; align-items: center; gap: 4px; }
+    .nav-dropdown > a::after { content: ""; width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 4px solid currentColor; opacity: 0.6; margin-top: 1px; }
+    .dropdown-menu { display: none; position: absolute; top: calc(100% + 8px); right: 0; min-width: 220px; background: #111827; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 8px; z-index: 200; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+    .nav-dropdown:hover .dropdown-menu, .nav-dropdown:focus-within .dropdown-menu { display: block; }
+    .dropdown-menu a { display: block; padding: 10px 14px; border-radius: 8px; font-size: 14px; font-weight: 600; color: #cbd5e1; transition: 0.15s; border: none; background: none; }
+    .dropdown-menu a:hover { background: rgba(255,255,255,0.06); color: #f8fafc; }
+    .dropdown-menu .dropdown-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #475569; padding: 6px 14px 4px; }
+    .dropdown-menu .dropdown-desc { font-size: 12px; color: #64748b; font-weight: 400; display: block; margin-top: 1px; }
+    @media (max-width: 768px) { .dropdown-menu { position: static; box-shadow: none; border: none; background: rgba(255,255,255,0.03); border-radius: 8px; margin-top: 4px; padding: 4px; } }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      padding: 15px 20px; border-radius: 14px;
+      font-family: "Barlow Condensed", sans-serif; font-weight: 800; font-size: 17px;
+      letter-spacing: 0.04em; text-transform: uppercase; border: 1px solid transparent;
+      transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary { background: linear-gradient(135deg, #334155, #1f2937); color: white; }
+    .btn-secondary { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.12); color: white; }
+    .btn-green { background: linear-gradient(135deg, #365943, #294434); color: #f8fafc; border: 1px solid rgba(255,255,255,0.10); }
+
+    .section { padding: 30px 0; }
+    .section-title { margin: 0; font-family: "Barlow Condensed", sans-serif; font-size: clamp(34px, 5vw, 52px); line-height: 0.95; text-transform: uppercase; border-left: 3px solid #365943; padding-left: 14px; }
+    .section-sub { margin: 8px 0 0; color: var(--muted); font-size: 16px; max-width: 760px; }
+
+    .chip-row { display: flex; gap: 10px; flex-wrap: wrap; margin: 6px 0 22px; }
+    .chip { padding: 10px 14px; border-radius: 999px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: var(--muted); font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
+    .chip:hover:not(.active) { background: rgba(255,255,255,0.06); color: #f1f5f9; }
+    .chip.active { background: rgba(54,89,67,0.22); border-color: rgba(54,89,67,0.65); color: #86efac; }
+
+    .inventory-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+      align-items: stretch;
+    }
+    @media (min-width: 1400px) { .inventory-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+    @media (max-width: 1100px) { .inventory-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 600px) { .inventory-grid { grid-template-columns: 1fr; } }
+
+    .inv-card { background: linear-gradient(180deg, #111827, #0b1220); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.2); transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; height: 100%; }
+    .inv-card:hover { border-color: rgba(54,89,67,0.65); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.35), 0 0 0 1px rgba(54,89,67,0.25); }
+    .inv-card-link { display: flex; flex-direction: column; height: 100%; text-decoration: none; color: inherit; }
+    .inv-photo { position: relative; aspect-ratio: 4 / 3; background: #060e1c; overflow: hidden; flex-shrink: 0; }
+    .inv-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .inv-no-photo { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #475569; font-size: 13px; }
+    .inv-badge { position: absolute; top: 10px; left: 10px; background: rgba(51,65,85,0.95); border: 1px solid rgba(255,255,255,0.14); color: #f1f5f9; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 3px 9px; border-radius: 6px; }
+    .inv-body { padding: 16px; display: flex; flex-direction: column; flex: 1; gap: 6px; }
+    .inv-title { margin: 0; font-family: "Barlow Condensed", sans-serif; font-size: 22px; font-weight: 800; line-height: 1.1; color: #f1f5f9; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 48px; }
+    .inv-price { font-family: "Barlow Condensed", sans-serif; font-size: 30px; font-weight: 900; line-height: 1; color: #f8fafc; }
+    .inv-dealer { font-size: 13px; color: #94a3b8; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .inv-specs { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 2px; }
+    .inv-spec { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 3px 9px; font-size: 11px; color: #94a3b8; font-weight: 600; white-space: nowrap; }
+    .inv-cta-wrap { margin-top: auto; padding-top: 14px; }
+    .inv-cta { display: block; width: 100%; min-height: 44px; line-height: 44px; background: linear-gradient(135deg, #365943, #294434); color: #f8fafc; font-family: "Barlow Condensed", sans-serif; font-size: 15px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; text-align: center; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); }
+    .inv-card:hover .inv-cta { background: linear-gradient(135deg, #426b51, #365943); }
+
+    .page-header { padding: 40px 0 8px; }
+    .page-header h1 { margin: 0 0 10px; font-family: "Barlow Condensed", sans-serif; font-size: clamp(36px, 6vw, 64px); font-weight: 900; line-height: 0.95; text-transform: uppercase; letter-spacing: -0.01em; }
+    .page-header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.6; max-width: 640px; }
+
+    .filter-row { display: flex; gap: 10px; flex-wrap: wrap; margin: 20px 0 16px; align-items: center; }
+    .filter-row input[type="text"] { flex: 1; min-width: 220px; padding: 10px 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; color: #f8fafc; font-size: 14px; font-family: inherit; outline: none; }
+    .filter-row input[type="text"]::placeholder { color: #94a3b8; }
+    .filter-row input[type="text"]:focus { border-color: #365943 !important; background: rgba(54,89,67,0.06); }
+    .filter-row select { padding: 10px 14px; background: rgba(17,24,39,0.9); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; color: #f8fafc; font-size: 14px; font-family: inherit; outline: none; cursor: pointer; }
+
+    #pagination { display: flex; gap: 8px; flex-wrap: wrap; margin: 28px 0 12px; justify-content: center; }
+
+    footer { padding: 30px 0 60px; }
+    .footer-card { background: linear-gradient(180deg, rgba(17,24,39,0.86), rgba(11,18,32,0.96)); border: 1px solid var(--line); border-radius: 24px; padding: 26px; box-shadow: var(--shadow); display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 22px; }
+    .footer-card h3 { margin: 0 0 10px; font-family: "Barlow Condensed", sans-serif; font-size: 28px; line-height: 0.95; text-transform: uppercase; }
+    .footer-card p, .footer-card li, .footer-card a { color: var(--muted); font-size: 15px; line-height: 1.65; }
+    .footer-card ul { list-style: none; margin: 0; padding: 0; }
+    .footer-card li + li { margin-top: 8px; }
+
+    .mobile-sticky-cta { display: none; }
+
+    @media (max-width: 1100px) { .footer-card { grid-template-columns: 1fr; } }
+    @media (max-width: 767px) {
+      .nav { min-height: 72px; align-items: flex-start; padding: 12px 0; }
+      .nav-links { display: none; }
+      .page-header { padding: 20px 0 4px; }
+      .footer-card { padding: 22px; border-radius: 20px; }
+      .mobile-sticky-cta {
+        display: flex; position: fixed; bottom: 0; left: 0; right: 0; width: 100%; z-index: 9999;
+        background: var(--panel-2); border-top: 2px solid var(--green);
+        padding-bottom: env(safe-area-inset-bottom, 0);
+        box-shadow: 0 -6px 24px rgba(0,0,0,0.55), 0 -1px 0 rgba(255,255,255,0.06);
+      }
+      .mobile-sticky-cta__link { flex: 1; min-height: 48px; display: flex; align-items: center; justify-content: center; padding: 12px 8px; color: var(--text); text-decoration: none; font-weight: 600; font-size: 14px; letter-spacing: 0.02em; border-right: 1px solid var(--line); transition: background 0.15s ease; }
+      .mobile-sticky-cta__link:last-child { border-right: none; }
+      .mobile-sticky-cta__link:active { background: rgba(54,89,67,0.35); }
+      body { padding-bottom: calc(60px + env(safe-area-inset-bottom, 0)); }
+      .btn, .inv-cta { min-height: 48px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container nav">
+      <a class="brand" href="/" aria-label="Torque Hub home">
+        <img class="brand-logo" src="/torque-logo.png" alt="Torque Hub logo" />
+        <div class="brand-copy">
+          <div class="brand-title">Torque Hub</div>
+          <div class="brand-sub">Powered by Torque DMA</div>
+        </div>
+      </a>
+
+      <nav class="nav-links" aria-label="Primary navigation">
+        <a href="/inventory.html" class="active-link">Inventory</a>
+        <div class="nav-dropdown">
+          <a href="/dealer-partners.html">Partners</a>
+          <div class="dropdown-menu">
+            <div class="dropdown-label">Partner With Torque Hub</div>
+            <a href="/dealer-partners.html">
+              For Dealers
+              <span class="dropdown-desc">Inventory exposure, calls, and leads</span>
+            </a>
+            <a href="/lender-partners.html">
+              For Lenders
+              <span class="dropdown-desc">Inbound commercial finance applications</span>
+            </a>
+          </div>
+        </div>
+        <a class="cta" href="/finance.html?src=nav">Get Financing</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container page-header">
+      <h1>Browse Inventory</h1>
+      <p>Work-ready trucks, trailers, and equipment from real North Carolina dealers. Filter by category, dealer, or keyword — then reach out directly.</p>
+    </div>
+
+    <section id="inventory" class="section">
+      <div class="container">
+
+        <div class="filter-row">
+          <input type="text" id="inv-search" placeholder="Search year, make, model, stock..." oninput="applyFilters()" />
+          <select id="dealer-filter" onchange="applyFilters()">
+            <option value="">All Dealers</option>
+          </select>
+          <select id="condition-filter" onchange="applyFilters()">
+            <option value="">All Conditions</option>
+            <option value="Used">Used</option>
+            <option value="New">New</option>
+          </select>
+          <select id="sort-filter" onchange="applyFilters()">
+            <option value="price-desc">Price: High → Low</option>
+            <option value="price-asc">Price: Low → High</option>
+            <option value="year-desc">Year: Newest First</option>
+            <option value="year-asc">Year: Oldest First</option>
+            <option value="created-desc">Recently Added</option>
+          </select>
+        </div>
+
+        <div class="chip-row">
+          <div class="chip active" onclick="setCat('', this)">All</div>
+          <div class="chip" onclick="setCat('Trucks', this)">Trucks</div>
+          <div class="chip" onclick="setCat('Trailers', this)">Trailers</div>
+          <div class="chip" onclick="setCat('Construction', this)">Construction</div>
+          <div class="chip" onclick="setCat('Farm', this)">Farm</div>
+          <div class="chip" onclick="setCat('Other', this)">Other</div>
+        </div>
+
+        <div class="inventory-grid" id="inventory-grid"></div>
+        <div id="pagination"></div>
+
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-card">
+      <div>
+        <h3>Torque Hub</h3>
+        <p>Torque Hub connects commercial buyers with real dealer inventory across North Carolina and beyond. Browse trucks, trailers, and equipment ready for work.</p>
+      </div>
+      <div>
+        <h3>Explore</h3>
+        <ul>
+          <li><a href="/inventory.html">Browse Inventory</a></li>
+          <li><a href="/finance.html">Financing</a></li>
+          <li><a href="/dealer-partners.html">Dealer Partners</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Powered by</h3>
+        <ul>
+          <li>Torque DMA</li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <nav class="mobile-sticky-cta" aria-label="Mobile quick actions">
+    <a href="/" class="mobile-sticky-cta__link">
+      <span class="mobile-sticky-cta__label">Home</span>
+    </a>
+    <a href="/finance.html" class="mobile-sticky-cta__link">
+      <span class="mobile-sticky-cta__label">Financing</span>
+    </a>
+    <a href="/dealer-partners.html" class="mobile-sticky-cta__link">
+      <span class="mobile-sticky-cta__label">Contact</span>
+    </a>
+  </nav>
+
+  <script src="/js/inventory-engine.js"></script>
+  <script>
+    function initDealerFilter() {
+      var sel = document.getElementById('dealer-filter');
+      if (!sel) return;
+      InventoryEngine.DEALERS.forEach(function(d) {
+        var opt = document.createElement('option');
+        opt.value = d.key;
+        opt.textContent = d.name;
+        sel.appendChild(opt);
+      });
+    }
+
+    InventoryEngine.init({
+      mode: 'full',
+      containerId:    'inventory-grid',
+      paginationId:   'pagination',
+      scrollTargetId: 'inventory',
+      filterIds: {
+        search:    'inv-search',
+        dealer:    'dealer-filter',
+        condition: 'condition-filter',
+        sort:      'sort-filter'
+      }
+    });
+
+    var params = new URLSearchParams(window.location.search);
+    var cat    = params.get('cat');
+    var sub    = params.get('sub') || params.get('type');
+    var dealer = params.get('dealer');
+
+    initDealerFilter();
+
+    InventoryEngine.loadAll().then(function() {
+      if (cat || sub) {
+        InventoryEngine.filterByCatSub(cat || '', sub || '');
+      }
+      if (dealer) {
+        document.getElementById('dealer-filter').value = dealer;
+        InventoryEngine.applyFilters();
+      }
+    });
+
+    window.setCat         = function(cat, el) { InventoryEngine.setCat(cat, el); };
+    window.filterByCatSub = function(cat, sub) { InventoryEngine.filterByCatSub(cat, sub); };
+    window.applyFilters   = function() { InventoryEngine.applyFilters(); };
+    window.goToPage       = function(n) { InventoryEngine.goToPage(n); };
+  </script>
+
+</body>
+</html>
