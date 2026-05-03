@@ -745,10 +745,6 @@
     .hero-search-bar input { flex: 1; min-width: 200px; padding: 13px 16px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #f8fafc; font-size: 15px; font-family: inherit; outline: none; }
     .hero-search-bar input:focus { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.07); }
     .hero-search-bar select { padding: 13px 14px; background: rgba(17,24,39,0.9); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #f8fafc; font-size: 15px; font-family: inherit; outline: none; cursor: pointer; }
-    .trust-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; max-width: 900px; margin: 0 auto; }
-    .trust-stat { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; padding: 16px; text-align: center; }
-    .trust-stat strong { display: block; font-family: "Barlow Condensed", sans-serif; font-size: 38px; font-weight: 900; color: #f1f5f9; margin-bottom: 6px; line-height: 1.05; }
-    .trust-stat span { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
     /* Category discovery */
     .cat-discovery { padding: 32px 0 12px; }
     .cat-discovery-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; }
@@ -760,7 +756,7 @@
     .cat-sub-item:hover { background: rgba(255,255,255,0.06); color: #f1f5f9; }
     .cat-sub-count { font-size: 11px; color: #475569; font-weight: 600; }
     .cat-sub-item.has-count { color: #cbd5e1; }
-    @media (max-width: 900px) { .trust-stats { grid-template-columns: repeat(2, 1fr); } .cat-discovery-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 900px) { .cat-discovery-grid { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 500px) { .hero-search-bar .btn { width: 100%; } .cat-discovery-grid { grid-template-columns: 1fr; } }
 
     /* ── COLOR HIERARCHY ──────────────────────────────────────── */
@@ -789,8 +785,6 @@
     /* Subcategory link hover — green signal */
     .cat-sub-item:hover { color: #86efac; background: rgba(54,89,67,0.12); }
 
-    /* Trust stat: numbers white, listing count green */
-    .trust-stat strong { color: #ffffff; }
     #trust-listing-count { color: #86efac; }
 
     /* Active category chip — green accent */
@@ -860,7 +854,6 @@
       .hero-hook { display: none; }
       #inv-trust-line { display: none !important; }
       #inv-blurb { display: none; }
-      .trust-stats { display: none; }
       #inventory .section-header { display: none; }
       #browse-by-cat-label { display: none; }
       .chip-row { display: none; }
@@ -946,24 +939,6 @@
           </select>
           <button class="btn btn-primary" onclick="heroSearch()">Search</button>
           <a class="btn btn-green" href="/finance.html?src=hero">Get Financing</a>
-        </div>
-        <div class="trust-stats">
-          <div class="trust-stat">
-            <strong id="trust-listing-count">450+</strong>
-            <span>Listings</span>
-          </div>
-          <div class="trust-stat">
-            <strong>8+</strong>
-            <span>Dealers</span>
-          </div>
-          <div class="trust-stat">
-            <strong>Trucks &middot; Trailers &middot; Equipment</strong>
-            <span>All Categories</span>
-          </div>
-          <div class="trust-stat">
-            <strong>Financing Available</strong>
-            <span>Commercial Buyers</span>
-          </div>
         </div>
       </div>
     </section>
