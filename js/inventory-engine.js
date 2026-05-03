@@ -97,18 +97,13 @@ window.InventoryEngine = (function () {
 
   // ── Data loading ───────────────────────────────────────────────────────────
   async function loadAll() {
-    var t0 = Date.now();
-    function ts() { return '[+' + (Date.now() - t0) + 'ms]'; }
-
     var feedPromises = DEALERS.filter(function(d) { return d.feedUrl; }).map(function(d) {
       return fetch(d.feedUrl).then(function(r) { return r.json(); }).then(function(items) {
-        var units = items.filter(function(u) { return !u.sold; }).map(function(u) {
+        return items.filter(function(u) { return !u.sold; }).map(function(u) {
           if (d.key === "HGR's Truck and Trailer" && u.stock && !u.stock.includes('-'))
             u = Object.assign({}, u, { stock: u.stock.slice(0, 3) + '-' + u.stock.slice(3) });
           return Object.assign({}, u, { _dealer: d });
         });
-        console.log('[Engine] feed resolved:', d.key, units.length + ' units', ts());
-        return units;
       }).catch(function() { return []; });
     });
 
@@ -117,20 +112,13 @@ window.InventoryEngine = (function () {
         SB_URL + '/rest/v1/inventory_cards?dealer=eq.' + encodeURIComponent(d.key) + '&sold=eq.false&limit=1000',
         { headers: SB_HDRS }
       ).then(function(r) { return r.json(); }).then(function(items) {
-        var units = (items || []).map(function(u) { return Object.assign({}, u, { _dealer: d }); });
-        console.log('[Engine] sb resolved:', d.key, units.length + ' units', ts());
-        return units;
+        return (items || []).map(function(u) { return Object.assign({}, u, { _dealer: d }); });
       }).catch(function() { return []; });
     });
 
-    console.log('[Engine] awaiting allSettled for', feedPromises.length + sbPromises.length, 'promises', ts());
     var results = await Promise.allSettled([].concat(feedPromises, sbPromises));
-    console.log('[Engine] allSettled resolved', ts());
-
     ALL_INV = results.flatMap(function(r) { return r.status === 'fulfilled' ? r.value : []; });
-    console.log('[Engine] ALL_INV populated:', ALL_INV.length, 'units', ts());
 
-    console.log('[Engine] calling onLoad:', ALL_INV.length, 'units', ts());
     if (typeof _cfg.onLoad === 'function') _cfg.onLoad(ALL_INV);
     applyFilters();
   }
