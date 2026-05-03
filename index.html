@@ -1004,7 +1004,7 @@
           <div>
             <h2 class="section-title">Featured Inventory</h2>
           </div>
-          <a class="btn btn-secondary" href="#inventory" onclick="InventoryEngine.setCat('', document.querySelector('.chip'))">View All</a>
+          <a class="btn btn-secondary" href="/inventory.html">View All</a>
         </div>
 
         <p id="inv-blurb" style="margin-bottom:16px;color:#64748b;font-size:14px;line-height:1.65;">Browse work trucks, trailers, construction equipment, and farm equipment from real dealers across North Carolina and beyond.</p>
@@ -1020,9 +1020,9 @@
             <option value="Used">Used Only</option>
           </select>
           <select id="sort-filter" onchange="applyFilters()" style="padding:10px 14px;background:rgba(17,24,39,0.9);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#f8fafc;font-size:14px;font-family:inherit;outline:none;cursor:pointer">
-            <option value="created-desc">Recently Added</option>
+            <option value="created-desc" selected>Recently Added</option>
             <option value="price-asc">Price: Low to High</option>
-            <option value="price-desc" selected>Price: High to Low</option>
+            <option value="price-desc">Price: High to Low</option>
             <option value="year-desc">Model Year: Newest</option>
             <option value="year-asc">Model Year: Oldest</option>
           </select>
@@ -1041,7 +1041,6 @@
             <div style="width:36px;height:36px;border:3px solid rgba(255,255,255,0.08);border-top-color:#64748b;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto"></div>
           </div>
         </div>
-        <div id="pagination" style="display:flex;gap:8px;justify-content:center;margin-top:24px;flex-wrap:wrap"></div>
       </div>
     </section>
 
@@ -1236,9 +1235,8 @@ function renderCategoryDiscovery() {
 }
 
 InventoryEngine.init({
-  mode: 'full',
+  mode: 'featured',
   containerId:    'inventory-grid',
-  paginationId:   'pagination',
   scrollTargetId: 'inventory',
   filterIds: {
     search:    'inv-search',
