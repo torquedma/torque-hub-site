@@ -1004,7 +1004,7 @@
           <div>
             <h2 class="section-title">Featured Inventory</h2>
           </div>
-          <a class="btn btn-secondary" href="#inventory" onclick="currentCat='';currentSub='';document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));document.querySelector('.chip').classList.add('active');applyFilters();">View All</a>
+          <a class="btn btn-secondary" href="#inventory" onclick="InventoryEngine.setCat('', document.querySelector('.chip'))">View All</a>
         </div>
 
         <p id="inv-blurb" style="margin-bottom:16px;color:#64748b;font-size:14px;line-height:1.65;">Browse work trucks, trailers, construction equipment, and farm equipment from real dealers across North Carolina and beyond.</p>
@@ -1136,388 +1136,132 @@
       box-shadow: none;
     }
 </style>
+<script src="/js/inventory-engine.js"></script>
 <script>
-const DEALERS = [
-  { key: "Davenport Motors", name: "Davenport Motors", feedUrl: "https://davenportmotors.net/.netlify/functions/inventory", phone: "252-809-2172", tel: "2528092172", location: "Plymouth, NC", desc: "Located in Plymouth, NC – Eastern Carolina's Trusted Source for Semi-Trucks, Dump Trucks, and Heavy Equipment" },
-  { key: "Fat Daddy's Truck Sales", name: "Fat Daddy's Truck Sales", feedUrl: "https://fatdaddystrucksales.netlify.app/.netlify/functions/inventory", phone: "919-759-5434", tel: "9197595434", location: "Goldsboro, NC", desc: "Old school pre-DEF work trucks. Box trucks, flatbeds, dump trucks ready to earn." },
-  { key: "Wilson Trailer Sales & Service", name: "Wilson Trailer Sales & Service", feedUrl: "https://wilson-trailer-sales.netlify.app/.netlify/functions/inventory", phone: "252-429-8805", tel: "2524298805", location: "Wilson, NC", desc: "Full-service trailer dealership. Hoppers, dumps, dry vans, reefers, livestock trailers." },
-  { key: "HGR's Truck and Trailer", name: "HGR's Truck & Trailer Sales", feedUrl: "https://hub.torquedma.com/.netlify/functions/hgr-inventory", phone: "910-661-0868", tel: "9106610868", location: "Hope Mills, NC", desc: "Race trailers, enclosed trailers, cargo trailers, and specialty hauling setups." },
-  { key: "Impex Heavy Metal", name: "Impex Heavy Metal", feedUrl: "https://hub.torquedma.com/.netlify/functions/impex-inventory", phone: "336-715-8704", tel: "3367158704", location: "Greensboro, NC", desc: "Commercial trucks, trailers, and specialty vehicles. Day cabs, rollbacks, box trucks, yard spotters, and more." },
-  { key: "Joe's Tractor Sales", name: "Joe's Tractor Sales", feedUrl: null, phone: "336-850-8271", tel: "3368508271", location: "Thomasville, NC", desc: "Tractors, mowers, and farm equipment. New and used ag equipment serving the Piedmont Triad since 1949." },
-  { key: "Auto Connection 210 LLC", name: "Auto Connection 210 LLC", feedUrl: null, phone: "910-490-2596", tel: "9104902596", location: "Angier, NC", desc: "Work vans, box trucks, and commercial vehicles ready for the job site." },
-  { key: "Dick Smith Equipment", name: "Dick Smith Equipment", feedUrl: null, phone: "919-734-1191", tel: "9197341191", location: "Goldsboro, NC", desc: "Construction and farm equipment. Excavators, tractors, skid steers, and more in Goldsboro, NC." }
-];
-
-const SB_URL = 'https://bxsikkmqasydosmblzov.supabase.co';
-const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4c2lra21xYXN5ZG9zbWJsem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTc1OTksImV4cCI6MjA5MDQ3MzU5OX0.JMEI7cx2tddmbvfqm_qxiIWp7f5Phuk5l0Y487DUSZg';
-const SB_HDRS = { 'apikey': SB_ANON, 'Authorization': 'Bearer ' + SB_ANON };
-
-let ALL_INV = [], currentCat = '', currentSub = '', currentPage = 1;
-const PAGE_SIZE = 12;
-
-function fmtMileage(val) {
-  if (!val) return '—';
-  const n = parseInt(String(val).replace(/[^0-9]/g, ''), 10);
-  return isNaN(n) ? String(val) : n.toLocaleString('en-US');
-}
-
-function trimEngine(val) {
-  if (!val) return '—';
-  return val.split(/\s+[-–—]\s+/)[0].replace(/\s+Engine\s*$/i, '').trim();
-}
+// Shims so existing HTML onclick attributes work unchanged
+function applyFilters()           { InventoryEngine.applyFilters(); }
+function setCat(cat, el)          { InventoryEngine.setCat(cat, el); }
+function filterByCatSub(cat, sub) { InventoryEngine.filterByCatSub(cat, sub); }
+function filterByMainCat(cat)     { InventoryEngine.filterByMainCat(cat); }
+function heroSearch()             { InventoryEngine.heroSearch(); }
 
 function initDealerFilter() {
-  const sel = document.getElementById('dealer-filter');
+  var sel = document.getElementById('dealer-filter');
   if (!sel) return;
-  DEALERS.forEach(d => {
-    const opt = document.createElement('option');
+  InventoryEngine.DEALERS.forEach(function(d) {
+    var opt = document.createElement('option');
     opt.value = d.key;
     opt.textContent = d.name;
     sel.appendChild(opt);
   });
 }
 
-function renderCategoryBrowser() {
-  const categories = ['Trucks', 'Trailers', 'Construction', 'Farm'];
-  const active = ALL_INV.filter(u => !u.sold);
-  const countEl = document.getElementById('cat-browser-count');
-  if (countEl) countEl.textContent = active.length.toLocaleString('en-US') + ' units live across ' + DEALERS.length + ' dealers';
-  const grid = document.getElementById('cat-tile-grid');
+function renderDealers() {
+  var grid = document.getElementById('dealer-grid');
   if (!grid) return;
-  grid.innerHTML = categories.map(cat => {
-    const catItems = active.filter(u => (u.category || '') === cat);
-    const subcatCounts = {};
-    catItems.forEach(u => {
-      const sub = (u.subcategory || '').trim();
-      if (sub) subcatCounts[sub] = (subcatCounts[sub] || 0) + 1;
-    });
-    const chips = Object.entries(subcatCounts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10)
-      .map(([sub, cnt]) => {
-        const safecat = cat.replace(/'/g, "\\'");
-        const safesub = sub.replace(/'/g, "\\'");
-        return `<button class="subcat-chip" onclick="event.stopPropagation();filterByCatSub('${safecat}','${safesub}')">${sub} (${cnt})</button>`;
-      }).join('');
-    return `<div class="cat-tile" onclick="filterByMainCat('${cat.replace(/'/g,"\\'")}')">
-      <div class="cat-tile-head">
-        <span class="cat-tile-name">${cat}</span>
-        <span class="cat-tile-count">${catItems.length} units</span>
-      </div>
-      <div class="cat-chips">${chips || '<span style="font-size:11px;color:#475569">No listings yet</span>'}</div>
-    </div>`;
+  grid.innerHTML = InventoryEngine.DEALERS.map(function(d) {
+    var count = InventoryEngine.ALL_INV.filter(function(u) {
+      return (u._dealer && u._dealer.key === d.key) || u.dealer === d.key;
+    }).length;
+    return '<article class="card dealer-card">' +
+      '<h3>' + d.name + '</h3>' +
+      '<p>' + d.desc + '</p>' +
+      '<div class="dealer-meta">' +
+        '<div>' + d.location + '</div>' +
+        '<div>' + d.phone + '</div>' +
+        '<div style="color:#cbd5e1;font-weight:700">' + count + ' units available</div>' +
+      '</div>' +
+      '<a class="btn btn-primary" href="#inventory" onclick="document.getElementById(\'dealer-filter\').value=\'' + d.key.replace(/'/g, "\\'") + '\';InventoryEngine.applyFilters()">View Inventory</a>' +
+    '</article>';
   }).join('');
 }
 
-function filterByMainCat(cat) {
-  currentCat = cat;
-  currentSub = '';
-  currentPage = 1;
-  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-  const chip = [...document.querySelectorAll('.chip')].find(c => c.textContent.trim() === cat);
-  if (chip) chip.classList.add('active');
-  applyFilters();
-  document.getElementById('inventory').scrollIntoView({ behavior: 'smooth' });
-}
-
-function filterByCatSub(cat, sub) {
-  currentCat = cat;
-  currentSub = sub;
-  currentPage = 1;
-  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-  const chip = [...document.querySelectorAll('.chip')].find(c => c.textContent.trim() === cat);
-  if (chip) chip.classList.add('active');
-  applyFilters();
-  document.getElementById('inventory').scrollIntoView({ behavior: 'smooth' });
-}
-
-const CAT_SUBS = {
-  'Trucks': [
-    { label: 'Dump Trucks',     kw: 'dump',     slug: 'dump-trucks' },
-    { label: 'Rollback Trucks', kw: 'rollback', slug: 'rollback-trucks' },
-    { label: 'Box Trucks',      kw: 'box',      slug: 'box-trucks' },
-    { label: 'Service Trucks',  kw: 'service',  slug: 'service-trucks' },
-    { label: 'Semi Trucks',     kw: 'semi',     slug: 'semi-trucks' },
-    { label: 'Flatbeds',        kw: 'flatbed',  slug: 'flatbed-trucks' },
-  ],
-  'Trailers': [
-    { label: 'Equipment Trailers', kw: 'equipment', slug: 'equipment-trailers' },
-    { label: 'Dump Trailers',      kw: 'dump',       slug: 'dump-trailers' },
-    { label: 'Enclosed Trailers',  kw: 'enclosed',   slug: 'enclosed-trailers' },
-    { label: 'Gooseneck Trailers', kw: 'gooseneck',  slug: 'gooseneck-trailers' },
-    { label: 'Livestock Trailers', kw: 'livestock',  slug: 'livestock-trailers' },
-    { label: 'Car / Racing',       kw: 'car',        slug: 'car-racing-trailers' },
-  ],
-  'Construction': [
-    { label: 'Skid Steers', kw: 'skid',      slug: 'skid-steers' },
-    { label: 'Excavators',  kw: 'excavator', slug: 'excavators' },
-    { label: 'Loaders',     kw: 'loader',    slug: 'loaders' },
-    { label: 'Forklifts',   kw: 'forklift',  slug: 'forklifts' },
-    { label: 'Backhoes',    kw: 'backhoe',   slug: 'backhoes' },
-  ],
-  'Farm': [
-    { label: 'Tractors',      kw: 'tractor',   slug: 'tractors' },
-    { label: 'Hay Equipment', kw: 'hay',        slug: 'hay-equipment' },
-    { label: 'Mowers',        kw: 'mower',      slug: 'mowers' },
-    { label: 'Implements',    kw: 'implement',  slug: 'implements' },
-    { label: 'Spreaders',     kw: 'spreader',   slug: 'spreaders' },
-  ],
-  'Other': [],
-};
-
-const MAIN_CATS = ['Trucks', 'Trailers', 'Construction', 'Farm'];
-
-const CAT_DISPLAY = {
-  'Trucks': 'Commercial Trucks',
-  'Trailers': 'Trailers',
-  'Construction': 'Construction Equipment',
-  'Farm': 'Farm Equipment',
-  'Other': 'Other Equipment',
-};
-
 function renderCategoryDiscovery() {
-  const grid = document.getElementById('cat-discovery-grid');
+  var grid = document.getElementById('cat-discovery-grid');
   if (!grid) return;
-  const active = ALL_INV.filter(u => !u.sold);
+  var active = InventoryEngine.ALL_INV.filter(function(u) { return !u.sold; });
+  var CAT_SUBS    = InventoryEngine.CAT_SUBS;
+  var MAIN_CATS   = InventoryEngine.MAIN_CATS;
+  var CAT_DISPLAY = InventoryEngine.CAT_DISPLAY;
 
-  grid.innerHTML = Object.entries(CAT_SUBS).map(([cat, subs]) => {
-    const catItems = cat === 'Other'
-      ? active.filter(u => !MAIN_CATS.includes(u.category || ''))
-      : active.filter(u => (u.category || '') === cat);
-    const catCount = catItems.length;
-    let subItems;
+  grid.innerHTML = Object.entries(CAT_SUBS).map(function(entry) {
+    var cat = entry[0], subs = entry[1];
+    var catItems = cat === 'Other'
+      ? active.filter(function(u) { return !MAIN_CATS.includes(u.category || ''); })
+      : active.filter(function(u) { return (u.category || '') === cat; });
+    var catCount = catItems.length;
+    var subItems;
 
     if (cat === 'Other') {
-      const subCounts = {};
-      catItems.forEach(u => {
-        const key = (u.subcategory || u.category || '').trim();
+      var subCounts = {};
+      catItems.forEach(function(u) {
+        var key = (u.subcategory || u.category || '').trim();
         if (key) subCounts[key] = (subCounts[key] || 0) + 1;
       });
       subItems = Object.entries(subCounts)
-        .sort((a, b) => b[1] - a[1]).slice(0, 6)
-        .map(([label, count]) => {
-          const safekw = label.replace(/'/g, "\\'");
-          const slug = label.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-          return `<a class="cat-sub-item has-count" href="/inventory.html?type=${slug}" onclick="event.preventDefault();filterByCatSub('Other','${safekw}')">
-            <span>${label}</span>
-            <span class="cat-sub-count">${count}</span>
-          </a>`;
+        .sort(function(a, b) { return b[1] - a[1]; }).slice(0, 6)
+        .map(function(e) {
+          var label = e[0], count = e[1];
+          var safekw = label.replace(/'/g, "\\'");
+          var slug = label.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+          return '<a class="cat-sub-item has-count" href="/inventory.html?type=' + slug + '" onclick="event.preventDefault();filterByCatSub(\'Other\',\'' + safekw + '\')">' +
+            '<span>' + label + '</span>' +
+            '<span class="cat-sub-count">' + count + '</span>' +
+          '</a>';
         }).join('') || '<span style="font-size:11px;color:#475569">No listings yet</span>';
     } else {
-      subItems = subs.map(({ label, kw, slug }) => {
-        const count = catItems.filter(u =>
-          `${u.subcategory || ''} ${u.make || ''} ${u.model || ''}`.toLowerCase().includes(kw)
-        ).length;
-        const safecat = cat.replace(/'/g, "\\'");
-        const safekw  = kw.replace(/'/g, "\\'");
-        return `<a class="cat-sub-item${count > 0 ? ' has-count' : ''}" href="/inventory.html?type=${slug}" onclick="event.preventDefault();filterByCatSub('${safecat}','${safekw}')">
-          <span>${label}</span>
-          ${count > 0 ? `<span class="cat-sub-count">${count}</span>` : ''}
-        </a>`;
+      subItems = subs.map(function(s) {
+        var label = s.label, kw = s.kw, slug = s.slug;
+        var count = catItems.filter(function(u) {
+          return (String(u.subcategory || '') + ' ' + String(u.make || '') + ' ' + String(u.model || '')).toLowerCase().includes(kw);
+        }).length;
+        var safecat = cat.replace(/'/g, "\\'");
+        var safekw  = kw.replace(/'/g, "\\'");
+        return '<a class="cat-sub-item' + (count > 0 ? ' has-count' : '') + '" href="/inventory.html?type=' + slug + '" onclick="event.preventDefault();filterByCatSub(\'' + safecat + '\',\'' + safekw + '\')">' +
+          '<span>' + label + '</span>' +
+          (count > 0 ? '<span class="cat-sub-count">' + count + '</span>' : '') +
+        '</a>';
       }).join('');
     }
 
-    const safecat = cat.replace(/'/g, "\\'");
-    return `<div>
-      <div class="cat-col-head" onclick="filterByMainCat('${safecat}')">
-        <span>${CAT_DISPLAY[cat]}</span>
-        ${catCount > 0 ? `<span class="cat-col-head-count">${catCount} units</span>` : ''}
-      </div>
-      <div class="cat-sub-list">${subItems}</div>
-    </div>`;
+    var safecat = cat.replace(/'/g, "\\'");
+    return '<div>' +
+      '<div class="cat-col-head" onclick="filterByMainCat(\'' + safecat + '\')">' +
+        '<span>' + CAT_DISPLAY[cat] + '</span>' +
+        (catCount > 0 ? '<span class="cat-col-head-count">' + catCount + ' units</span>' : '') +
+      '</div>' +
+      '<div class="cat-sub-list">' + subItems + '</div>' +
+    '</div>';
   }).join('');
 }
 
-function heroSearch() {
-  const kw = (document.getElementById('hero-kw') || {value: ''}).value.trim();
-  const cat = (document.getElementById('hero-cat') || {value: ''}).value;
-  const searchEl = document.getElementById('inv-search');
-  if (searchEl && kw) searchEl.value = kw;
-  if (cat) {
-    currentCat = cat;
-    currentSub = '';
-    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-    const chip = [...document.querySelectorAll('.chip')].find(c => c.textContent.trim() === cat);
-    if (chip) chip.classList.add('active');
-  } else if (!kw) {
-    currentCat = '';
-    currentSub = '';
-    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-    const allChip = document.querySelector('.chip');
-    if (allChip) allChip.classList.add('active');
+InventoryEngine.init({
+  mode: 'full',
+  containerId:    'inventory-grid',
+  paginationId:   'pagination',
+  scrollTargetId: 'inventory',
+  filterIds: {
+    search:    'inv-search',
+    dealer:    'dealer-filter',
+    condition: 'condition-filter',
+    sort:      'sort-filter'
+  },
+  onLoad: function(allInv) {
+    var active       = allInv.filter(function(u) { return !u.sold; });
+    var listingFloor = Math.floor(active.length / 50) * 50;
+    var dealerCount  = new Set(active.map(function(u) { return (u._dealer && u._dealer.key) || u.dealer; })).size;
+    var countEl  = document.getElementById('trust-listing-count');
+    var dealerEl = document.getElementById('trust-dealer-count');
+    if (countEl)  countEl.textContent  = listingFloor.toLocaleString('en-US') + '+';
+    if (dealerEl) dealerEl.textContent = dealerCount + '+';
+    renderDealers();
+    renderCategoryDiscovery();
   }
-  currentPage = 1;
-  applyFilters();
-  document.getElementById('inventory').scrollIntoView({ behavior: 'smooth' });
-}
-
-async function loadAll() {
-  const feedPromises = DEALERS.filter(d => d.feedUrl).map(d =>
-    fetch(d.feedUrl).then(r => r.json()).then(items =>
-      items.filter(u => !u.sold).map(u => {
-        if (d.key === "HGR's Truck and Trailer" && u.stock && !u.stock.includes('-'))
-          u = { ...u, stock: u.stock.slice(0, 3) + '-' + u.stock.slice(3) };
-        return { ...u, _dealer: d };
-      })
-    ).catch(() => [])
-  );
-
-  const sbPromises = DEALERS.filter(d => !d.feedUrl).map(d =>
-    fetch(
-      `${SB_URL}/rest/v1/inventory_cards?dealer=eq.${encodeURIComponent(d.key)}&sold=eq.false&limit=1000`,
-      { headers: SB_HDRS }
-    ).then(r => r.json()).then(items =>
-      (items || []).map(u => ({ ...u, _dealer: d }))
-    ).catch(() => [])
-  );
-
-  const results = await Promise.allSettled([...feedPromises, ...sbPromises]);
-  ALL_INV = results.flatMap(r => r.status === 'fulfilled' ? r.value : []);
-
-  const active = ALL_INV.filter(u => !u.sold);
-  const listingFloor = Math.floor(active.length / 50) * 50;
-  const dealerCount = new Set(active.map(u => u._dealer?.key || u.dealer)).size;
-  const countEl = document.getElementById('trust-listing-count');
-  if (countEl) countEl.textContent = listingFloor.toLocaleString('en-US') + '+';
-  const dealerEl = document.getElementById('trust-dealer-count');
-  if (dealerEl) dealerEl.textContent = dealerCount + '+';
-
-  renderDealers();
-  renderCategoryDiscovery();
-  applyFilters();
-}
-
-// DEALER GRID
-function renderDealers() {
-  const grid = document.getElementById('dealer-grid');
-  if (!grid) return;
-  grid.innerHTML = DEALERS.map(d => {
-    const count = ALL_INV.filter(u => (u._dealer && u._dealer.key === d.key) || u.dealer === d.key).length;
-    return `<article class="card dealer-card">
-      <h3>${d.name}</h3>
-      <p>${d.desc}</p>
-      <div class="dealer-meta">
-        <div>${d.location}</div>
-        <div>${d.phone}</div>
-        <div style="color:#cbd5e1;font-weight:700">${count} units available</div>
-      </div>
-      <a class="btn btn-primary" href="#inventory" onclick="document.getElementById('dealer-filter').value='${d.key.replace(/'/g,"\'")}';applyFilters()">View Inventory</a>
-    </article>`;
-  }).join('');
-}
-
-// FILTERS
-function setCat(cat, el) {
-  currentCat = cat;
-  currentSub = '';
-  currentPage = 1;
-  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-  applyFilters();
-}
-
-function applyFilters() {
-  const q = (document.getElementById('inv-search') || {value:''}).value.toLowerCase();
-  const dealer = (document.getElementById('dealer-filter') || {value:''}).value;
-  const cond = (document.getElementById('condition-filter') || {value:''}).value;
-  const sort = (document.getElementById('sort-filter') || {value:'price-desc'}).value;
-
-  let filtered = ALL_INV.filter(u => {
-    const matchQ = !q || `${u.year} ${u.make} ${u.model} ${u.stock} ${u.dealer}`.toLowerCase().includes(q);
-    const matchD = !dealer || u.dealer === dealer || (u._dealer && u._dealer.key === dealer);
-    const matchC = !cond || u.condition === cond;
-    const matchCat = !currentCat || (currentCat === 'Other' ? !MAIN_CATS.includes(u.category || '') : (u.category || '').includes(currentCat));
-    const matchSub = !currentSub || `${u.subcategory || ''} ${u.make || ''} ${u.model || ''}`.toLowerCase().includes(currentSub.toLowerCase());
-    return matchQ && matchD && matchC && matchCat && matchSub;
-  });
-
-  if (sort === 'created-desc') filtered.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
-  else if (sort === 'price-asc') filtered.sort((a, b) => pp(a.price) - pp(b.price));
-  else if (sort === 'price-desc') filtered.sort((a, b) => pp(b.price) - pp(a.price));
-  else if (sort === 'year-desc') filtered.sort((a, b) => (parseInt(b.year) || 0) - (parseInt(a.year) || 0));
-  else if (sort === 'year-asc') filtered.sort((a, b) => (parseInt(a.year) || 0) - (parseInt(b.year) || 0));
-
-  renderInventory(filtered);
-}
-
-function preloadImage(src) {
-  if (!src) return;
-  const img = new Image();
-  img.src = src;
-}
-
-function pp(p) { return parseFloat(String(p || '').replace(/[^0-9.]/g, '')) || 0; }
-
-function financeUrl(u, src = "inventory") {
-  const title = [u.year, u.make, u.model].filter(Boolean).join(" ");
-  const unitSlug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-  const priceNum = parseFloat(String(u.price || "").replace(/[^0-9.]/g, "")) || "";
-  return `/finance.html?stock=${encodeURIComponent(u.stock || "")}&unit=${encodeURIComponent(unitSlug)}&price=${priceNum}&src=${encodeURIComponent(src)}`;
-}
-
-function renderInventory(items) {
-  const grid = document.getElementById('inventory-grid');
-  const pg = document.getElementById('pagination');
-  if (!grid) return;
-
-  const total = items.length;
-  const pages = Math.ceil(total / PAGE_SIZE);
-  currentPage = Math.min(currentPage, pages || 1);
-  const slice = items.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
-
-  if (!slice.length) {
-    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#64748b">No listings found. Try adjusting your filters.</div>`;
-    if (pg) pg.innerHTML = '';
-    return;
-  }
-
-  grid.innerHTML = slice.map(u => {
-    const d = u._dealer || DEALERS.find(x => x.key === u.dealer) || {};
-    const photo = u.photos && u.photos.length ? (u.photos[0].url || u.photos[0].dataUrl || '') : '';
-    const title = [u.year, u.make, u.model].filter(Boolean).join(' ') || 'Unit Available';
-    const vdpUrl = `vehicle.html?stock=${encodeURIComponent(u.stock || '')}&dealer=${encodeURIComponent(d.key || u.dealer || '')}`;
-
-    const priceStr = u.price && !isNaN(parseFloat(String(u.price).replace(/[^0-9.]/g, '')))
-      ? '$' + Number(String(u.price).replace(/[^0-9.]/g, '')).toLocaleString()
-      : (u.price && u.price !== '0' ? u.price : 'Call');
-
-    const dealerLine = [d.name || u.dealer, d.location || ''].filter(Boolean).join(' &middot; ');
-
-    const mileageVal = fmtMileage(u.hours || u.mileage);
-    const engineVal = trimEngine(u.engine);
-    const chips = [];
-    if (mileageVal && mileageVal !== '—') chips.push(mileageVal + (u.hours ? ' hrs' : ' mi'));
-    if (chips.length < 2 && engineVal && engineVal !== '—') chips.push(engineVal);
-    if (chips.length < 2 && u.fuel && u.fuel !== '—') chips.push(u.fuel);
-    if (chips.length < 2 && u.condition) chips.push(u.condition);
-
-    return `<article class="inv-card" aria-label="${title}">
-      <a class="inv-card-link" href="${vdpUrl}" aria-label="View listing: ${title}">
-        <div class="inv-photo">
-          ${photo ? `<img src="${photo}" alt="${title}" loading="lazy">` : '<div class="inv-no-photo">No Photo</div>'}
-          ${u.featured ? '<span class="inv-badge">Featured</span>' : ''}
-        </div>
-        <div class="inv-body">
-          <h3 class="inv-title">${title}</h3>
-          <div class="inv-price">${priceStr}</div>
-          <div class="inv-dealer">${dealerLine}</div>
-          ${chips.length ? `<div class="inv-specs">${chips.map(c => `<span class="inv-spec">${c}</span>`).join('')}</div>` : ''}
-          <div class="inv-cta-wrap"><span class="inv-cta">View Listing</span></div>
-        </div>
-      </a>
-    </article>`;
-  }).join('');
-
-  if (pg) {
-    if (pages <= 1) { pg.innerHTML = ''; return; }
-    pg.innerHTML = Array.from({length: pages}, (_, i) =>
-      `<button onclick="currentPage=${i+1};applyFilters();document.getElementById('inventory').scrollIntoView({behavior:'smooth',block:'start'})" style="padding:9px 16px;border-radius:9px;border:1px solid rgba(255,255,255,0.08);background:${i+1===currentPage?'#334155':'rgba(255,255,255,0.05)'};color:#f8fafc;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">${i+1}</button>`
-    ).join('');
-  }
-}
+});
 
 initDealerFilter();
-loadAll();
+InventoryEngine.loadAll();
+
 </script>
 
 <nav class="mobile-sticky-cta" aria-label="Mobile quick actions">
