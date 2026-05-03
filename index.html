@@ -851,8 +851,6 @@
       .hero-header { margin-bottom: 14px; }
       .hero-search-bar { margin-bottom: 14px; }
       .cat-discovery { display: none; }
-      .hero-hook { display: none; }
-      #inv-trust-line { display: none !important; }
       #inv-blurb { display: none; }
       #inventory .section-header { display: none; }
       #browse-by-cat-label { display: none; }
@@ -870,13 +868,6 @@
     }
     .hero-trust-line__count { color: var(--green); font-weight: 700; }
     .hero-trust-line__sep  { color: rgba(255,255,255,0.2); }
-    .hero-hook {
-      margin: 10px 0 0;
-      font-size: 13px;
-      color: #64748b;
-      font-style: italic;
-    }
-
   </style>
 </head>
 <body>
@@ -925,7 +916,6 @@
             <span class="hero-trust-line__sep">·</span>
             <span>Updated Regularly</span>
           </p>
-          <p class="hero-hook">Work trucks, trailers &amp; equipment from real dealers — no junk listings.</p>
         </div>
         <div class="hero-search-bar">
           <input type="text" id="hero-kw" placeholder="Search trucks, trailers, equipment, stock #..." autocomplete="off" onkeydown="if(event.key==='Enter')heroSearch()">
@@ -1030,15 +1020,6 @@
 
         <p id="inv-blurb" style="margin-bottom:16px;color:#64748b;font-size:14px;line-height:1.65;">Browse work trucks, trailers, construction equipment, and farm equipment from real dealers across North Carolina and beyond.</p>
 
-        <div id="inv-trust-line" style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em">
-          <span style="color:#86efac">&#10003; Updated regularly</span>
-          <span style="color:#64748b">&bull;</span>
-          <span style="color:#94a3b8">Real dealer inventory</span>
-          <span style="color:#64748b">&bull;</span>
-          <span style="color:#94a3b8">Financing available</span>
-          <span style="color:#64748b">&bull;</span>
-          <span style="color:#94a3b8">Direct dealer contact</span>
-        </div>
         <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
           <input type="text" id="inv-search" placeholder="Search year, make, model, stock..." oninput="applyFilters()" style="flex:1;min-width:200px;padding:10px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:#f8fafc;font-size:14px;font-family:inherit;outline:none">
           <select id="dealer-filter" onchange="applyFilters()" style="padding:10px 14px;background:rgba(17,24,39,0.9);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#f8fafc;font-size:14px;font-family:inherit;outline:none;cursor:pointer">
