@@ -742,8 +742,8 @@
     .hero-header h1 { font-size: clamp(32px, 5.5vw, 58px); margin: 12px 0 14px; line-height: 1; }
     .hero-header .hero-sub { font-size: 16px; color: #94a3b8; line-height: 1.65; margin: 0; max-width: 100%; }
     .hero-search-bar { display: flex; gap: 10px; max-width: 720px; margin: 0 auto 28px; flex-wrap: wrap; }
-    .hero-search-bar input { flex: 1; min-width: 200px; padding: 13px 16px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #f8fafc; font-size: 15px; font-family: inherit; outline: none; }
-    .hero-search-bar input:focus { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.07); }
+    .hero-search-bar input { flex: 1; min-width: 200px; padding: 13px 16px; background: rgba(255,255,255,0.05); border: 1.5px solid rgba(255,255,255,0.18); border-radius: 12px; color: #f8fafc; font-size: 15px; font-family: inherit; outline: none; }
+    .hero-search-bar input:focus { border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.07); }
     .hero-search-bar select { padding: 13px 14px; background: rgba(17,24,39,0.9); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #f8fafc; font-size: 15px; font-family: inherit; outline: none; cursor: pointer; }
     /* Category discovery */
     .cat-discovery { padding: 32px 0 12px; }
@@ -798,10 +798,10 @@
     /* Eyebrow indicator dot — brand green */
     .eyebrow::before { background: #365943; box-shadow: 0 0 6px rgba(54,89,67,0.5); }
 
-    /* Search inputs — green focus border */
-    .hero-search-bar input:focus { border-color: #365943; background: rgba(54,89,67,0.06); }
+    /* Search inputs — white focus border */
+    .hero-search-bar input:focus { border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.07); }
     #inv-search::placeholder { color: #94a3b8; }
-    #inv-search:focus { border-color: #365943 !important; background: rgba(54,89,67,0.06); }
+    #inv-search:focus { border-color: rgba(255,255,255,0.4) !important; background: rgba(255,255,255,0.07); }
 
     /* Inventory cards — subtle green border on hover */
     .card { transition: border-color 0.18s; }
@@ -1010,7 +1010,7 @@
         <p id="inv-blurb" style="margin-bottom:16px;color:#64748b;font-size:14px;line-height:1.65;">Browse work trucks, trailers, construction equipment, and farm equipment from real dealers across North Carolina and beyond.</p>
 
         <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
-          <input type="text" id="inv-search" placeholder="Search year, make, model, stock..." oninput="applyFilters()" style="flex:1;min-width:200px;padding:10px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:#f8fafc;font-size:14px;font-family:inherit;outline:none">
+          <input type="text" id="inv-search" placeholder="Search year, make, model, stock..." oninput="applyFilters()" style="flex:1;min-width:200px;padding:10px 14px;background:rgba(255,255,255,0.05);border:1.5px solid rgba(255,255,255,0.18);border-radius:12px;color:#f8fafc;font-size:14px;font-family:inherit;outline:none">
           <select id="dealer-filter" onchange="applyFilters()" style="padding:10px 14px;background:rgba(17,24,39,0.9);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#f8fafc;font-size:14px;font-family:inherit;outline:none;cursor:pointer">
             <option value="">All Dealers</option>
           </select>
