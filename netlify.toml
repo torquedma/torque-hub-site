@@ -12,3 +12,8 @@
 [[edge_functions]]
   path = "/vehicle.html"
   function = "vehicle"
+
+[[redirects]]
+  from = "/sitemap.xml"
+  to = "/.netlify/functions/sitemap"
+  status = 200
