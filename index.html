@@ -907,7 +907,7 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
       </a>
 
       <nav class="nav-links" aria-label="Primary navigation">
-        <a href="#inventory">Inventory</a>
+        <a href="/inventory.html">Inventory</a>
         <div class="nav-dropdown">
           <a href="#sell">Partners</a>
           <div class="dropdown-menu">
@@ -1129,7 +1129,7 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
       <div>
         <h3>Explore</h3>
         <ul>
-          <li><a href="#inventory">Browse Inventory</a></li>
+          <li><a href="/inventory.html">Browse Inventory</a></li>
           <li><a href="#dealers">Featured Dealers</a></li>
           <li><a href="/finance.html">Financing</a></li>
         </ul>
@@ -1145,7 +1145,7 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
 
   <div class="mobile-sticky" aria-label="Mobile quick actions">
     <a class="btn btn-green" href="/finance.html?src=mobile">Financing</a>
-    <a class="btn btn-primary" href="#inventory">Inventory</a>
+    <a class="btn btn-primary" href="/inventory.html">Inventory</a>
     <a class="btn btn-secondary" href="#sell">Partners</a>
   </div>
 
@@ -1195,7 +1195,7 @@ function renderDealers() {
         '<div>' + d.phone + '</div>' +
         '<div style="color:#cbd5e1;font-weight:700">' + count + ' units available</div>' +
       '</div>' +
-      '<a class="btn btn-primary" href="#inventory" onclick="document.getElementById(\'dealer-filter\').value=\'' + d.key.replace(/'/g, "\\'") + '\';InventoryEngine.applyFilters()">View Inventory</a>' +
+      '<a class="btn btn-primary" href="/inventory.html?dealer=' + encodeURIComponent(d.key) + '">View Inventory</a>' +
     '</article>';
   }).join('');
 }
@@ -1288,7 +1288,7 @@ InventoryEngine.loadAll();
 </script>
 
 <nav class="mobile-sticky-cta" aria-label="Mobile quick actions">
-  <a href="#inventory" class="mobile-sticky-cta__link">
+  <a href="/inventory.html" class="mobile-sticky-cta__link">
     <span class="mobile-sticky-cta__label">Inventory</span>
   </a>
   <a href="/finance.html" class="mobile-sticky-cta__link">

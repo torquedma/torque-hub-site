@@ -259,7 +259,7 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
         </div>
       </a>
       <div class="nav-right">
-        <a href="/#inventory" class="nav-back">← All Inventory</a>
+        <a href="/inventory.html" class="nav-back">← All Inventory</a>
         <a href="/finance.html?src=vdp_nav" class="nav-cta btn" style="min-height:auto;padding:9px 16px;border-radius:9px;font-size:13px">Get Financing</a>
       </div>
     </nav>
@@ -270,7 +270,7 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
   <div class="breadcrumb">
     <a href="/">Torque Hub</a>
     <span>›</span>
-    <a href="/#inventory">Inventory</a>
+    <a href="/inventory.html">Inventory</a>
     <span>›</span>
     <span id="bc-title">Listing Details</span>
   </div>
@@ -943,7 +943,7 @@ function showError() {
   const loadingEl = document.getElementById('vdp-loading');
   if (loadingEl) loadingEl.style.display = 'none';
   const tpl = document.getElementById('vdp-error-tpl');
-  if (!tpl) { window.location.replace('/#inventory'); return; }
+  if (!tpl) { window.location.replace('/inventory.html'); return; }
   let errEl = document.getElementById('vdp-error');
   if (!errEl) {
     errEl = document.createElement('div');
