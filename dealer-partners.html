@@ -189,7 +189,7 @@ async function submitPartnerApp(prefix, type) {
   submitBtn.disabled = true;
   submitBtn.innerText = 'Submitting...';
   try {
-    const res = await fetch('https://torquehub.netlify.app/.netlify/functions/submit-lead', {
+    const res = await fetch('/.netlify/functions/submit-lead', {
       method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)
     });
     if (!res.ok) throw new Error('fn');

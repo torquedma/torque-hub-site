@@ -905,14 +905,14 @@ function submitLead() {
   const pageUrl = document.getElementById('f-page-url').value;
   const referrer = document.getElementById('f-referrer').value;
 
-  if (!name || (!phone && !email)) {
-    alert('Please enter your name and either a phone number or email address.');
+  if (!name || !phone) {
+    alert('Please enter your name and phone number.');
     return;
   }
 
-  fetch(`${SUPABASE_URL}/rest/v1/leads`, {
+  fetch('/.netlify/functions/submit-lead', {
     method: 'POST',
-    headers: { ...SB_HEADERS, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       customer_name: name,
       customer_phone: phone || null,
@@ -921,9 +921,10 @@ function submitLead() {
       source: 'vdp',
       message: msg,
       status: 'new',
-      stock: stock || null,
-      unit_title: listingTitle || null,
-      source_url: pageUrl || null
+      stock_number: stock || null,
+      listing_title: listingTitle || null,
+      source_url: pageUrl || null,
+      referrer: referrer || null
     })
   }).then(r => {
     if (!r.ok) throw new Error('Submit failed: ' + r.status);
