@@ -1,20 +1,31 @@
 const { Resend } = require('resend');
 const { createClient } = require('@supabase/supabase-js');
 
-// All finance variants collapse to 'Finance Form' in notifications; raw source is
-// still stored in Supabase unchanged. Add new sources here as forms are added.
-const SOURCE_LABELS = {
-  torque_hub_listing:         'Finance Form',
-  torque_hub_qr:              'Finance Form',
-  torque_hub_reel:            'Finance Form',
-  torque_hub_featured:        'Finance Form',
-  torque_hub_homepage:        'Finance Form',
-  torque_hub_direct:          'Finance Form',
-  finance_form:               'Finance Form',
-  vdp:                        'Vehicle Inquiry',
-  lender_partner_application: 'Lender Partner Inquiry',
-  dealer_partner_application: 'Dealer Partner Inquiry',
-};
+// Raw source is stored in Supabase unchanged; this label appears in email subjects.
+// Add new explicit cases here; SEO and generic torque_hub_ variants are caught below.
+function getSourceLabel(source) {
+  switch (source) {
+    case 'finance_form':               return 'Finance Form';
+    case 'torque_hub_listing':         return 'Finance Form (VDP)';
+    case 'torque_hub_direct':          return 'Finance Form';
+    case 'torque_hub_homepage':        return 'Finance Form';
+    case 'torque_hub_qr':              return 'Finance Form (QR)';
+    case 'torque_hub_reel':            return 'Finance Form (Reel)';
+    case 'torque_hub_featured':        return 'Finance Form';
+    case 'torque_hub_nav':             return 'Finance Form (Site Nav)';
+    case 'torque_hub_vdp_nav':         return 'Finance Form (VDP Nav)';
+    case 'torque_hub_hero':            return 'Finance Form (Hero)';
+    case 'torque_hub_bottom':          return 'Finance Form (Bottom)';
+    case 'torque_hub_mobile':          return 'Finance Form (Mobile)';
+    case 'vdp':                        return 'Vehicle Inquiry';
+    case 'lender_partner_application': return 'Lender Partner Inquiry';
+    case 'dealer_partner_application': return 'Dealer Partner Inquiry';
+    default:
+      if (source && source.startsWith('torque_hub_seo_')) return 'Finance Form (SEO)';
+      if (source && source.startsWith('torque_hub_'))     return 'Finance Form';
+      return source || 'Finance Form';
+  }
+}
 
 exports.handler = async (event) => {
   // '*' covers hub.torquedma.com. When dealer sites post to this function,
@@ -70,7 +81,7 @@ exports.handler = async (event) => {
   } else {
     try {
       const resend       = new Resend(resendKey);
-      const formLabel    = SOURCE_LABELS[source] || source;
+      const formLabel    = getSourceLabel(source);
       const customerName = customer_name.trim();
       const subject      = `[${property}] ${formLabel} from ${customerName}`;
 
