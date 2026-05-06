@@ -190,7 +190,6 @@ window.InventoryEngine = (function () {
         '<a class="inv-card-link" href="' + vdpUrl + '" aria-label="View listing: ' + title + '">' +
           '<div class="inv-photo">' +
             (photo ? '<img src="' + photo + '" alt="' + title + '" loading="lazy">' : '<div class="inv-no-photo">No Photo</div>') +
-            (u.featured ? '<span class="inv-badge">Featured</span>' : '') +
           '</div>' +
           '<div class="inv-body">' +
             '<h3 class="inv-title">' + title + '</h3>' +
