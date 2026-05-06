@@ -152,8 +152,6 @@
     .btn { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 50px; border-radius: 12px; font-weight: 800; font-size: 14px; text-transform: uppercase; letter-spacing: 0.07em; border: none; cursor: pointer; font-family: inherit; transition: all 0.18s; width: 100%; }
     .btn-call { background: #334155; color: #fff; box-shadow: 0 8px 24px rgba(249,115,22,0.3); font-size: 16px; }
     .btn-call:hover { background: #475569; transform: translateY(-1px); }
-    .btn-lead { background: rgba(255,255,255,0.07); color: var(--text); border: 1px solid var(--line); }
-    .btn-lead:hover { background: rgba(255,255,255,0.12); }
     .btn-finance { background: linear-gradient(135deg, #365943, #294434); color: #fff; box-shadow: none; border: 1px solid rgba(255,255,255,0.10); font-size: 15px; }
     .btn-finance:hover { background: linear-gradient(135deg, #365943, #294434); transform: translateY(-1px); }
 
@@ -364,7 +362,6 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
           <div class="cta-stack">
             <a class="btn btn-finance" id="cta-finance" href="/finance.html">Get Pre-Approved</a>
             <a class="btn btn-call" id="cta-call" href="#">📞 Call Dealer Now</a>
-            <button class="btn btn-lead" onclick="scrollToForm()">✉ Send a Message</button>
           </div>
         </div>
 
@@ -889,11 +886,6 @@ async function loadSimilar(currentUnit, dealerKey) {
 }
 
 // ─── LEAD FORM ──────────────────────────────────────────────────────────────
-function scrollToForm() {
-  document.getElementById('lead-form-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  setTimeout(() => document.getElementById('f-name').focus(), 600);
-}
-
 function submitLead() {
   const name = document.getElementById('f-name').value.trim();
   const phone = document.getElementById('f-phone').value.trim();
