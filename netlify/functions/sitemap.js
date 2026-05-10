@@ -99,7 +99,7 @@ exports.handler = async () => {
 
   const vdpXml = vdpUnits
     .map(({ stock, dealerKey }) =>
-      `  <url><loc>${BASE}/vehicle.html?stock=${encodeURIComponent(stock)}&amp;dealer=${encodeURIComponent(dealerKey)}</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>`
+      `  <url><loc>${BASE}/vehicle.html?stock=${encodeURIComponent(stock)}</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>`
     )
     .join('\n');
 

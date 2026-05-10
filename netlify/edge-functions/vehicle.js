@@ -452,7 +452,7 @@ export default async function handler(request, context) {
     const cityState = city && stateCode ? `${city}, ${stateCode}` : city || 'NC';
     const loc       = addrLines.length > 1 ? addrLines[1] : addrLines[0] || '';
 
-    const pageUrl   = `${SITE}/vehicle.html?stock=${encodeURIComponent(unit.stock)}&dealer=${encodeURIComponent(dealerKey)}`;
+    const pageUrl   = `${SITE}/vehicle.html?stock=${encodeURIComponent(unit.stock)}`;
     const pageTitle = `${[unit.year, unit.make, unit.model, subcat].filter(Boolean).join(' ')} for Sale in ${cityState} | Torque Hub`;
     const pageDesc  = `${title}${subcat ? ' ' + subcat : ''} for sale in ${cityState}. ${price}. Call ${d.phone || 'the dealer'} or apply for financing online. Torque Hub.`;
 
