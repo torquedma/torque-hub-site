@@ -241,6 +241,12 @@ function injectMeta(html, { pageTitle, pageDesc, pageUrl, firstPhoto, schema }) 
   if (firstPhoto) {
     html = html.replace(/<meta property="og:image"[^>]*>/,
       `<meta property="og:image" id="og-image" content="${escAttr(firstPhoto)}" />`);
+    // Use standard Open Graph preview dimensions.
+    // Actual source image may vary; platforms will crop/scale as needed.
+    html = html.replace(/<meta property="og:image:width"[^>]*>/,
+      `<meta property="og:image:width" id="og-image-width" content="1200" />`);
+    html = html.replace(/<meta property="og:image:height"[^>]*>/,
+      `<meta property="og:image:height" id="og-image-height" content="630" />`);
     html = html.replace(/<meta name="twitter:image"[^>]*>/,
       `<meta name="twitter:image" id="twitter-image" content="${escAttr(firstPhoto)}" />`);
   }
