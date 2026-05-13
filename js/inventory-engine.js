@@ -209,12 +209,16 @@ window.InventoryEngine = (function () {
       var linkEl = document.getElementById('inv-footer-link');
       if (footer && countEl && linkEl) {
         if (total > PAGE_SIZE) {
-          var catLabel = currentCat
-            ? (currentCat === 'Other' ? 'other units' : currentCat.toLowerCase())
-            : 'featured units';
-          var linkLabel = currentCat
-            ? 'View all ' + (currentCat === 'Other' ? 'other inventory' : currentCat.toLowerCase()) + ' →'
-            : 'View all inventory →';
+          var CAT_LABELS = {
+            'Trucks':       { plural: 'trucks',             link: 'trucks' },
+            'Trailers':     { plural: 'trailers',           link: 'trailers' },
+            'Construction': { plural: 'construction units', link: 'construction equipment' },
+            'Farm':         { plural: 'farm units',         link: 'farm equipment' },
+            'Other':        { plural: 'other units',        link: 'other inventory' }
+          };
+          var labels = CAT_LABELS[currentCat];
+          var catLabel = labels ? labels.plural : 'featured units';
+          var linkLabel = labels ? ('View all ' + labels.link + ' →') : 'View all inventory →';
           countEl.textContent = 'Showing ' + Math.min(PAGE_SIZE, total) + ' of ' + total + ' ' + catLabel;
           linkEl.textContent = linkLabel;
           footer.style.display = 'block';
