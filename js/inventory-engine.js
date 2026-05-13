@@ -202,6 +202,28 @@ window.InventoryEngine = (function () {
       '</article>';
     }).join('');
 
+    // Featured-mode footer CTA
+    if (featured) {
+      var footer = document.getElementById('inventory-grid-footer');
+      var countEl = document.getElementById('inv-footer-count');
+      var linkEl = document.getElementById('inv-footer-link');
+      if (footer && countEl && linkEl) {
+        if (total > PAGE_SIZE) {
+          var catLabel = currentCat
+            ? (currentCat === 'Other' ? 'other units' : currentCat.toLowerCase())
+            : 'featured units';
+          var linkLabel = currentCat
+            ? 'View all ' + (currentCat === 'Other' ? 'other inventory' : currentCat.toLowerCase()) + ' →'
+            : 'View all inventory →';
+          countEl.textContent = 'Showing ' + Math.min(PAGE_SIZE, total) + ' of ' + total + ' ' + catLabel;
+          linkEl.textContent = linkLabel;
+          footer.style.display = 'block';
+        } else {
+          footer.style.display = 'none';
+        }
+      }
+    }
+
     if (pg && !featured) {
       if (pages <= 1) { pg.innerHTML = ''; return; }
       pg.innerHTML = Array.from({ length: pages }, function(_, i) {
