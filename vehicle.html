@@ -655,7 +655,7 @@ function el(id) { return document.getElementById(id); }
 
 function render(unit, dealerKey) {
   const d = DEALERS[dealerKey] || DEALERS[unit.dealer] || {};
-  const title = [unit.year, unit.make, unit.model].filter(Boolean).join(' ') || 'Unit Available';
+  const title = [unit.year, unit.make, unit.model, unit.trim].filter(Boolean).join(' ') || 'Unit Available';
   const price = formatPrice(unit.price);
   const isSold = unit.sold === true;
   const subcat = unit.subcategory || '';
@@ -682,7 +682,7 @@ function render(unit, dealerKey) {
 
   // Page meta — all guarded; edge function may have already set these
   const pageUrl = `https://hub.torquedma.com/vehicle.html?stock=${encodeURIComponent(unit.stock)}`;
-  const titleTag = [unit.year, unit.make, unit.model, subcat].filter(Boolean).join(' ');
+  const titleTag = [unit.year, unit.make, unit.model, unit.trim, subcat].filter(Boolean).join(' ');
   document.title = `${titleTag} for Sale in ${cityState} | Torque Hub`;
   const descContent = `${title}${subcat ? ' ' + subcat : ''} for sale in ${cityState}. ${price}. Call ${d.phone || 'the dealer'} or apply for financing online. Torque Hub.`;
 
@@ -833,7 +833,7 @@ async function loadSimilar(currentUnit, dealerKey) {
     const cat  = encodeURIComponent(currentUnit.category    || '');
     const sub  = encodeURIComponent(currentUnit.subcategory || '');
     const dlr  = encodeURIComponent(dealerKey);
-    const flds = 'stock,year,make,model,price,photos,dealer,category,subcategory';
+    const flds = 'stock,year,make,model,trim,price,photos,dealer,category,subcategory';
     const base = `${SUPABASE_URL}/rest/v1/inventory?sold=eq.false&select=${flds}`;
     const excl = u => u.stock !== currentUnit.stock;
 
@@ -874,7 +874,7 @@ async function loadSimilar(currentUnit, dealerKey) {
     document.getElementById('similar-card').style.display = 'block';
     document.getElementById('similar-grid').innerHTML = items.map(u => {
       const photo = u.photos && u.photos.length ? (u.photos[0].url || u.photos[0].dataUrl || '') : '';
-      const title = [u.year, u.make, u.model].filter(Boolean).join(' ');
+      const title = [u.year, u.make, u.model, u.trim].filter(Boolean).join(' ');
       const href = `vehicle.html?stock=${encodeURIComponent(u.stock)}`;
       return `<a class="sim-item" href="${href}">
         <div class="sim-img">${photo ? `<img src="${photo}" alt="${title}" loading="lazy">` : `<div style="width:100%;height:100%;background:var(--panel);display:flex;align-items:center;justify-content:center;color:var(--soft);font-size:12px">No Photo</div>`}</div>

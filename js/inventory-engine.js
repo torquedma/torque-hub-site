@@ -86,7 +86,7 @@ window.InventoryEngine = (function () {
 
   function financeUrl(u, src) {
     src = src || 'inventory';
-    var title    = [u.year, u.make, u.model].filter(Boolean).join(' ');
+    var title    = [u.year, u.make, u.model, u.trim].filter(Boolean).join(' ');
     var unitSlug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     var priceNum = parseFloat(String(u.price || '').replace(/[^0-9.]/g, '')) || '';
     return '/finance.html?stock=' + encodeURIComponent(u.stock || '') +
@@ -172,7 +172,7 @@ window.InventoryEngine = (function () {
     grid.innerHTML = slice.map(function(u) {
       var d          = u._dealer || DEALERS.find(function(x) { return x.key === u.dealer; }) || {};
       var photo      = u.photos && u.photos.length ? (u.photos[0].url || u.photos[0].dataUrl || '') : '';
-      var title      = [u.year, u.make, u.model].filter(Boolean).join(' ') || 'Unit Available';
+      var title      = [u.year, u.make, u.model, u.trim].filter(Boolean).join(' ') || 'Unit Available';
       var vdpUrl     = 'vehicle.html?stock=' + encodeURIComponent(u.stock || '');
       var priceStr   = u.price && !isNaN(parseFloat(String(u.price).replace(/[^0-9.]/g, '')))
                          ? '$' + Number(String(u.price).replace(/[^0-9.]/g, '')).toLocaleString()
