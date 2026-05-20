@@ -336,7 +336,7 @@ exports.handler = async (event) => {
 
         const isExisting = existingStocks.has(stock);
         const { error } = isExisting
-          ? await supabase.from('inventory').update(unit).eq('stock', stock).eq('dealer', dealer)
+          ? await supabase.from('inventory').update(unit).eq('stock', stock).eq('dealer', dealer).eq('sold', false)
           : await supabase.from('inventory').insert([unit]);
 
         if (error) { console.error(`Error ${stock}:`, error.message); errors++; }
