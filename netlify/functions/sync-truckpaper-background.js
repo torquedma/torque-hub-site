@@ -89,11 +89,9 @@ function normalizeStockNumber(rawStock, dealerName) {
 }
 
 function deriveSubcategory(item) {
-  // 1. Direct field from Apify (rare but cheap to check)
-  const direct = (item.subcategory || item.bodyType || item.body_type || item.vehicleType || '').toString().trim();
-  if (direct) return direct;
-
-  // 2. URL slug match (TruckPaper's own category taxonomy)
+  // 1. URL slug match — TruckPaper's authoritative public taxonomy.
+  // Takes priority over JSON itemType because URL drives public search/filter.
+  // Embedded JSON metadata can drift from public category; URL cannot.
   const url = (item.source_url || item.url || '').toLowerCase();
   if (url) {
     const URL_SLUGS = [
@@ -109,6 +107,7 @@ function deriveSubcategory(item) {
       [/\/box-trucks?\b/, 'Box Truck'],
       [/\/flatbed-trucks?\b/, 'Flatbed Truck'],
       [/\/refrigerated-trucks?\b/, 'Refrigerated Truck'],
+      [/\/rollback-tow-trucks?\b/, 'Rollback Tow Truck'],
       [/\/rollback-trucks?\b/, 'Rollback Tow Truck'],
       [/\/tow-trucks?\b/, 'Tow Truck'],
       [/\/wrecker-trucks?\b/, 'Tow Truck'],
@@ -142,6 +141,10 @@ function deriveSubcategory(item) {
       if (rx.test(url)) return label;
     }
   }
+
+  // 2. Direct field from Apify (fallback if URL didn't match any slug)
+  const direct = (item.subcategory || item.bodyType || item.body_type || item.vehicleType || '').toString().trim();
+  if (direct) return direct;
 
   // 3. Keyword regex fallback against title/description/model
   const haystack = `${item.title || ''} ${item.description || ''} ${item.model || ''}`.toLowerCase();
