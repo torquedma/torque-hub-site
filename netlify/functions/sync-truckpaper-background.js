@@ -308,10 +308,12 @@ exports.handler = async (event) => {
         const rawDescription = item.description || item.title || '';
         const dealerInfo = DEALER_INFO_MAP[dealer] || { name: dealer };
 
+        const sub = deriveSubcategory(item);
         const unit = {
           stock, dealer,
           year: item.year ? String(item.year) : '',
           make, model,
+          trim: item.trim || sub || '',
           price: item.price ? String(item.price).replace(/[^0-9.]/g, '') : '',
           mileage, vin: item.vin || '', engine, transmission, drivetrain,
           fuel: item.fuel || 'Diesel',
@@ -319,7 +321,7 @@ exports.handler = async (event) => {
           raw_description: rawDescription,
           description: rawDescription,
           category: item.category || 'Trucks',
-          subcategory: deriveSubcategory(item), sold: false, featured: 0, days: '0',
+          subcategory: sub, sold: false, featured: 0, days: '0',
           photos: Array.isArray(item.photos) ? item.photos : [],
           source_type: 'truckpaper_apify',
           source_url: item.source_url || item.url || '',
