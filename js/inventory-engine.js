@@ -2,7 +2,7 @@ window.InventoryEngine = (function () {
 
   // ── Constants ──────────────────────────────────────────────────────────────
   var PAGE_SIZE = 12;
-  var MAIN_CATS = ['Trucks', 'Trailers', 'Construction', 'Farm'];
+  var MAIN_CATS = ['Trucks', 'Trailers', 'Construction', 'Farm', 'Landscape'];
 
   var DEALERS = [
     { key: "Davenport Motors",            name: "Davenport Motors",            feedUrl: "https://davenportmotors.net/.netlify/functions/inventory",              phone: "252-809-2172", tel: "2528092172", location: "Plymouth, NC",     desc: "Located in Plymouth, NC – Eastern Carolina's Trusted Source for Semi-Trucks, Dump Trucks, and Heavy Equipment" },
@@ -51,6 +51,7 @@ window.InventoryEngine = (function () {
       { label: 'Implements',    kw: 'implement',  slug: 'implements' },
       { label: 'Spreaders',     kw: 'spreader',   slug: 'spreaders' }
     ],
+    'Landscape': [],
     'Other': []
   };
 
@@ -59,6 +60,7 @@ window.InventoryEngine = (function () {
     'Trailers':     'Trailers',
     'Construction': 'Construction Equipment',
     'Farm':         'Farm Equipment',
+    'Landscape':    'Landscape Equipment',
     'Other':        'Other Equipment'
   };
 
@@ -215,6 +217,7 @@ window.InventoryEngine = (function () {
             'Trailers':     { plural: 'trailers',           link: 'trailers' },
             'Construction': { plural: 'construction units', link: 'construction equipment' },
             'Farm':         { plural: 'farm units',         link: 'farm equipment' },
+            'Landscape':    { plural: 'landscape units',    link: 'landscape equipment' },
             'Other':        { plural: 'other units',        link: 'other inventory' }
           };
           var labels = CAT_LABELS[currentCat];
