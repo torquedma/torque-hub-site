@@ -347,12 +347,19 @@ exports.handler = async (event) => {
     }));
   }
 
-  // Mark removed units sold
+  // Mark removed units sold — with safety check.
+  // If incoming scrape is dramatically smaller than DB, abort mark-sold loop
+  // to protect against partial scrape failures bulk-flagging good inventory.
   let markedSold = 0;
-  for (const stock of existingStocks) {
-    if (!incomingStocks.has(stock)) {
-      await supabase.from('inventory').update({ sold: true, sold_type: 'feed_removed' }).eq('stock', stock).eq('dealer', dealer);
-      markedSold++;
+  const incomingFraction = existingStocks.size > 0 ? incomingStocks.size / existingStocks.size : 1;
+  if (incomingFraction < 0.5 && existingStocks.size >= 10) {
+    console.warn(`Mark-sold ABORTED for ${dealer}: incoming=${incomingStocks.size} existing=${existingStocks.size} (${(incomingFraction*100).toFixed(0)}%). Likely partial scrape — skipping mark-sold to preserve inventory.`);
+  } else {
+    for (const stock of existingStocks) {
+      if (!incomingStocks.has(stock)) {
+        await supabase.from('inventory').update({ sold: true, sold_type: 'feed_removed' }).eq('stock', stock).eq('dealer', dealer);
+        markedSold++;
+      }
     }
   }
 
