@@ -261,11 +261,13 @@ exports.handler = async (event) => {
   // Get existing stocks
   const { data: existing } = await supabase
     .from('inventory')
-    .select('stock')
+    .select('stock,subcategory_locked,model_locked')
     .eq('dealer', dealer)
     .eq('sold', false);
 
   const existingStocks = new Set((existing || []).map(u => u.stock));
+  const lockedSubcat = new Set((existing || []).filter(u => u.subcategory_locked).map(u => u.stock));
+  const lockedModel  = new Set((existing || []).filter(u => u.model_locked).map(u => u.stock));
   const incomingStocks = new Set();
   let synced = 0, errors = 0;
 
@@ -347,6 +349,10 @@ exports.handler = async (event) => {
         }
 
         const isExisting = existingStocks.has(stock);
+        if (isExisting) {
+          if (lockedSubcat.has(stock)) { delete unit.subcategory; delete unit.category; delete unit.trim; }
+          if (lockedModel.has(stock))  { delete unit.make; delete unit.model; }
+        }
         const { error } = isExisting
           ? await supabase.from('inventory').update(unit).eq('stock', stock).eq('dealer', dealer).eq('sold', false)
           : await supabase.from('inventory').insert([unit]);
