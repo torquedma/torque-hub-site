@@ -53,7 +53,10 @@ window.InventoryEngine = (function () {
       { label: 'Implements',    kw: 'implement',  slug: 'implements' },
       { label: 'Spreaders',     kw: 'spreader',   slug: 'spreaders' }
     ],
-    'Landscape': [],
+    'Landscape': [
+      { label: 'Zero Turn Mowers',    kw: 'zero turn',  slug: 'zero-turn-mowers' },
+      { label: 'Turf & Grounds Care', kw: 'turf',       slug: 'turf-grounds-care' }
+    ],
     'Other': []
   };
 
