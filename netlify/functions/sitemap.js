@@ -16,6 +16,9 @@ const DEALERS = [
   { key: "Joe's Tractor Sales",            feedUrl: null },
   { key: "Auto Connection 210 LLC",        feedUrl: null },
   { key: "Dick Smith Equipment",           feedUrl: null },
+  { key: "Suttontown Repair Service",      feedUrl: null },
+  { key: "Fannon Land & Auction Co.",      feedUrl: null },
+  { key: "Mid Atlantic Power & Equipment", feedUrl: null },
 ];
 
 const STATIC_URLS = [
