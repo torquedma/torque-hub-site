@@ -47,15 +47,15 @@ window.InventoryEngine = (function () {
       { label: 'Backhoes',    kw: 'backhoe',   slug: 'backhoes' }
     ],
     'Farm': [
-      { label: 'Tractors',      kw: 'tractor',   slug: 'tractors' },
-      { label: 'Hay Equipment', kw: 'hay',        slug: 'hay-equipment' },
-      { label: 'Mowers',        kw: 'mower',      slug: 'mowers' },
-      { label: 'Implements',    kw: 'implement',  slug: 'implements' },
-      { label: 'Spreaders',     kw: 'spreader',   slug: 'spreaders' }
+      { label: 'Tractors',     kw: 'tractor',   slug: 'tractors' },
+      { label: 'Hay Rakes',    kw: 'hay rake',  slug: 'hay-rakes' },
+      { label: 'Balers',       kw: 'baler',     slug: 'balers' },
+      { label: 'Field Mowers', kw: 'mower',     slug: 'field-mowers' }
     ],
     'Landscape': [
-      { label: 'Zero Turn Mowers',    kw: 'zero turn',  slug: 'zero-turn-mowers' },
-      { label: 'Turf & Grounds Care', kw: 'turf',       slug: 'turf-grounds-care' }
+      { label: 'Zero Turn Mowers',    kw: 'zero turn',   slug: 'zero-turn-mowers' },
+      { label: 'Lawn Mowers',         kw: 'lawn mower',  slug: 'lawn-mowers' },
+      { label: 'Turf & Grounds Care', kw: 'turf',        slug: 'turf-grounds-care' }
     ],
     'Other': []
   };
