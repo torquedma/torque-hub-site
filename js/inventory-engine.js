@@ -53,9 +53,11 @@ window.InventoryEngine = (function () {
       { label: 'Field Mowers', kw: 'mower',     slug: 'field-mowers' }
     ],
     'Landscape': [
-      { label: 'Zero Turn Mowers',    kw: 'zero turn',   slug: 'zero-turn-mowers' },
-      { label: 'Lawn Mowers',         kw: 'lawn mower',  slug: 'lawn-mowers' },
-      { label: 'Turf & Grounds Care', kw: 'turf',        slug: 'turf-grounds-care' }
+      { label: 'Zero Turn Mowers',     kw: 'zero turn',     slug: 'zero-turn-mowers' },
+      { label: 'Walk Behind Mowers',   kw: 'walk behind',   slug: 'walk-behind-mowers' },
+      { label: 'Front Mounted Mowers', kw: 'front mounted', slug: 'front-mounted-mowers' },
+      { label: 'Lawn Tractors',        kw: 'lawn tractor',  slug: 'lawn-tractors' },
+      { label: 'Turf & Grounds Care',  kw: 'turf',          slug: 'turf-grounds-care' }
     ],
     'Other': []
   };
