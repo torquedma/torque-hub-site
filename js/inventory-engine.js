@@ -28,7 +28,7 @@ window.InventoryEngine = (function () {
       { label: 'Rollback Trucks', kw: 'rollback',  slug: 'rollback-trucks' },
       { label: 'Box Trucks',      kw: 'box',        slug: 'box-trucks' },
       { label: 'Service Trucks',  kw: 'service',   slug: 'service-trucks' },
-      { label: 'Semi Trucks',     kw: 'semi',       slug: 'semi-trucks' },
+      { label: 'Semi Trucks',     kw: 'tractor',    slug: 'semi-trucks' },
       { label: 'Flatbeds',        kw: 'flatbed',   slug: 'flatbed-trucks' }
     ],
     'Trailers': [
