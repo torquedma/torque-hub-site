@@ -232,6 +232,9 @@ window.InventoryEngine = (function () {
           var linkLabel = labels ? ('View all ' + labels.link + ' →') : 'View all inventory →';
           countEl.textContent = 'Showing ' + Math.min(PAGE_SIZE, total) + ' of ' + total + ' ' + catLabel;
           linkEl.textContent = linkLabel;
+          var ffids = _cfg.filterIds || {};
+          var fdealer = (_el(ffids.dealer) || { value: '' }).value;
+          linkEl.href = fdealer ? ('/inventory.html?dealer=' + encodeURIComponent(fdealer)) : '/inventory.html';
           footer.style.display = 'block';
         } else {
           footer.style.display = 'none';
