@@ -1022,7 +1022,7 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
           <div>
             <h2 class="section-title">Featured Inventory</h2>
           </div>
-          <a class="btn btn-secondary" href="/inventory.html">View All</a>
+          <a class="btn btn-secondary" href="/inventory.html" onclick="var d=document.getElementById('dealer-filter');if(d&amp;&amp;d.value){this.href='/inventory.html?dealer='+encodeURIComponent(d.value);}">View All</a>
         </div>
 
         <p id="inv-blurb" style="margin-bottom:16px;color:#64748b;font-size:14px;line-height:1.65;">Browse work trucks, trailers, construction equipment, and farm equipment from real dealers across North Carolina and beyond.</p>
