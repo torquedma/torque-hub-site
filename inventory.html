@@ -331,7 +331,9 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
     function initDealerFilter() {
       var sel = document.getElementById('dealer-filter');
       if (!sel) return;
-      InventoryEngine.DEALERS.forEach(function(d) {
+      InventoryEngine.DEALERS.slice().sort(function(a, b) {
+        return a.name.localeCompare(b.name);
+      }).forEach(function(d) {
         var opt = document.createElement('option');
         opt.value = d.key;
         opt.textContent = d.name;

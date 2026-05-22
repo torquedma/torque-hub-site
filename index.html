@@ -1169,7 +1169,9 @@ function heroSearch()             { InventoryEngine.heroSearch(); }
 function initDealerFilter() {
   var sel = document.getElementById('dealer-filter');
   if (!sel) return;
-  InventoryEngine.DEALERS.forEach(function(d) {
+  InventoryEngine.DEALERS.slice().sort(function(a, b) {
+    return a.name.localeCompare(b.name);
+  }).forEach(function(d) {
     var opt = document.createElement('option');
     opt.value = d.key;
     opt.textContent = d.name;
