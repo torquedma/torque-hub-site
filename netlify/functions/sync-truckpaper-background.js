@@ -313,6 +313,12 @@ exports.handler = async (event) => {
         const dealerInfo = DEALER_INFO_MAP[dealer] || { name: dealer };
 
         const sub = deriveSubcategory(item);
+        const subLower = (sub || '').toLowerCase();
+        let derivedCategory;
+        if (subLower.includes('trailer')) derivedCategory = 'Trailers';
+        else if (['suv','sedan','coupe','classic car','motorcycle','engine','power plant','boat'].some(function(k){ return subLower.includes(k); })) derivedCategory = 'Other';
+        else if (item.category) derivedCategory = item.category;
+        else derivedCategory = 'Trucks';
         const unit = {
           stock, dealer,
           year: item.year ? String(item.year) : '',
@@ -324,7 +330,7 @@ exports.handler = async (event) => {
           condition: item.condition || 'Used',
           raw_description: rawDescription,
           description: rawDescription,
-          category: item.category || 'Trucks',
+          category: derivedCategory,
           subcategory: sub, sold: false, featured: 0, days: '0',
           photos: Array.isArray(item.photos) ? item.photos : [],
           source_type: 'truckpaper_apify',
