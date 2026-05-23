@@ -89,10 +89,53 @@ function normalizeStockNumber(rawStock, dealerName) {
   return rawStock.startsWith(prefix) ? rawStock : `${prefix}${rawStock}`;
 }
 
+// ── Canonical subcategory authority (first brick of the shared normalization layer) ──
+const CANONICAL_SUBCATEGORIES = new Set([
+  'Box Truck','Day Cab Tractor','Sleeper Tractor','Service Truck','Dump Truck',
+  'Rollback Tow Truck','Tow Truck','Flatbed Truck','Car Carrier Truck','Cargo Van',
+  'Passenger Van','Pickup Truck','Crane Truck','Refrigerated Truck','Tanker Truck',
+  'Fuel Truck','Step Van','Garbage Truck','Concrete Mixer','Grain Dump Truck',
+  'Bucket Truck','Mixer Truck','Yard Spotter','Cab & Chassis','Fire Truck','Winch Truck',
+  'Crane Service Truck','Enclosed Landscape Truck',
+  'Enclosed Trailer','Car Hauler Trailer','Utility Trailer','Dump Trailer','Equipment Trailer',
+  'Gooseneck Trailer','Concession Trailer','Race Trailer','Deckover Trailer','Tilt Trailer',
+  'Dovetail Trailer','Tank Trailer','Tanker Trailer','Dry Van Trailer','Motorcycle Trailer',
+  'Landscape Trailer','Frameless Dump','Other Trailer','Reefer Trailer','Pole Trailer',
+  'Reel / Cable Trailer','Curtain-Side Trailer','Lowboy Trailer','Flatbed Trailer',
+  'Vending / Concession Trailer',
+  'Skid Steer','Compact Track Loader','Loader','Wheel Loader','Boom Lift','Backhoe',
+  'Excavator','Crawler Dozer','Forklift','Digger Derrick','Trencher','Scissor Lift',
+  'Compactor','Scraper','Air Compressor','Motor Grader','Backhoe Attachment','Track Loader',
+  'Tractor','Lawn Tractor','Zero Turn Mower','Walk Behind Mower','Front Mounted Mower',
+  'Field Mower','Finish Mower','Rotary Cutter','Hay Rake','Baler','Cultivator','Planter',
+  'Combine','Log Splitter','Wagon','Harrow','Box Scraper','Utility Vehicle','Land Leveler',
+  'Overseeder','V-Ripper','Turf & Grounds Care',
+  'SUV','Motorcycle','Classic Car','Engine','Side by Side','Boat','Freezer Box Body','Body',
+]);
+
+const SUBCATEGORY_ALIASES = {
+  'Cargo / Enclosed Trailer': 'Enclosed Trailer',
+  'Cargo Trailer': 'Enclosed Trailer',
+  'Refrigerated Trailer': 'Reefer Trailer',
+  'Equipment Trailers': 'Equipment Trailer',
+  'Harrows': 'Harrow',
+  'Curtain-Side': 'Curtain-Side Trailer',
+  'Dry Van': 'Dry Van Trailer',
+  'Track Loader': 'Compact Track Loader',
+  'UTV': 'Utility Vehicle',
+  'Car / Racing Trailer': 'Car Hauler Trailer',
+  'Mower': '',
+  'Lawn & Garden': '',
+};
+
+function canonicalize(value) {
+  if (!value) return '';
+  const v = value.toString().trim();
+  const mapped = SUBCATEGORY_ALIASES.hasOwnProperty(v) ? SUBCATEGORY_ALIASES[v] : v;
+  return CANONICAL_SUBCATEGORIES.has(mapped) ? mapped : '';
+}
+
 function deriveSubcategory(item) {
-  // 1. URL slug match — TruckPaper's authoritative public taxonomy.
-  // Takes priority over JSON itemType because URL drives public search/filter.
-  // Embedded JSON metadata can drift from public category; URL cannot.
   const url = (item.source_url || item.url || '').toLowerCase();
   if (url) {
     const URL_SLUGS = [
@@ -112,8 +155,8 @@ function deriveSubcategory(item) {
       [/[\/-]rollback-trucks?\b/, 'Rollback Tow Truck'],
       [/[\/-]tow-trucks?\b/, 'Tow Truck'],
       [/[\/-]wrecker-trucks?\b/, 'Tow Truck'],
-      [/[\/-]car-hauler-trucks?\b/, 'Car Hauler'],
-      [/[\/-]car-carrier-trucks?\b/, 'Car Hauler'],
+      [/[\/-]car-hauler-trucks?\b/, 'Car Carrier Truck'],
+      [/[\/-]car-carrier-trucks?\b/, 'Car Carrier Truck'],
       [/[\/-]bucket-trucks?\b/, 'Bucket Truck'],
       [/[\/-]aerial-trucks?\b/, 'Bucket Truck'],
       [/[\/-]garbage-trucks?\b/, 'Garbage Truck'],
@@ -130,13 +173,13 @@ function deriveSubcategory(item) {
       [/[\/-]dump-trailers?\b/, 'Dump Trailer'],
       [/[\/-]utility-trailers?\b/, 'Utility Trailer'],
       [/[\/-]equipment-trailers?\b/, 'Equipment Trailer'],
-      [/[\/-]cargo-trailers?\b/, 'Cargo Trailer'],
-      [/[\/-]enclosed-trailers?\b/, 'Cargo Trailer'],
+      [/[\/-]cargo-trailers?\b/, 'Enclosed Trailer'],
+      [/[\/-]enclosed-trailers?\b/, 'Enclosed Trailer'],
       [/[\/-]lowboy-trailers?\b/, 'Lowboy Trailer'],
       [/[\/-]dry-van-trailers?\b/, 'Dry Van Trailer'],
       [/[\/-]flatbed-trailers?\b/, 'Flatbed Trailer'],
-      [/[\/-]reefer-trailers?\b/, 'Refrigerated Trailer'],
-      [/[\/-]refrigerated-trailers?\b/, 'Refrigerated Trailer'],
+      [/[\/-]reefer-trailers?\b/, 'Reefer Trailer'],
+      [/[\/-]refrigerated-trailers?\b/, 'Reefer Trailer'],
       [/[\/-]suvs?\b/, 'SUV'],
     ];
     for (const [rx, label] of URL_SLUGS) {
@@ -144,16 +187,17 @@ function deriveSubcategory(item) {
     }
   }
 
-  // 2. Direct field from Apify (fallback if URL didn't match any slug)
   const direct = (item.subcategory || item.bodyType || item.body_type || item.vehicleType || '').toString().trim();
-  if (direct) return direct;
+  if (direct) {
+    const c = canonicalize(direct);
+    if (c) return c;
+  }
 
-  // 3. Keyword regex fallback against title/description/model
   const haystack = `${item.title || ''} ${item.description || ''} ${item.model || ''}`.toLowerCase();
   if (!haystack.trim()) return '';
 
   const PATTERNS = [
-    [/\bcar\s*haul(er|ing)?\b|\bcar\s*carrier\b/, 'Car Hauler'],
+    [/\bcar\s*haul(er|ing)?\b|\bcar\s*carrier\b/, 'Car Carrier Truck'],
     [/\brollback\b|\broll[\s-]*back\b/, 'Rollback Tow Truck'],
     [/\btow\s*truck\b|\bwrecker\b/, 'Tow Truck'],
     [/\bdump\s*truck\b|\bdump\s*body\b/, 'Dump Truck'],
@@ -176,7 +220,7 @@ function deriveSubcategory(item) {
     [/\bdump\s*trailer\b/, 'Dump Trailer'],
     [/\butility\s*trailer\b/, 'Utility Trailer'],
     [/\bequipment\s*trailer\b/, 'Equipment Trailer'],
-    [/\bcargo\s*trailer\b|\benclosed\s*trailer\b/, 'Cargo Trailer'],
+    [/\bcargo\s*trailer\b|\benclosed\s*trailer\b/, 'Enclosed Trailer'],
     [/\blowboy\b/, 'Lowboy Trailer'],
     [/\bdry\s*van\b/, 'Dry Van Trailer'],
     [/\bpickup\b/, 'Pickup Truck'],
