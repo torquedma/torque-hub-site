@@ -258,7 +258,7 @@ exports.handler = async (event) => {
 
   console.log(`Syncing ${items.length} items for ${dealerName}`);
 
-  const dealer = dealerName;
+  const dealer = items.find(i => i.dealer)?.dealer || dealerName;
 
   // Get existing stocks
   const { data: existing } = await supabase
