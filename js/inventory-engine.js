@@ -36,8 +36,7 @@ window.InventoryEngine = (function () {
       { label: 'Dump Trailers',      kw: 'dump',       slug: 'dump-trailers' },
       { label: 'Enclosed Trailers',  kw: 'enclosed',   slug: 'enclosed-trailers' },
       { label: 'Gooseneck Trailers', kw: 'gooseneck',  slug: 'gooseneck-trailers' },
-      { label: 'Livestock Trailers', kw: 'livestock',  slug: 'livestock-trailers' },
-      { label: 'Car / Racing',       kw: 'car',        slug: 'car-racing-trailers' }
+      { label: 'Car Haulers',        kw: 'car',        slug: 'car-hauler-trailers' }
     ],
     'Construction': [
       { label: 'Skid Steers', kw: 'skid',      slug: 'skid-steers' },
@@ -50,7 +49,7 @@ window.InventoryEngine = (function () {
       { label: 'Tractors',     kw: 'tractor',   slug: 'tractors' },
       { label: 'Hay Rakes',    kw: 'hay rake',  slug: 'hay-rakes' },
       { label: 'Balers',       kw: 'baler',     slug: 'balers' },
-      { label: 'Field Mowers', kw: 'mower',     slug: 'field-mowers' }
+      { label: 'Field Mowers', kw: 'field mower', slug: 'field-mowers' }
     ],
     'Landscape': [
       { label: 'Zero Turn Mowers',     kw: 'zero turn',     slug: 'zero-turn-mowers' },
