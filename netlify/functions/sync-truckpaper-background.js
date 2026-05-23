@@ -79,6 +79,7 @@ function normalizeModel(model) {
 
 const DEALER_PREFIXES = {
   'Impex Heavy Metal': 'MPX-',
+  'Mid Atlantic Power & Equipment': 'MAP-',
 };
 
 function normalizeStockNumber(rawStock, dealerName) {
@@ -190,6 +191,7 @@ function deriveSubcategory(item) {
 const DEALER_INFO_MAP = {
   'Impex Heavy Metal': { name: 'Impex Heavy Metal', phone: '336-715-8704', location: 'Greensboro, NC' },
   "HGR's Truck and Trailer": { name: "HGR's Truck and Trailer", phone: '910-661-0868', location: 'Hope Mills, NC' },
+  'Mid Atlantic Power & Equipment': { name: 'Mid Atlantic Power & Equipment', phone: '910-889-9201', location: 'Dunn, NC' },
 };
 
 // Use background function for longer timeout (15 minutes vs 10 seconds)
