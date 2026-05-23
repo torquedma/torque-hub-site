@@ -49,7 +49,11 @@ window.InventoryEngine = (function () {
       { label: 'Tractors',     kw: 'tractor',   slug: 'tractors' },
       { label: 'Hay Rakes',    kw: 'hay rake',  slug: 'hay-rakes' },
       { label: 'Balers',       kw: 'baler',     slug: 'balers' },
-      { label: 'Field Mowers', kw: 'field mower', slug: 'field-mowers' }
+      { label: 'Field Mowers',    kw: 'field mower',     slug: 'field-mowers' },
+      { label: 'Rotary Cutters',   kw: 'rotary',          slug: 'rotary-cutters' },
+      { label: 'Finish Mowers',    kw: 'finish',          slug: 'finish-mowers' },
+      { label: 'Utility Vehicles', kw: 'utility vehicle', slug: 'utility-vehicles' },
+      { label: 'Harrows',          kw: 'harrow',          slug: 'harrows' }
     ],
     'Landscape': [
       { label: 'Zero Turn Mowers',     kw: 'zero turn',     slug: 'zero-turn-mowers' },
