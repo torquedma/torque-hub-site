@@ -19,6 +19,7 @@ const DEALERS = [
   { key: "Suttontown Repair Service",      feedUrl: null },
   { key: "Fannon Land & Auction Co.",      feedUrl: null },
   { key: "Mid Atlantic Power & Equipment", feedUrl: null },
+  { key: "DeBary Truck Sales",            feedUrl: null },
 ];
 
 const STATIC_URLS = [

@@ -14,6 +14,7 @@ const DEALER_CONTACT = {
   'Suttontown Repair Service':     { name: 'Suttontown Repair Service',     phone: '910-530-1732', location: 'Faison, NC' },
   'Fannon Land & Auction Co.':     { name: 'Fannon Land & Auction Co.',     phone: '276-821-1194', location: 'Pennington Gap, VA' },
   'Mid Atlantic Power & Equipment':{ name: 'Mid Atlantic Power & Equipment',phone: '910-889-9201', location: 'Dunn, NC' },
+  'DeBary Truck Sales':            { name: 'DeBary Truck Sales',            phone: '(407) 993-2364', location: 'Sanford, FL' },
 };
 
 exports.handler = async (event) => {

@@ -22,6 +22,7 @@ const DEALERS = {
   "Smith's Enterprise":            { phone: '910-567-2680', address: 'Salemburg, NC' },
   'Suttontown Repair Service':     { phone: '',             address: 'North Carolina' },
   'Johnson Farm Service':          { phone: '',             address: 'North Carolina' },
+  'DeBary Truck Sales':            { phone: '(407) 993-2364', address: '3400 FL-46\nSanford, FL 32771' },
 };
 
 // ─── Escaping helpers ────────────────────────────────────────────────────────
