@@ -16,6 +16,120 @@
   path = "/vehicle.html"
   function = "vehicle"
 
+# Category hubs (5)
+[[edge_functions]]
+  path = "/trucks-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/trailers-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/farm-equipment-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/construction-equipment-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/landscape-equipment-for-sale"
+  function = "category"
+
+# Truck subcategories (10)
+[[edge_functions]]
+  path = "/box-trucks-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/semi-trucks-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/service-trucks-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/dump-trucks-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/cab-and-chassis-trucks-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/flatbed-trucks-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/rollback-tow-trucks-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/cargo-vans-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/yard-spotters-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/car-carrier-trucks-for-sale"
+  function = "category"
+
+# Trailer subcategories (6)
+[[edge_functions]]
+  path = "/enclosed-trailers-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/car-hauler-trailers-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/utility-trailers-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/equipment-trailers-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/dump-trailers-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/gooseneck-trailers-for-sale"
+  function = "category"
+
+# Farm subcategories (2)
+[[edge_functions]]
+  path = "/tractors-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/rotary-cutters-for-sale"
+  function = "category"
+
+# Landscape subcategories (2)
+[[edge_functions]]
+  path = "/zero-turn-mowers-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/lawn-tractors-for-sale"
+  function = "category"
+
+# Construction subcategories (2)
+[[edge_functions]]
+  path = "/excavators-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/skid-steers-for-sale"
+  function = "category"
+
 [[redirects]]
   from = "/sitemap.xml"
   to = "/.netlify/functions/sitemap"

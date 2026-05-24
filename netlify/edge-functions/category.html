@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title id="page-title">Inventory for Sale | Torque Hub</title>
+  <meta name="description" id="page-desc" content="Browse work trucks, trailers, and equipment from real NC dealers at Torque Hub powered by Torque DMA." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" id="canonical-url" href="https://hub.torquedma.com/" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" id="og-title" content="Inventory for Sale | Torque Hub" />
+  <meta property="og:description" id="og-desc" content="Browse work trucks, trailers, and equipment from real NC dealers." />
+  <meta property="og:image" content="https://hub.torquedma.com/torque-logo.png" />
+  <meta property="og:url" id="og-url" content="https://hub.torquedma.com/" />
+  <meta property="og:site_name" content="Torque Hub" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <!-- Schema.org - populated by edge function -->
+  <script type="application/ld+json" id="schema-data">{}</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800;900&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg: #0a0f1a;
+      --panel: #111827;
+      --panel-2: #1a2235;
+      --line: rgba(255,255,255,0.07);
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --soft: #64748b;
+      --orange: #f97316;
+      --orange-2: #ea6f0f;
+      --green: #365943;
+      --radius: 16px;
+      --max: 1180px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: "Barlow", sans-serif; color: var(--text); background: var(--bg); min-height: 100vh; overflow-x: hidden; }
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+    .container { width: min(var(--max), calc(100% - 32px)); margin: 0 auto; }
+
+    /* NAV */
+    .topbar { position: sticky; top: 0; z-index: 100; backdrop-filter: blur(16px); background: rgba(10,15,26,0.92); border-bottom: 1px solid var(--line); }
+    .nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 64px; }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-logo { width: 44px; height: 44px; object-fit: contain; }
+    .brand-title { font-family: "Barlow Condensed", sans-serif; font-size: 22px; font-weight: 900; text-transform: uppercase; }
+    .brand-sub { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.14em; margin-top: 2px; }
+    .nav-right { display: flex; align-items: center; gap: 8px; }
+    .nav-back { color: var(--muted); font-size: 14px; font-weight: 600; padding: 8px 14px; border-radius: 9px; border: 1px solid var(--line); transition: 0.2s; }
+    .nav-back:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+    .nav-cta { background: linear-gradient(135deg, #365943, #294434); color: #fff; font-size: 13px; font-weight: 700; padding: 9px 16px; border-radius: 9px; text-transform: uppercase; letter-spacing: 0.06em; box-shadow: 0 4px 14px rgba(22,163,74,0.3); }
+
+    /* BREADCRUMB */
+    .breadcrumb { padding: 14px 0; font-size: 13px; color: var(--soft); }
+    .breadcrumb a { color: var(--muted); }
+    .breadcrumb a:hover { color: #cbd5e1; }
+    .breadcrumb span { margin: 0 6px; }
+
+    /* CATEGORY HEAD */
+    .cat-head { padding: 24px 0 16px; border-bottom: 1px solid var(--line); margin-bottom: 20px; }
+    .cat-h1 { font-family: "Barlow Condensed", sans-serif; font-size: clamp(28px, 5vw, 44px); font-weight: 900; line-height: 1.05; margin-bottom: 6px; }
+    .cat-count { font-size: 14px; color: var(--muted); font-weight: 600; margin-bottom: 10px; }
+    .cat-intro { font-size: 15px; color: var(--muted); line-height: 1.7; max-width: 720px; }
+
+    /* CHILD LINKS (hub pages) */
+    .cat-children { margin-bottom: 20px; }
+    .cat-children-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--soft); margin-right: 10px; }
+    .cat-children a { display: inline-block; font-size: 13px; font-weight: 700; padding: 6px 14px; border-radius: 20px; border: 1px solid var(--line); background: rgba(255,255,255,0.03); color: var(--muted); margin: 4px 4px 4px 0; transition: 0.2s; }
+    .cat-children a:hover { color: var(--text); background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); }
+
+    /* LISTING GRID */
+    .cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; margin-bottom: 32px; }
+
+    /* LISTING CARD */
+    .cat-card { display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; }
+    .cat-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.35); }
+    .cat-card-img { aspect-ratio: 4/3; overflow: hidden; background: var(--panel-2); }
+    .cat-card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+    .cat-card:hover .cat-card-img img { transform: scale(1.04); }
+    .cat-card-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+    .cat-card-title { font-size: 15px; font-weight: 700; line-height: 1.3; color: var(--text); }
+    .cat-card-sub { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em; color: var(--soft); }
+    .cat-card-miles { font-size: 13px; color: var(--muted); }
+    .cat-card-price { font-family: "Barlow Condensed", sans-serif; font-size: 22px; font-weight: 900; color: #e2e8f0; margin-top: 4px; }
+
+    /* EMPTY STATE */
+    .cat-empty { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 48px 24px; text-align: center; color: var(--muted); font-size: 15px; line-height: 1.75; margin-bottom: 32px; }
+    .cat-empty a { color: #94a3b8; text-decoration: underline; }
+
+    /* SIBLING LINKS (leaf pages) */
+    .cat-siblings { margin-bottom: 20px; padding: 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
+    .cat-siblings-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--soft); margin-right: 10px; }
+    .cat-siblings a { display: inline-block; font-size: 13px; font-weight: 600; color: var(--muted); margin: 3px 8px 3px 0; transition: color 0.2s; }
+    .cat-siblings a:hover { color: var(--text); }
+
+    /* HUB NAV LINKS */
+    .cat-hublinks { margin-bottom: 32px; padding: 14px 0; border-top: 1px solid var(--line); }
+    .cat-hublinks a { display: inline-block; font-size: 13px; font-weight: 600; color: var(--muted); margin: 4px 12px 4px 0; transition: color 0.2s; }
+    .cat-hublinks a:hover { color: var(--text); }
+
+    /* FINANCE STRIP */
+    .cat-finance { background: linear-gradient(135deg, #1a2a1e, #111827); border: 1px solid rgba(54,89,67,0.4); border-radius: var(--radius); padding: 28px 28px; margin-bottom: 40px; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+    .cat-finance-copy h3 { font-family: "Barlow Condensed", sans-serif; font-size: 22px; font-weight: 900; margin-bottom: 6px; }
+    .cat-finance-copy p { font-size: 14px; color: var(--muted); line-height: 1.6; }
+    .cat-finance-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 28px; background: linear-gradient(135deg, #365943, #294434); color: #fff; font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; border-radius: 12px; white-space: nowrap; flex-shrink: 0; box-shadow: 0 4px 14px rgba(22,163,74,0.25); transition: 0.2s; }
+    .cat-finance-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(22,163,74,0.35); }
+
+    /* FOOTER */
+    .cat-footer { border-top: 1px solid var(--line); padding: 32px 0; text-align: center; color: var(--soft); font-size: 13px; line-height: 1.8; }
+    .cat-footer a { color: var(--muted); }
+    .cat-footer a:hover { color: var(--text); }
+
+    /* RESPONSIVE */
+    @media (max-width: 640px) {
+      .cat-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+      .cat-card-title { font-size: 13px; }
+      .cat-card-price { font-size: 18px; }
+      .cat-finance { flex-direction: column; text-align: center; }
+    }
+  </style>
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-X9LG1DZKDP"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-X9LG1DZKDP');
+  </script>
+  <!-- Meta Pixel Code -->
+  <script>
+  !function(f,b,e,v,n,t,s)
+  {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+  n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];
+  s.parentNode.insertBefore(t,s)}(window, document,'script',
+  'https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', '1710916626441974');
+  fbq('track', 'PageView');
+  </script>
+  <noscript><img height="1" width="1" style="display:none"
+  src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
+  /></noscript>
+  <!-- End Meta Pixel Code -->
+</head>
+<body>
+
+<header class="topbar">
+  <div class="container">
+    <nav class="nav">
+      <a class="brand" href="/">
+        <img src="/torque-logo.png" alt="Torque Hub" class="brand-logo" onerror="this.style.display='none'">
+        <div>
+          <div class="brand-title">Torque Hub</div>
+          <div class="brand-sub">Powered by Torque DMA</div>
+        </div>
+      </a>
+      <div class="nav-right">
+        <a href="/inventory.html" class="nav-back">← All Inventory</a>
+        <a href="/finance.html?src=cat_nav" class="nav-cta">Get Financing</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<div class="container">
+  <div class="breadcrumb">
+    <a href="/">Torque Hub</a>
+    <span>›</span>
+    <a href="/inventory.html">Inventory</a>
+    <span>›</span>
+    <span><!--CAT_BREADCRUMB--></span>
+  </div>
+
+  <div class="cat-head">
+    <h1 class="cat-h1"><!--CAT_H1--></h1>
+    <div class="cat-count"><!--CAT_COUNT--></div>
+    <!--CAT_INTRO-->
+  </div>
+
+  <!--CAT_CHILDREN-->
+
+  <!--CAT_GRID-->
+
+  <!--CAT_SIBLINGS-->
+
+  <!--CAT_HUBLINKS-->
+
+  <div class="cat-finance">
+    <div class="cat-finance-copy">
+      <h3>Financing Available on All Units</h3>
+      <p>Fast approvals &bull; All credit situations considered &bull; Business-use financing</p>
+    </div>
+    <a class="cat-finance-btn" href="/finance.html?src=cat_finance">Get Pre-Approved →</a>
+  </div>
+</div>
+
+<footer class="cat-footer">
+  <div class="container">
+    <p>
+      <a href="/">Torque Hub</a> &bull;
+      <a href="/inventory.html">All Inventory</a> &bull;
+      <a href="/finance.html">Financing</a> &bull;
+      <a href="/trucks-for-sale">Trucks</a> &bull;
+      <a href="/trailers-for-sale">Trailers</a> &bull;
+      <a href="/farm-equipment-for-sale">Farm Equipment</a> &bull;
+      <a href="/construction-equipment-for-sale">Construction</a> &bull;
+      <a href="/landscape-equipment-for-sale">Landscape</a>
+    </p>
+    <p style="margin-top:10px;">Powered by <a href="https://torquedma.com" target="_blank" rel="noopener">Torque DMA</a> &mdash; Tell &lsquo;em Torque sent ya.</p>
+  </div>
+</footer>
+
+</body>
+</html>

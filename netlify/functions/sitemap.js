@@ -57,6 +57,42 @@ const STATIC_URLS = [
   { loc: '/lender-partners.html',                             changefreq: 'monthly', priority: '0.7' },
 ];
 
+const CATEGORY_URLS = [
+  // Hubs
+  { loc: '/trucks-for-sale',                changefreq: 'daily', priority: '0.8' },
+  { loc: '/trailers-for-sale',              changefreq: 'daily', priority: '0.8' },
+  { loc: '/farm-equipment-for-sale',        changefreq: 'daily', priority: '0.8' },
+  { loc: '/construction-equipment-for-sale',changefreq: 'daily', priority: '0.8' },
+  { loc: '/landscape-equipment-for-sale',   changefreq: 'daily', priority: '0.8' },
+  // Truck leaves
+  { loc: '/box-trucks-for-sale',            changefreq: 'daily', priority: '0.8' },
+  { loc: '/semi-trucks-for-sale',           changefreq: 'daily', priority: '0.8' },
+  { loc: '/service-trucks-for-sale',        changefreq: 'daily', priority: '0.8' },
+  { loc: '/dump-trucks-for-sale',           changefreq: 'daily', priority: '0.8' },
+  { loc: '/cab-and-chassis-trucks-for-sale',changefreq: 'daily', priority: '0.8' },
+  { loc: '/flatbed-trucks-for-sale',        changefreq: 'daily', priority: '0.8' },
+  { loc: '/rollback-tow-trucks-for-sale',   changefreq: 'daily', priority: '0.8' },
+  { loc: '/cargo-vans-for-sale',            changefreq: 'daily', priority: '0.8' },
+  { loc: '/yard-spotters-for-sale',         changefreq: 'daily', priority: '0.8' },
+  { loc: '/car-carrier-trucks-for-sale',    changefreq: 'daily', priority: '0.8' },
+  // Trailer leaves
+  { loc: '/enclosed-trailers-for-sale',     changefreq: 'daily', priority: '0.8' },
+  { loc: '/car-hauler-trailers-for-sale',   changefreq: 'daily', priority: '0.8' },
+  { loc: '/utility-trailers-for-sale',      changefreq: 'daily', priority: '0.8' },
+  { loc: '/equipment-trailers-for-sale',    changefreq: 'daily', priority: '0.8' },
+  { loc: '/dump-trailers-for-sale',         changefreq: 'daily', priority: '0.8' },
+  { loc: '/gooseneck-trailers-for-sale',    changefreq: 'daily', priority: '0.8' },
+  // Farm leaves
+  { loc: '/tractors-for-sale',              changefreq: 'daily', priority: '0.8' },
+  { loc: '/rotary-cutters-for-sale',        changefreq: 'daily', priority: '0.8' },
+  // Landscape leaves
+  { loc: '/zero-turn-mowers-for-sale',      changefreq: 'daily', priority: '0.8' },
+  { loc: '/lawn-tractors-for-sale',         changefreq: 'daily', priority: '0.8' },
+  // Construction leaves
+  { loc: '/excavators-for-sale',            changefreq: 'daily', priority: '0.8' },
+  { loc: '/skid-steers-for-sale',           changefreq: 'daily', priority: '0.8' },
+];
+
 exports.handler = async () => {
   const feedPromises = DEALERS
     .filter(d => d.feedUrl)
@@ -100,6 +136,10 @@ exports.handler = async () => {
     .map(u => `  <url><loc>${BASE}${u.loc}</loc><changefreq>${u.changefreq}</changefreq><priority>${u.priority}</priority></url>`)
     .join('\n');
 
+  const categoryXml = CATEGORY_URLS
+    .map(u => `  <url><loc>${BASE}${u.loc}</loc><changefreq>${u.changefreq}</changefreq><priority>${u.priority}</priority></url>`)
+    .join('\n');
+
   const vdpXml = vdpUnits
     .map(({ stock, dealerKey }) =>
       `  <url><loc>${BASE}/vehicle.html?stock=${encodeURIComponent(stock)}</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>`
@@ -110,6 +150,7 @@ exports.handler = async () => {
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
     staticXml,
+    categoryXml,
     vdpXml,
     '</urlset>',
   ].join('\n');

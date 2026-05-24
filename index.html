@@ -735,6 +735,8 @@
     .cat-browser-seo { margin-top: 28px; font-size: 13px; color: #475569; line-height: 1.75; max-width: 760px; margin-left: auto; margin-right: auto; text-align: center; }
     @media (max-width: 900px) { .cat-tile-grid { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 480px) { .cat-tile-grid { grid-template-columns: 1fr; } }
+    .cat-tile { display: block; }
+    .cat-tile-desc { font-size: 13px; color: #64748b; line-height: 1.5; margin-top: 6px; }
     /* New hero — centered single column */
     .hero { padding: 48px 0 36px; }
     .hero-header { max-width: 720px; margin: 0 auto 28px; text-align: center; }
@@ -957,6 +959,35 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
       </div>
     </section>
 
+    <!-- SHOP BY CATEGORY — static <a> links, real crawlable hrefs -->
+    <section class="section" id="shop-by-category">
+      <div class="container">
+        <h2 class="section-title">Shop by Category</h2>
+        <div class="cat-tile-grid">
+          <a class="cat-tile" href="/trucks-for-sale">
+            <div class="cat-tile-name">Trucks</div>
+            <div class="cat-tile-desc">Box trucks, dump trucks, service trucks, semis &amp; more</div>
+          </a>
+          <a class="cat-tile" href="/trailers-for-sale">
+            <div class="cat-tile-name">Trailers</div>
+            <div class="cat-tile-desc">Enclosed, car hauler, utility, equipment &amp; dump trailers</div>
+          </a>
+          <a class="cat-tile" href="/construction-equipment-for-sale">
+            <div class="cat-tile-name">Construction Equipment</div>
+            <div class="cat-tile-desc">Excavators, skid steers, backhoes, dozers &amp; loaders</div>
+          </a>
+          <a class="cat-tile" href="/farm-equipment-for-sale">
+            <div class="cat-tile-name">Farm Equipment</div>
+            <div class="cat-tile-desc">Tractors, rotary cutters &amp; ag implements</div>
+          </a>
+          <a class="cat-tile" href="/landscape-equipment-for-sale">
+            <div class="cat-tile-name">Landscape Equipment</div>
+            <div class="cat-tile-desc">Zero-turn mowers, lawn tractors &amp; turf equipment</div>
+          </a>
+        </div>
+      </div>
+    </section>
+
     <!-- CATEGORY DISCOVERY -->
     <section class="cat-discovery">
       <div class="container">
@@ -1129,6 +1160,12 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
           <li><a href="/inventory.html">Browse Inventory</a></li>
           <li><a href="#dealers">Featured Dealers</a></li>
           <li><a href="/finance.html">Financing</a></li>
+          <li style="margin-top:14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#475569">Shop by Category</li>
+          <li><a href="/trucks-for-sale">Trucks</a></li>
+          <li><a href="/trailers-for-sale">Trailers</a></li>
+          <li><a href="/construction-equipment-for-sale">Construction Equipment</a></li>
+          <li><a href="/farm-equipment-for-sale">Farm Equipment</a></li>
+          <li><a href="/landscape-equipment-for-sale">Landscape Equipment</a></li>
         </ul>
       </div>
       <div>
