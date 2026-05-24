@@ -22,6 +22,51 @@ window.InventoryEngine = (function () {
   var SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4c2lra21xYXN5ZG9zbWJsem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTc1OTksImV4cCI6MjA5MDQ3MzU5OX0.JMEI7cx2tddmbvfqm_qxiIWp7f5Phuk5l0Y487DUSZg';
   var SB_HDRS = { 'apikey': SB_ANON, 'Authorization': 'Bearer ' + SB_ANON };
 
+  // Query-side buyer synonym layer.
+  // Deliberately separate from ingest aliases:
+  // ingest aliases normalize source/feed values into canonical storage;
+  // query synonyms expand buyer language into canonical search targets.
+  // Do not blindly merge these maps.
+  var QUERY_SYNONYMS = {
+    'refrigerated':          ['reefer trailer', 'refrigerated truck'],
+    'refrigerated trailer':  ['reefer trailer'],
+    'fridge trailer':        ['reefer trailer'],
+    'cold trailer':          ['reefer trailer'],
+    'freezer trailer':       ['reefer trailer'],
+    'semi':                  ['day cab tractor', 'sleeper tractor'],
+    'semi truck':            ['day cab tractor', 'sleeper tractor'],
+    '18 wheeler':            ['day cab tractor', 'sleeper tractor'],
+    'tractor trailer':       ['day cab tractor', 'sleeper tractor'],
+    'road tractor':          ['day cab tractor', 'sleeper tractor'],
+    'sxs':                   ['side by side'],
+    'side x side':           ['side by side'],
+    'utv':                   ['utility vehicle', 'side by side'],
+    'bobcat':                ['skid steer', 'compact track loader'],
+    'tracked skid steer':    ['compact track loader'],
+    'track skid steer':      ['compact track loader'],
+    'ctl':                   ['compact track loader'],
+    'track loader':          ['crawler loader'],
+    'dozer loader':          ['crawler loader'],
+    'wrecker':               ['tow truck', 'rollback tow truck'],
+    'roll back':             ['rollback tow truck'],
+    'cube truck':            ['box truck'],
+    'cube van':              ['box truck'],
+    'straight truck':        ['box truck'],
+    'mechanic truck':        ['service truck'],
+    'utility truck':         ['service truck'],
+    'service body':          ['service truck'],
+    'car carrier':           ['car carrier truck', 'car hauler trailer'],
+    'auto hauler':           ['car carrier truck', 'car hauler trailer'],
+    'vehicle hauler':        ['car carrier truck', 'car hauler trailer'],
+    'brush hog':             ['rotary cutter'],
+    'bush hog':              ['rotary cutter'],
+    'finish cut':            ['finish mower'],
+    'hay mower':             ['field mower'],
+    'disc mower':            ['field mower'],
+    'cargo trailer':         ['enclosed trailer'],
+    'enclosed cargo':        ['enclosed trailer']
+  };
+
   var CAT_SUBS = {
     'Trucks': [
       { label: 'Dump Trucks',     kw: 'dump',      slug: 'dump-trucks' },
@@ -139,13 +184,14 @@ window.InventoryEngine = (function () {
   // ── Filtering & sorting ────────────────────────────────────────────────────
   function applyFilters() {
     var fids  = _cfg.filterIds || {};
-    var q      = (_el(fids.search)    || { value: '' }).value.toLowerCase();
+    var q      = (_el(fids.search)    || { value: '' }).value.toLowerCase().trim();
     var dealer = (_el(fids.dealer)    || { value: '' }).value;
     var cond   = (_el(fids.condition) || { value: '' }).value;
     var sort   = (_el(fids.sort)      || { value: 'price-desc' }).value;
 
     var filtered = ALL_INV.filter(function(u) {
-      var matchQ   = !q      || (String(u.year||'') + ' ' + String(u.make||'') + ' ' + String(u.model||'') + ' ' + String(u.stock||'') + ' ' + String(u.dealer||'') + ' ' + String(u.trim||'') + ' ' + String(u.subcategory||'')).toLowerCase().includes(q);
+      var haystack = (String(u.year||'') + ' ' + String(u.make||'') + ' ' + String(u.model||'') + ' ' + String(u.stock||'') + ' ' + String(u.dealer||'') + ' ' + String(u.trim||'') + ' ' + String(u.subcategory||'')).toLowerCase();
+      var matchQ   = !q      || haystack.includes(q) || (QUERY_SYNONYMS[q] || []).some(function(t){ return haystack.includes(t); });
       var matchD   = !dealer || u.dealer === dealer || (u._dealer && u._dealer.key === dealer);
       var matchC   = !cond   || u.condition === cond;
       var matchCat = !currentCat || (currentCat === 'Other' ? !MAIN_CATS.includes(u.category || '') : (u.category || '').includes(currentCat));
