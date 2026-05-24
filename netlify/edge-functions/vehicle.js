@@ -12,7 +12,7 @@ const DEALERS = {
   'Davenport Motors':              { phone: '252-809-2172', address: '3711 Mackeys Rd\nPlymouth, NC 27962' },
   "Fat Daddy's Truck Sales":       { phone: '919-759-5434', address: '4337 Hwy 13 N\nGoldsboro, NC 27534' },
   'Wilson Trailer Sales & Service':{ phone: '252-429-8805', address: '1605 Thorne Ave S\nWilson, NC 27893' },
-  "HGR's Truck and Trailer":       { phone: '800-230-8920', address: '4519 Marracco Dr\nHope Mills, NC 28348' },
+  "HGR's Truck and Trailer":       { phone: '910-661-0868', address: '4519 Marracco Dr\nHope Mills, NC 28348' },
   'Auto Connection 210 LLC':       { phone: '910-490-2596', address: 'Angier, NC' },
   'Dick Smith Equipment':          { phone: '919-734-1191', address: 'Goldsboro, NC' },
   'Impex Heavy Metal':             { phone: '336-715-8704', address: 'Greensboro, NC' },
