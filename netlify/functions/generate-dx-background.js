@@ -27,21 +27,27 @@ exports.handler = async (event) => {
   const rawLimit = event.queryStringParameters?.limit;
   const limitAll = rawLimit === '0' || rawLimit === 'all';
   const limit = limitAll ? null : (parseInt(rawLimit, 10) || 5);
+  const stockParam = event.queryStringParameters?.stock || null;
+  const force = event.queryStringParameters?.force === '1';
 
-  // Fetch all non-sold, non-locked units with fields needed for generation
-  const { data: rows, error: fetchError } = await supabase
+  // Fetch non-sold, non-locked units; optionally narrow to a single stock number
+  let query = supabase
     .from('inventory')
     .select('stock, dealer, year, make, model, price, mileage, engine, transmission, drivetrain, fuel, vin, raw_description, description')
     .eq('sold', false)
     .eq('dx_locked', false);
+  if (stockParam) query = query.eq('stock', stockParam);
+  const { data: rows, error: fetchError } = await query;
 
   if (fetchError) {
     console.error('Fetch error:', fetchError.message);
     return { statusCode: 500, body: JSON.stringify({ error: fetchError.message }) };
   }
 
-  // Filter in JS: keep only units whose description does NOT contain "Key Details" (clean-format signal)
-  let candidates = (rows || []).filter(u => !(u.description || '').includes('Key Details'));
+  // Filter in JS: skip already-clean units unless ?force=1
+  let candidates = force
+    ? (rows || [])
+    : (rows || []).filter(u => !(u.description || '').includes('Key Details'));
   const total_candidates = candidates.length;
 
   // Apply limit
@@ -91,7 +97,7 @@ exports.handler = async (event) => {
     }
   }
 
-  const summary = { total_candidates, processed, skipped_no_contact, skipped_error, limit_applied: limit ?? 'none' };
+  const summary = { total_candidates, processed, skipped_no_contact, skipped_error, limit_applied: limit ?? 'none', stock_filter: stockParam, force };
   console.log('generate-dx-background complete:', JSON.stringify(summary));
   return { statusCode: 200, body: JSON.stringify(summary) };
 };
