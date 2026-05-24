@@ -1,5 +1,6 @@
 const { createClient } = require('@supabase/supabase-js');
 const { generateDescription } = require('./lib/generate-description');
+const { decodeVin } = require('./lib/vin-decode');
 
 const DEALER_CONTACT = {
   'Davenport Motors':              { name: 'Davenport Motors',              phone: '252-809-2172', location: 'Plymouth, NC' },
@@ -66,6 +67,28 @@ exports.handler = async (event) => {
     }
 
     try {
+      // vPIC enrichment (best-effort, fill-empty-only, never overwrite feed/dealer data)
+      let vinDecoded = false;
+      if (unit.vin) {
+        const vp = await decodeVin(unit.vin);
+        if (vp) {
+          vinDecoded = true;
+          // Fill empty existing fields only
+          if (!unit.engine && vp.engineManufacturer) {
+            unit.engine = [vp.engineManufacturer, vp.displacementL ? vp.displacementL + 'L' : null, vp.fuelTypePrimary].filter(Boolean).join(' ');
+          }
+          if (!unit.fuel && vp.fuelTypePrimary) unit.fuel = vp.fuelTypePrimary;
+          if (!unit.drivetrain && vp.driveType) unit.drivetrain = vp.driveType;
+          // Attach NEW vPIC-only fields for Key Details (drive type NOT here — handled via fill-empty above; no redundancy)
+          unit._vpic = {
+            gvwrClass:  vp.gvwrClass,
+            bodyClass:  vp.bodyClass,
+            horsepower: vp.horsepower,
+            torque:     vp.torque,
+          };
+        }
+      }
+
       const text = await generateDescription(unit, dealerContact, anthropicKey);
 
       if (!text || !text.trim()) {
@@ -79,7 +102,8 @@ exports.handler = async (event) => {
         .update({
           description: text,
           description_source: 'torque_hub_dx',
-          description_generated_at: new Date().toISOString()
+          description_generated_at: new Date().toISOString(),
+          ...(vinDecoded ? { vin_decoded_at: new Date().toISOString() } : {})
         })
         .eq('stock', unit.stock)
         .eq('sold', false);
