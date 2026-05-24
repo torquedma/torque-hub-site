@@ -9,6 +9,9 @@
 [functions."sync-truckpaper-background"]
   timeout = 300
 
+[functions."generate-dx-background"]
+  timeout = 900
+
 [[edge_functions]]
   path = "/vehicle.html"
   function = "vehicle"
