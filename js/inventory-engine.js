@@ -145,7 +145,7 @@ window.InventoryEngine = (function () {
     var sort   = (_el(fids.sort)      || { value: 'price-desc' }).value;
 
     var filtered = ALL_INV.filter(function(u) {
-      var matchQ   = !q      || (String(u.year||'') + ' ' + String(u.make||'') + ' ' + String(u.model||'') + ' ' + String(u.stock||'') + ' ' + String(u.dealer||'')).toLowerCase().includes(q);
+      var matchQ   = !q      || (String(u.year||'') + ' ' + String(u.make||'') + ' ' + String(u.model||'') + ' ' + String(u.stock||'') + ' ' + String(u.dealer||'') + ' ' + String(u.trim||'') + ' ' + String(u.subcategory||'')).toLowerCase().includes(q);
       var matchD   = !dealer || u.dealer === dealer || (u._dealer && u._dealer.key === dealer);
       var matchC   = !cond   || u.condition === cond;
       var matchCat = !currentCat || (currentCat === 'Other' ? !MAIN_CATS.includes(u.category || '') : (u.category || '').includes(currentCat));
