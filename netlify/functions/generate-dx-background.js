@@ -24,12 +24,14 @@ exports.handler = async (event) => {
 
   const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
-  // Parse limit: default 5 (safe test batch), 0 or 'all' = no limit
-  const rawLimit = event.queryStringParameters?.limit;
-  const limitAll = rawLimit === '0' || rawLimit === 'all';
+  // Parse limit: default 5 (safe test batch), 0 or 'all' = no limit, null qs = scheduled = unlimited
+  const qs = event.queryStringParameters;
+  const isAutomated = !qs;   // scheduled invocations pass null query params
+  const rawLimit = qs?.limit;
+  const limitAll = rawLimit === '0' || rawLimit === 'all' || isAutomated;
   const limit = limitAll ? null : (parseInt(rawLimit, 10) || 5);
-  const stockParam = event.queryStringParameters?.stock || null;
-  const force = event.queryStringParameters?.force === '1';
+  const stockParam = qs?.stock || null;
+  const force = qs?.force === '1';
 
   // Fetch non-sold, non-locked units; optionally narrow to a single stock number
   let query = supabase
