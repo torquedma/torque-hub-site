@@ -70,7 +70,11 @@ exports.handler = async (event) => {
 
       const { error: writeError } = await supabase
         .from('inventory')
-        .update({ description: text, description_source: 'torque_hub_dx' })
+        .update({
+          description: text,
+          description_source: 'torque_hub_dx',
+          description_generated_at: new Date().toISOString()
+        })
         .eq('stock', unit.stock)
         .eq('sold', false);
 
