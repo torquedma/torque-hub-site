@@ -118,7 +118,8 @@ window.InventoryEngine = (function () {
       { label: 'Rotary Cutters',   kw: 'rotary',          slug: 'rotary-cutters' },
       { label: 'Finish Mowers',    kw: 'finish',          slug: 'finish-mowers' },
       { label: 'Utility Vehicles', kw: 'utility vehicle', slug: 'utility-vehicles' },
-      { label: 'Harrows',          kw: 'harrow',          slug: 'harrows' }
+      { label: 'Harrows',          kw: 'harrow',          slug: 'harrows' },
+      { label: 'Disks',            kw: 'disk',            slug: 'disks' }
     ],
     'Landscape': [
       { label: 'Zero Turn Mowers',     kw: 'zero turn',     slug: 'zero-turn-mowers' },
