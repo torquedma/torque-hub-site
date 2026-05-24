@@ -64,7 +64,27 @@ window.InventoryEngine = (function () {
     'hay mower':             ['field mower'],
     'disc mower':            ['field mower'],
     'cargo trailer':         ['enclosed trailer'],
-    'enclosed cargo':        ['enclosed trailer']
+    'enclosed cargo':        ['enclosed trailer'],
+    'cutaway':               ['box truck'],
+    'skidsteer':             ['skid steer'],
+    'skid loader':           ['skid steer'],
+    'trackhoe':              ['excavator'],
+    'track hoe':             ['excavator'],
+    'mini excavator':        ['excavator'],
+    'mini ex':               ['excavator'],
+    'bulldozer':             ['crawler dozer'],
+    'road grader':           ['motor grader'],
+    'disc harrow':           ['harrow'],
+    'disk harrow':           ['harrow'],
+
+    // Use-case synonym: hotshot buyers may be looking for the truck/trailer pieces,
+    // not a single canonical unit type.
+    'hotshot':               ['pickup truck', 'flatbed truck', 'gooseneck trailer'],
+    'hot shot':              ['pickup truck', 'flatbed truck', 'gooseneck trailer'],
+
+    // Use-case synonym: generic "lawn mower" maps to all consumer mower types,
+    // since no single canonical subcategory contains that literal phrase.
+    'lawn mower':            ['zero turn mower', 'walk behind mower', 'lawn tractor']
   };
 
   var CAT_SUBS = {
