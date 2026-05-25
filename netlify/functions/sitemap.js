@@ -22,6 +22,7 @@ const DEALERS = [
   { key: "DeBary Truck Sales",            feedUrl: null },
   { key: "A F Sales & Service",           feedUrl: null },
   { key: "The Trailer Source",            feedUrl: null },
+  { key: "Allied Truck & Trailer Sales", feedUrl: null },
 ];
 
 const STATIC_URLS = [

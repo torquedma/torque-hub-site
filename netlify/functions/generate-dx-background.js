@@ -17,6 +17,7 @@ const DEALER_CONTACT = {
   'DeBary Truck Sales':            { name: 'DeBary Truck Sales',            phone: '(407) 993-2364', location: 'Sanford, FL' },
   'A F Sales & Service':           { name: 'A F Sales & Service',           phone: '(317) 449-8903', location: 'Indianapolis, IN' },
   'The Trailer Source':            { name: 'The Trailer Source',            phone: '336-850-8176',   location: 'Winston Salem, NC' },
+  'Allied Truck & Trailer Sales':  { name: 'Allied Truck & Trailer Sales',  phone: '336-388-6882',   location: 'Madison, NC' },
 };
 
 exports.handler = async (event) => {

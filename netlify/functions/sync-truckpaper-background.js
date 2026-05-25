@@ -81,6 +81,7 @@ const DEALER_PREFIXES = {
   'Impex Heavy Metal': 'MPX-',
   'Mid Atlantic Power & Equipment': 'MAP-',
   'The Trailer Source': 'TTS-',
+  'Allied Truck & Trailer Sales': 'ATT-',
 };
 
 function normalizeStockNumber(rawStock, dealerName) {
