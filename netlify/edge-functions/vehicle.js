@@ -24,6 +24,7 @@ const DEALERS = {
   'Johnson Farm Service':          { phone: '',             address: 'North Carolina' },
   'DeBary Truck Sales':            { phone: '(407) 993-2364', address: '3400 FL-46\nSanford, FL 32771' },
   'A F Sales & Service':           { phone: '(317) 449-8903', address: '7300 W. Washington St.\nIndianapolis, IN 46231' },
+  'The Trailer Source':            { phone: '336-850-8176',   address: '4060 Patterson Avenue\nWinston Salem, NC 27105' },
 };
 
 // ─── Escaping helpers ────────────────────────────────────────────────────────
