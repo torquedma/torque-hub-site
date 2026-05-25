@@ -23,6 +23,7 @@ const DEALERS = {
   'Suttontown Repair Service':     { phone: '',             address: 'North Carolina' },
   'Johnson Farm Service':          { phone: '',             address: 'North Carolina' },
   'DeBary Truck Sales':            { phone: '(407) 993-2364', address: '3400 FL-46\nSanford, FL 32771' },
+  'A F Sales & Service':           { phone: '(317) 449-8903', address: '7300 W. Washington St.\nIndianapolis, IN 46231' },
 };
 
 // ─── Escaping helpers ────────────────────────────────────────────────────────

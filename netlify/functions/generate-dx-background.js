@@ -15,6 +15,7 @@ const DEALER_CONTACT = {
   'Fannon Land & Auction Co.':     { name: 'Fannon Land & Auction Co.',     phone: '276-821-1194', location: 'Pennington Gap, VA' },
   'Mid Atlantic Power & Equipment':{ name: 'Mid Atlantic Power & Equipment',phone: '910-889-9201', location: 'Dunn, NC' },
   'DeBary Truck Sales':            { name: 'DeBary Truck Sales',            phone: '(407) 993-2364', location: 'Sanford, FL' },
+  'A F Sales & Service':           { name: 'A F Sales & Service',           phone: '(317) 449-8903', location: 'Indianapolis, IN' },
 };
 
 exports.handler = async (event) => {

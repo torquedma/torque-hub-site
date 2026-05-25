@@ -20,6 +20,7 @@ const DEALERS = [
   { key: "Fannon Land & Auction Co.",      feedUrl: null },
   { key: "Mid Atlantic Power & Equipment", feedUrl: null },
   { key: "DeBary Truck Sales",            feedUrl: null },
+  { key: "A F Sales & Service",           feedUrl: null },
 ];
 
 const STATIC_URLS = [
