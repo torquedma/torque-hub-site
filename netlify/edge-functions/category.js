@@ -250,6 +250,7 @@ const SUBCATEGORY_LEAVES = {
   'rollback-tow-trucks-for-sale':    { subs: ['Rollback Tow Truck'],            label: 'Rollback Tow Trucks',  hub: 'trucks-for-sale' },
   'cargo-vans-for-sale':             { subs: ['Cargo Van'],                     label: 'Cargo Vans',           hub: 'trucks-for-sale' },
   'yard-spotters-for-sale':          { subs: ['Yard Spotter'],                  label: 'Yard Spotters',        hub: 'trucks-for-sale' },
+  'boom-trucks-for-sale':            { subs: ['Boom Truck'],                    label: 'Boom Trucks',          hub: 'trucks-for-sale' },
   'car-carrier-trucks-for-sale':     { subs: ['Car Carrier Truck'],             label: 'Car Carrier Trucks',   hub: 'trucks-for-sale' },
   'enclosed-trailers-for-sale':      { subs: ['Enclosed Trailer'],              label: 'Enclosed Trailers',    hub: 'trailers-for-sale' },
   'car-hauler-trailers-for-sale':    { subs: ['Car Hauler Trailer'],            label: 'Car Hauler Trailers',  hub: 'trailers-for-sale' },

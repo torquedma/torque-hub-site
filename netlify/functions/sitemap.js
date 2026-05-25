@@ -78,6 +78,7 @@ const CATEGORY_URLS = [
   { loc: '/rollback-tow-trucks-for-sale',   changefreq: 'daily', priority: '0.8' },
   { loc: '/cargo-vans-for-sale',            changefreq: 'daily', priority: '0.8' },
   { loc: '/yard-spotters-for-sale',         changefreq: 'daily', priority: '0.8' },
+  { loc: '/boom-trucks-for-sale',           changefreq: 'daily', priority: '0.8' },
   { loc: '/car-carrier-trucks-for-sale',    changefreq: 'daily', priority: '0.8' },
   // Trailer leaves
   { loc: '/enclosed-trailers-for-sale',     changefreq: 'daily', priority: '0.8' },

@@ -98,7 +98,9 @@ window.InventoryEngine = (function () {
       { label: 'Box Trucks',      kw: 'box',        slug: 'box-trucks' },
       { label: 'Service Trucks',  kw: 'service',   slug: 'service-trucks' },
       { label: 'Semi Trucks',     kw: 'tractor',    slug: 'semi-trucks' },
-      { label: 'Flatbeds',        kw: 'flatbed',   slug: 'flatbed-trucks' }
+      { label: 'Flatbeds',        kw: 'flatbed',   slug: 'flatbed-trucks' },
+      { label: 'Yard Spotters',   kw: 'spotter',   slug: 'yard-spotters-for-sale' },
+      { label: 'Boom Trucks',     kw: 'boom',      slug: 'boom-trucks-for-sale' }
     ],
     'Trailers': [
       { label: 'Equipment Trailers', kw: 'equipment', slug: 'equipment-trailers' },
