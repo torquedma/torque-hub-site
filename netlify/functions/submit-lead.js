@@ -17,6 +17,8 @@ function getSourceLabel(source) {
     case 'torque_hub_hero':            return 'Finance Form (Hero)';
     case 'torque_hub_bottom':          return 'Finance Form (Bottom)';
     case 'torque_hub_mobile':          return 'Finance Form (Mobile)';
+    case 'vehiclenetwork':              return 'Finance Form (Vehicle Network)';
+    case 'autoconnection210':          return 'Finance Form (Auto Connection 210)';
     case 'vdp':                        return 'Vehicle Inquiry';
     case 'lender_partner_application': return 'Lender Partner Inquiry';
     case 'dealer_partner_application': return 'Dealer Partner Inquiry';
