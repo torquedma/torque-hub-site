@@ -37,7 +37,7 @@
   path = "/landscape-equipment-for-sale"
   function = "category"
 
-# Truck subcategories (10)
+# Truck subcategories (11)
 [[edge_functions]]
   path = "/box-trucks-for-sale"
   function = "category"
@@ -78,7 +78,35 @@
   path = "/car-carrier-trucks-for-sale"
   function = "category"
 
-# Trailer subcategories (6)
+[[edge_functions]]
+  path = "/boom-trucks-for-sale"
+  function = "category"
+
+# Trailer subcategories (12)
+[[edge_functions]]
+  path = "/reefer-trailers-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/dry-van-trailers-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/flatbed-trailers-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/conestoga-trailers-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/race-trailers-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/living-quarters-trailers-for-sale"
+  function = "category"
+
 [[edge_functions]]
   path = "/enclosed-trailers-for-sale"
   function = "category"
