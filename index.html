@@ -991,51 +991,65 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
     <!-- CATEGORY DISCOVERY -->
     <section class="cat-discovery">
       <div class="container">
+        <!--
+          Static crawler fallback for category discovery.
+          JS replaces this grid after inventory loads via renderCategoryDiscovery().
+          Keep this fallback in sync with CAT_SUBS in js/inventory-engine.js.
+          SSR-only: include only subcategories that have a real /{slug}-for-sale SSR route.
+        -->
         <div class="cat-discovery-grid" id="cat-discovery-grid">
           <div>
-            <div class="cat-col-head" onclick="filterByMainCat('Trucks')"><span>Commercial Trucks</span></div>
+            <div class="cat-col-head"><span>Commercial Trucks</span></div>
             <div class="cat-sub-list">
-              <a class="cat-sub-item has-count" href="/inventory.html?type=dump-trucks" onclick="event.preventDefault();filterByCatSub('Trucks','dump')"><span>Dump Trucks</span></a>
-              <a class="cat-sub-item has-count" href="/inventory.html?type=rollback-trucks" onclick="event.preventDefault();filterByCatSub('Trucks','rollback')"><span>Rollback Trucks</span></a>
-              <a class="cat-sub-item has-count" href="/inventory.html?type=box-trucks" onclick="event.preventDefault();filterByCatSub('Trucks','box')"><span>Box Trucks</span></a>
-              <a class="cat-sub-item has-count" href="/inventory.html?type=service-trucks" onclick="event.preventDefault();filterByCatSub('Trucks','service')"><span>Service Trucks</span></a>
-              <a class="cat-sub-item has-count" href="/inventory.html?type=semi-trucks" onclick="event.preventDefault();filterByCatSub('Trucks','semi')"><span>Semi Trucks</span></a>
-              <a class="cat-sub-item has-count" href="/inventory.html?type=flatbed-trucks" onclick="event.preventDefault();filterByCatSub('Trucks','flatbed')"><span>Flatbeds</span></a>
+              <a class="cat-sub-item" href="/box-trucks-for-sale"><span>Box Trucks</span></a>
+              <a class="cat-sub-item" href="/semi-trucks-for-sale"><span>Semi Trucks</span></a>
+              <a class="cat-sub-item" href="/dump-trucks-for-sale"><span>Dump Trucks</span></a>
+              <a class="cat-sub-item" href="/flatbed-trucks-for-sale"><span>Flatbed Trucks</span></a>
+              <a class="cat-sub-item" href="/service-trucks-for-sale"><span>Service Trucks</span></a>
+              <a class="cat-sub-item" href="/cab-and-chassis-trucks-for-sale"><span>Cab &amp; Chassis Trucks</span></a>
+              <a class="cat-sub-item" href="/rollback-tow-trucks-for-sale"><span>Rollback Tow Trucks</span></a>
+              <a class="cat-sub-item" href="/boom-trucks-for-sale"><span>Boom Trucks</span></a>
+              <a class="cat-sub-item" href="/yard-spotters-for-sale"><span>Yard Spotters</span></a>
+              <a class="cat-sub-item" href="/car-carrier-trucks-for-sale"><span>Car Carrier Trucks</span></a>
+              <a class="cat-sub-item" href="/cargo-vans-for-sale"><span>Cargo Vans</span></a>
             </div>
           </div>
           <div>
-            <div class="cat-col-head" onclick="filterByMainCat('Trailers')"><span>Trailers</span></div>
+            <div class="cat-col-head"><span>Trailers</span></div>
             <div class="cat-sub-list">
-              <a class="cat-sub-item has-count" href="/inventory.html?type=equipment-trailers" onclick="event.preventDefault();filterByCatSub('Trailers','equipment')"><span>Equipment Trailers</span></a>
-              <a class="cat-sub-item has-count" href="/inventory.html?type=dump-trailers" onclick="event.preventDefault();filterByCatSub('Trailers','dump')"><span>Dump Trailers</span></a>
-              <a class="cat-sub-item has-count" href="/inventory.html?type=enclosed-trailers" onclick="event.preventDefault();filterByCatSub('Trailers','enclosed')"><span>Enclosed Trailers</span></a>
-              <a class="cat-sub-item has-count" href="/inventory.html?type=gooseneck-trailers" onclick="event.preventDefault();filterByCatSub('Trailers','gooseneck')"><span>Gooseneck Trailers</span></a>
-              <a class="cat-sub-item has-count" href="/inventory.html?type=livestock-trailers" onclick="event.preventDefault();filterByCatSub('Trailers','livestock')"><span>Livestock Trailers</span></a>
-              <a class="cat-sub-item has-count" href="/inventory.html?type=car-racing-trailers" onclick="event.preventDefault();filterByCatSub('Trailers','car')"><span>Car / Racing Trailers</span></a>
-              <a class="cat-sub-item has-count" href="/inventory.html?type=reefer-trailers" onclick="event.preventDefault();filterByCatSub('Trailers','reefer')"><span>Reefer Trailers</span></a>
-              <a class="cat-sub-item has-count" href="/inventory.html?type=dry-van-trailers" onclick="event.preventDefault();filterByCatSub('Trailers','dry van')"><span>Dry Van Trailers</span></a>
-              <a class="cat-sub-item has-count" href="/inventory.html?type=flatbed-trailers" onclick="event.preventDefault();filterByCatSub('Trailers','flatbed')"><span>Flatbed Trailers</span></a>
-              <a class="cat-sub-item has-count" href="/inventory.html?type=conestoga-trailers" onclick="event.preventDefault();filterByCatSub('Trailers','conestoga')"><span>Conestoga Trailers</span></a>
+              <a class="cat-sub-item" href="/reefer-trailers-for-sale"><span>Reefer Trailers</span></a>
+              <a class="cat-sub-item" href="/dry-van-trailers-for-sale"><span>Dry Van Trailers</span></a>
+              <a class="cat-sub-item" href="/flatbed-trailers-for-sale"><span>Flatbed Trailers</span></a>
+              <a class="cat-sub-item" href="/conestoga-trailers-for-sale"><span>Conestoga Trailers</span></a>
+              <a class="cat-sub-item" href="/equipment-trailers-for-sale"><span>Equipment Trailers</span></a>
+              <a class="cat-sub-item" href="/dump-trailers-for-sale"><span>Dump Trailers</span></a>
+              <a class="cat-sub-item" href="/enclosed-trailers-for-sale"><span>Enclosed Trailers</span></a>
+              <a class="cat-sub-item" href="/car-hauler-trailers-for-sale"><span>Car Haulers</span></a>
+              <a class="cat-sub-item" href="/race-trailers-for-sale"><span>Race Trailers</span></a>
+              <a class="cat-sub-item" href="/living-quarters-trailers-for-sale"><span>Living Quarters Trailers</span></a>
+              <a class="cat-sub-item" href="/gooseneck-trailers-for-sale"><span>Gooseneck Trailers</span></a>
+              <a class="cat-sub-item" href="/utility-trailers-for-sale"><span>Utility Trailers</span></a>
             </div>
           </div>
           <div>
-            <div class="cat-col-head" onclick="filterByMainCat('Construction')"><span>Construction Equipment</span></div>
+            <div class="cat-col-head"><span>Construction Equipment</span></div>
             <div class="cat-sub-list">
-              <a class="cat-sub-item has-count" href="/inventory.html?type=skid-steers" onclick="event.preventDefault();filterByCatSub('Construction','skid')"><span>Skid Steers</span></a>
-              <a class="cat-sub-item has-count" href="/inventory.html?type=excavators" onclick="event.preventDefault();filterByCatSub('Construction','excavator')"><span>Excavators</span></a>
-              <a class="cat-sub-item has-count" href="/inventory.html?type=loaders" onclick="event.preventDefault();filterByCatSub('Construction','loader')"><span>Loaders</span></a>
-              <a class="cat-sub-item has-count" href="/inventory.html?type=forklifts" onclick="event.preventDefault();filterByCatSub('Construction','forklift')"><span>Forklifts</span></a>
-              <a class="cat-sub-item has-count" href="/inventory.html?type=backhoes" onclick="event.preventDefault();filterByCatSub('Construction','backhoe')"><span>Backhoes</span></a>
+              <a class="cat-sub-item" href="/skid-steers-for-sale"><span>Skid Steers</span></a>
+              <a class="cat-sub-item" href="/excavators-for-sale"><span>Excavators</span></a>
             </div>
           </div>
           <div>
-            <div class="cat-col-head" onclick="filterByMainCat('Farm')"><span>Farm Equipment</span></div>
+            <div class="cat-col-head"><span>Farm Equipment</span></div>
             <div class="cat-sub-list">
-              <a class="cat-sub-item has-count" href="/inventory.html?type=tractors" onclick="event.preventDefault();filterByCatSub('Farm','tractor')"><span>Tractors</span></a>
-              <a class="cat-sub-item has-count" href="/inventory.html?type=hay-equipment" onclick="event.preventDefault();filterByCatSub('Farm','hay')"><span>Hay Equipment</span></a>
-              <a class="cat-sub-item has-count" href="/inventory.html?type=mowers" onclick="event.preventDefault();filterByCatSub('Farm','mower')"><span>Mowers</span></a>
-              <a class="cat-sub-item has-count" href="/inventory.html?type=implements" onclick="event.preventDefault();filterByCatSub('Farm','implement')"><span>Implements</span></a>
-              <a class="cat-sub-item has-count" href="/inventory.html?type=spreaders" onclick="event.preventDefault();filterByCatSub('Farm','spreader')"><span>Spreaders</span></a>
+              <a class="cat-sub-item" href="/tractors-for-sale"><span>Tractors</span></a>
+              <a class="cat-sub-item" href="/rotary-cutters-for-sale"><span>Rotary Cutters</span></a>
+            </div>
+          </div>
+          <div>
+            <div class="cat-col-head"><span>Landscape Equipment</span></div>
+            <div class="cat-sub-list">
+              <a class="cat-sub-item" href="/zero-turn-mowers-for-sale"><span>Zero Turn Mowers</span></a>
+              <a class="cat-sub-item" href="/lawn-tractors-for-sale"><span>Lawn Tractors</span></a>
             </div>
           </div>
         </div>
