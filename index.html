@@ -1298,7 +1298,15 @@ function renderCategoryDiscovery() {
         }).length;
         var safecat = cat.replace(/'/g, "\\'");
         var safekw  = kw.replace(/'/g, "\\'");
-        return '<a class="cat-sub-item' + (count > 0 ? ' has-count' : '') + '" href="/inventory.html?type=' + slug + '" onclick="event.preventDefault();filterByCatSub(\'' + safecat + '\',\'' + safekw + '\')">' +
+        var href, onclickAttr;
+        if (s.ssr) {
+          href = '/' + slug;
+          onclickAttr = '';
+        } else {
+          href = '/inventory.html?type=' + slug;
+          onclickAttr = ' onclick="event.preventDefault();filterByCatSub(\'' + safecat + '\',\'' + safekw + '\')"';
+        }
+        return '<a class="cat-sub-item' + (count > 0 ? ' has-count' : '') + '" href="' + href + '"' + onclickAttr + '>' +
           '<span>' + label + '</span>' +
           (count > 0 ? '<span class="cat-sub-count">' + count + '</span>' : '') +
         '</a>';
