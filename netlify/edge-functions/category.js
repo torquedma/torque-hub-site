@@ -297,7 +297,7 @@ function buildCardGrid(units) {
   if (!units.length) return '';
   return units.map(u => {
     const photos = getPhotos(u);
-    const img = photos[0] || '/torque-logo.png';
+    const img = (photos[0] && (photos[0].url || photos[0].dataUrl)) || '/torque-logo.png';
     const title = [u.year, u.make, u.model].filter(Boolean).join(' ') || (u.subcategory || 'Unit');
     const price = formatPrice(u.price);
     const miles = (u.mileage != null && u.mileage !== '') ? (Number(String(u.mileage).replace(/[^0-9.]/g,'')).toLocaleString() + ' mi') : '';
