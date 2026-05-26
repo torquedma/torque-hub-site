@@ -111,7 +111,9 @@ window.InventoryEngine = (function () {
       { label: 'Reefer Trailers',     kw: 'reefer',     slug: 'reefer-trailers' },
       { label: 'Dry Van Trailers',    kw: 'dry van',    slug: 'dry-van-trailers' },
       { label: 'Flatbed Trailers',    kw: 'flatbed',    slug: 'flatbed-trailers' },
-      { label: 'Conestoga Trailers',  kw: 'conestoga',  slug: 'conestoga-trailers' }
+      { label: 'Conestoga Trailers',          kw: 'conestoga',       slug: 'conestoga-trailers' },
+      { label: 'Race Trailers',               kw: 'race trailer',    slug: 'race-trailers' },
+      { label: 'Living Quarters Trailers',    kw: 'living quarters', slug: 'living-quarters-trailers' }
     ],
     'Construction': [
       { label: 'Skid Steers', kw: 'skid',      slug: 'skid-steers' },
