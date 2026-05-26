@@ -120,6 +120,8 @@
     .chip { padding: 10px 14px; border-radius: 999px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: var(--muted); font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
     .chip:hover:not(.active) { background: rgba(255,255,255,0.06); color: #f1f5f9; }
     .chip.active { background: rgba(54,89,67,0.22); border-color: rgba(54,89,67,0.65); color: #86efac; }
+    .chip-clear { color: #64748b; border-color: rgba(255,255,255,0.06); letter-spacing: 0.04em; }
+    .chip-clear:hover { color: #f1f5f9; background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.14); }
 
     .inventory-grid {
       display: grid;
@@ -282,6 +284,7 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
           <div class="chip" onclick="setCat('Construction', this)">Construction</div>
           <div class="chip" onclick="setCat('Farm', this)">Farm</div>
           <div class="chip" onclick="setCat('Other', this)">Other</div>
+          <div class="chip chip-clear" onclick="clearFilters()">× Clear</div>
         </div>
 
         <div class="inventory-grid" id="inventory-grid"></div>
@@ -380,6 +383,15 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
     window.filterByCatSub = function(cat, sub) { InventoryEngine.filterByCatSub(cat, sub); };
     window.applyFilters   = function() { InventoryEngine.applyFilters(); };
     window.goToPage       = function(n) { InventoryEngine.goToPage(n); };
+    window.clearFilters   = function() {
+      document.getElementById('inv-search').value = '';
+      document.getElementById('dealer-filter').value = '';
+      document.getElementById('condition-filter').value = '';
+      document.getElementById('sort-filter').value = 'price-desc';
+      setCat('', document.querySelector('.chip-row .chip'));
+      history.replaceState(null, '', '/inventory.html');
+      InventoryEngine.applyFilters();
+    };
   </script>
 
 </body>
