@@ -103,17 +103,18 @@ window.InventoryEngine = (function () {
       { label: 'Boom Trucks',     kw: 'boom',      slug: 'boom-trucks-for-sale' }
     ],
     'Trailers': [
-      { label: 'Equipment Trailers', kw: 'equipment', slug: 'equipment-trailers' },
-      { label: 'Dump Trailers',      kw: 'dump',       slug: 'dump-trailers' },
-      { label: 'Enclosed Trailers',  kw: 'enclosed',   slug: 'enclosed-trailers' },
-      { label: 'Gooseneck Trailers',  kw: 'gooseneck',  slug: 'gooseneck-trailers' },
-      { label: 'Car Haulers',         kw: 'car',        slug: 'car-hauler-trailers' },
-      { label: 'Reefer Trailers',     kw: 'reefer',     slug: 'reefer-trailers' },
-      { label: 'Dry Van Trailers',    kw: 'dry van',    slug: 'dry-van-trailers' },
-      { label: 'Flatbed Trailers',    kw: 'flatbed',    slug: 'flatbed-trailers' },
-      { label: 'Conestoga Trailers',          kw: 'conestoga',       slug: 'conestoga-trailers' },
-      { label: 'Race Trailers',               kw: 'race trailer',    slug: 'race-trailers' },
-      { label: 'Living Quarters Trailers',    kw: 'living quarters', slug: 'living-quarters-trailers' }
+      { label: 'Reefer Trailers',          kw: 'reefer',          slug: 'reefer-trailers-for-sale' },
+      { label: 'Dry Van Trailers',         kw: 'dry van',         slug: 'dry-van-trailers-for-sale' },
+      { label: 'Flatbed Trailers',         kw: 'flatbed',         slug: 'flatbed-trailers-for-sale' },
+      { label: 'Conestoga Trailers',       kw: 'conestoga',       slug: 'conestoga-trailers-for-sale' },
+      { label: 'Equipment Trailers',       kw: 'equipment',       slug: 'equipment-trailers-for-sale' },
+      { label: 'Dump Trailers',            kw: 'dump',            slug: 'dump-trailers-for-sale' },
+      { label: 'Enclosed Trailers',        kw: 'enclosed',        slug: 'enclosed-trailers-for-sale' },
+      { label: 'Car Haulers',              kw: 'car',             slug: 'car-hauler-trailers-for-sale' },
+      { label: 'Race Trailers',            kw: 'race trailer',    slug: 'race-trailers-for-sale' },
+      { label: 'Living Quarters Trailers', kw: 'living quarters', slug: 'living-quarters-trailers-for-sale' },
+      { label: 'Gooseneck Trailers',       kw: 'gooseneck',       slug: 'gooseneck-trailers-for-sale' },
+      { label: 'Utility Trailers',         kw: 'utility',         slug: 'utility-trailers-for-sale' }
     ],
     'Construction': [
       { label: 'Skid Steers', kw: 'skid',      slug: 'skid-steers' },
@@ -128,7 +129,6 @@ window.InventoryEngine = (function () {
       { label: 'Balers',       kw: 'baler',     slug: 'balers' },
       { label: 'Field Mowers',    kw: 'field mower',     slug: 'field-mowers' },
       { label: 'Rotary Cutters',   kw: 'rotary',          slug: 'rotary-cutters' },
-      { label: 'Finish Mowers',    kw: 'finish',          slug: 'finish-mowers' },
       { label: 'Utility Vehicles', kw: 'utility vehicle', slug: 'utility-vehicles' },
       { label: 'Harrows',          kw: 'harrow',          slug: 'harrows' },
       { label: 'Disks',            kw: 'disk',            slug: 'disks' }
@@ -138,7 +138,8 @@ window.InventoryEngine = (function () {
       { label: 'Walk Behind Mowers',   kw: 'walk behind',   slug: 'walk-behind-mowers' },
       { label: 'Front Mounted Mowers', kw: 'front mounted', slug: 'front-mounted-mowers' },
       { label: 'Lawn Tractors',        kw: 'lawn tractor',  slug: 'lawn-tractors' },
-      { label: 'Turf & Grounds Care',  kw: 'turf',          slug: 'turf-grounds-care' }
+      { label: 'Turf & Grounds Care',  kw: 'turf',          slug: 'turf-grounds-care' },
+      { label: 'Finish Mowers',        kw: 'finish',        slug: 'finish-mowers' }
     ],
     'Other': []
   };
