@@ -43,6 +43,10 @@
   function = "category"
 
 [[edge_functions]]
+  path = "/refrigerated-trucks-for-sale"
+  function = "category"
+
+[[edge_functions]]
   path = "/semi-trucks-for-sale"
   function = "category"
 

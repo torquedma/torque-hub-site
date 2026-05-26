@@ -242,6 +242,7 @@ const CATEGORY_HUBS = {
 
 const SUBCATEGORY_LEAVES = {
   'box-trucks-for-sale':             { subs: ['Box Truck'],                     label: 'Box Trucks',           hub: 'trucks-for-sale' },
+  'refrigerated-trucks-for-sale':    { subs: ['Refrigerated Truck'],            label: 'Refrigerated Trucks',  hub: 'trucks-for-sale' },
   'semi-trucks-for-sale':            { subs: ['Day Cab Tractor','Sleeper Tractor'], label: 'Semi Trucks',          hub: 'trucks-for-sale' },
   'service-trucks-for-sale':         { subs: ['Service Truck'],                 label: 'Service Trucks',       hub: 'trucks-for-sale' },
   'dump-trucks-for-sale':            { subs: ['Dump Truck','Grain Dump Truck'], label: 'Dump Trucks',          hub: 'trucks-for-sale' },

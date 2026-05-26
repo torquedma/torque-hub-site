@@ -70,6 +70,7 @@ const CATEGORY_URLS = [
   { loc: '/landscape-equipment-for-sale',   changefreq: 'daily', priority: '0.8' },
   // Truck leaves
   { loc: '/box-trucks-for-sale',            changefreq: 'daily', priority: '0.8' },
+  { loc: '/refrigerated-trucks-for-sale',   changefreq: 'daily', priority: '0.8' },
   { loc: '/semi-trucks-for-sale',           changefreq: 'daily', priority: '0.8' },
   { loc: '/service-trucks-for-sale',        changefreq: 'daily', priority: '0.8' },
   { loc: '/dump-trucks-for-sale',           changefreq: 'daily', priority: '0.8' },

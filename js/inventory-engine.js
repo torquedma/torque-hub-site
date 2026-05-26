@@ -94,6 +94,7 @@ window.InventoryEngine = (function () {
   var CAT_SUBS = {
     'Trucks': [
       { label: 'Box Trucks', kw: 'box', slug: 'box-trucks-for-sale', ssr: true },
+      { label: 'Refrigerated Trucks', kw: 'refrigerated', slug: 'refrigerated-trucks-for-sale', ssr: true },
       { label: 'Semi Trucks', kw: 'tractor', slug: 'semi-trucks-for-sale', ssr: true },
       { label: 'Dump Trucks', kw: 'dump', slug: 'dump-trucks-for-sale', ssr: true },
       { label: 'Flatbed Trucks', kw: 'flatbed', slug: 'flatbed-trucks-for-sale', ssr: true },
