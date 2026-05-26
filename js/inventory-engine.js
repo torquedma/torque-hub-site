@@ -106,8 +106,12 @@ window.InventoryEngine = (function () {
       { label: 'Equipment Trailers', kw: 'equipment', slug: 'equipment-trailers' },
       { label: 'Dump Trailers',      kw: 'dump',       slug: 'dump-trailers' },
       { label: 'Enclosed Trailers',  kw: 'enclosed',   slug: 'enclosed-trailers' },
-      { label: 'Gooseneck Trailers', kw: 'gooseneck',  slug: 'gooseneck-trailers' },
-      { label: 'Car Haulers',        kw: 'car',        slug: 'car-hauler-trailers' }
+      { label: 'Gooseneck Trailers',  kw: 'gooseneck',  slug: 'gooseneck-trailers' },
+      { label: 'Car Haulers',         kw: 'car',        slug: 'car-hauler-trailers' },
+      { label: 'Reefer Trailers',     kw: 'reefer',     slug: 'reefer-trailers' },
+      { label: 'Dry Van Trailers',    kw: 'dry van',    slug: 'dry-van-trailers' },
+      { label: 'Flatbed Trailers',    kw: 'flatbed',    slug: 'flatbed-trailers' },
+      { label: 'Conestoga Trailers',  kw: 'conestoga',  slug: 'conestoga-trailers' }
     ],
     'Construction': [
       { label: 'Skid Steers', kw: 'skid',      slug: 'skid-steers' },
