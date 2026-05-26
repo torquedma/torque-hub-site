@@ -1057,7 +1057,7 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
           <div>
             <h2 class="section-title">Featured Inventory</h2>
           </div>
-          <a class="btn btn-secondary" href="/inventory.html" onclick="var d=document.getElementById('dealer-filter');if(d&amp;&amp;d.value){this.href='/inventory.html?dealer='+encodeURIComponent(d.value);}">View All</a>
+          <a class="btn btn-secondary" href="/inventory.html" onclick="event.preventDefault();window.location.href=buildInventoryURL();">View All</a>
         </div>
 
         <p id="inv-blurb" style="margin-bottom:16px;color:#64748b;font-size:14px;line-height:1.65;">Browse work trucks, trailers, construction equipment, and farm equipment from real dealers across the Southeast.</p>
@@ -1096,7 +1096,7 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
         </div>
         <div id="inventory-grid-footer" style="margin-top:24px;text-align:center;display:none">
           <p id="inv-footer-count" style="color:#64748b;font-size:14px;margin-bottom:12px"></p>
-          <a id="inv-footer-link" class="btn btn-secondary" href="/inventory.html">View all inventory →</a>
+          <a id="inv-footer-link" class="btn btn-secondary" href="/inventory.html" onclick="event.preventDefault();window.location.href=buildInventoryURL();">View all inventory →</a>
         </div>
       </div>
     </section>
@@ -1206,6 +1206,23 @@ function setCat(cat, el)          { InventoryEngine.setCat(cat, el); }
 function filterByCatSub(cat, sub) { InventoryEngine.filterByCatSub(cat, sub); }
 function filterByMainCat(cat)     { InventoryEngine.filterByMainCat(cat); }
 function heroSearch()             { InventoryEngine.heroSearch(); }
+
+function buildInventoryURL() {
+  var p = new URLSearchParams();
+  var q         = (document.getElementById('inv-search')       || {}).value || '';
+  var dealer    = (document.getElementById('dealer-filter')    || {}).value || '';
+  var condition = (document.getElementById('condition-filter') || {}).value || '';
+  var sort      = (document.getElementById('sort-filter')      || {}).value || '';
+  var activeChip = document.querySelector('.chip.active');
+  var cat = activeChip && activeChip.textContent.trim() !== 'All' ? activeChip.textContent.trim() : '';
+  if (q)                           p.set('q', q);
+  if (dealer)                      p.set('dealer', dealer);
+  if (condition)                   p.set('condition', condition);
+  if (sort && sort !== 'price-desc') p.set('sort', sort);
+  if (cat)                         p.set('cat', cat);
+  var qs = p.toString();
+  return qs ? '/inventory.html?' + qs : '/inventory.html';
+}
 
 function initDealerFilter() {
   var sel = document.getElementById('dealer-filter');
