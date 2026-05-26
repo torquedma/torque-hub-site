@@ -358,15 +358,20 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
     var cat    = params.get('cat');
     var sub    = params.get('sub') || params.get('type');
     var dealer = params.get('dealer');
+    var q         = params.get('q');
+    var condition = params.get('condition');
+    var sort      = params.get('sort');
 
     initDealerFilter();
 
     InventoryEngine.loadAll().then(function() {
+      if (q)         document.getElementById('inv-search').value = q;
+      if (condition) document.getElementById('condition-filter').value = condition;
+      if (sort)      document.getElementById('sort-filter').value = sort;
+      if (dealer)    document.getElementById('dealer-filter').value = dealer;
       if (cat || sub) {
         InventoryEngine.filterByCatSub(cat || '', sub || '');
-      }
-      if (dealer) {
-        document.getElementById('dealer-filter').value = dealer;
+      } else if (q || condition || sort || dealer) {
         InventoryEngine.applyFilters();
       }
     });
