@@ -351,14 +351,14 @@ export default async function handler(request) {
     let query;
     if (isHub) {
       query = SUPABASE_URL + '/rest/v1/inventory?category=eq.' + encodeURIComponent(hub.category) +
-        '&sold=eq.false&order=created_at.desc&limit=48&select=stock,year,make,model,price,mileage,subcategory,photos';
+        '&sold=eq.false&order=created_at.desc&limit=250&select=stock,year,make,model,price,mileage,subcategory,photos';
     } else {
       // Variant B encoding: encodeURIComponent each value, join with literal commas, no quotes.
       // SAFE because no subcategory value contains a comma. If a comma-containing value is ever
       // added, switch to quoted form ("val1","val2").
       const inList = leaf.subs.map(s => encodeURIComponent(s)).join(',');
       query = SUPABASE_URL + '/rest/v1/inventory?subcategory=in.(' + inList + ')' +
-        '&sold=eq.false&order=created_at.desc&limit=48&select=stock,year,make,model,price,mileage,subcategory,photos';
+        '&sold=eq.false&order=created_at.desc&limit=250&select=stock,year,make,model,price,mileage,subcategory,photos';
     }
 
     const invRes = await fetch(query, { headers: SB_HEADERS }).catch(() => null);
@@ -390,7 +390,7 @@ export default async function handler(request) {
       'name': h1Text, 'description': descText, 'url': canonical,
       'mainEntity': {
         '@type': 'ItemList', 'numberOfItems': count,
-        'itemListElement': units.slice(0, 48).map((u, i) => ({
+        'itemListElement': units.slice(0, 250).map((u, i) => ({
           '@type': 'ListItem', 'position': i + 1,
           'url': BASE + '/vehicle.html?stock=' + encodeURIComponent(u.stock),
           'name': [u.year, u.make, u.model].filter(Boolean).join(' ') || (u.subcategory || 'Unit'),
