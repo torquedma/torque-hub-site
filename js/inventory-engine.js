@@ -93,53 +93,56 @@ window.InventoryEngine = (function () {
 
   var CAT_SUBS = {
     'Trucks': [
-      { label: 'Dump Trucks',     kw: 'dump',      slug: 'dump-trucks' },
-      { label: 'Rollback Trucks', kw: 'rollback',  slug: 'rollback-trucks' },
-      { label: 'Box Trucks',      kw: 'box',        slug: 'box-trucks' },
-      { label: 'Service Trucks',  kw: 'service',   slug: 'service-trucks' },
-      { label: 'Semi Trucks',     kw: 'tractor',    slug: 'semi-trucks' },
-      { label: 'Flatbeds',        kw: 'flatbed',   slug: 'flatbed-trucks' },
-      { label: 'Yard Spotters',   kw: 'spotter',   slug: 'yard-spotters-for-sale' },
-      { label: 'Boom Trucks',     kw: 'boom',      slug: 'boom-trucks-for-sale' }
+      { label: 'Box Trucks', kw: 'box', slug: 'box-trucks-for-sale', ssr: true },
+      { label: 'Semi Trucks', kw: 'tractor', slug: 'semi-trucks-for-sale', ssr: true },
+      { label: 'Dump Trucks', kw: 'dump', slug: 'dump-trucks-for-sale', ssr: true },
+      { label: 'Flatbed Trucks', kw: 'flatbed', slug: 'flatbed-trucks-for-sale', ssr: true },
+      { label: 'Service Trucks', kw: 'service', slug: 'service-trucks-for-sale', ssr: true },
+      { label: 'Cab & Chassis Trucks', kw: 'chassis', slug: 'cab-and-chassis-trucks-for-sale', ssr: true },
+      { label: 'Rollback Tow Trucks', kw: 'rollback', slug: 'rollback-tow-trucks-for-sale', ssr: true },
+      { label: 'Boom Trucks', kw: 'boom', slug: 'boom-trucks-for-sale', ssr: true },
+      { label: 'Yard Spotters', kw: 'spotter', slug: 'yard-spotters-for-sale', ssr: true },
+      { label: 'Car Carrier Trucks', kw: 'car carrier', slug: 'car-carrier-trucks-for-sale', ssr: true },
+      { label: 'Cargo Vans', kw: 'cargo van', slug: 'cargo-vans-for-sale', ssr: true }
     ],
     'Trailers': [
-      { label: 'Reefer Trailers',          kw: 'reefer',          slug: 'reefer-trailers-for-sale' },
-      { label: 'Dry Van Trailers',         kw: 'dry van',         slug: 'dry-van-trailers-for-sale' },
-      { label: 'Flatbed Trailers',         kw: 'flatbed',         slug: 'flatbed-trailers-for-sale' },
-      { label: 'Conestoga Trailers',       kw: 'conestoga',       slug: 'conestoga-trailers-for-sale' },
-      { label: 'Equipment Trailers',       kw: 'equipment',       slug: 'equipment-trailers-for-sale' },
-      { label: 'Dump Trailers',            kw: 'dump',            slug: 'dump-trailers-for-sale' },
-      { label: 'Enclosed Trailers',        kw: 'enclosed',        slug: 'enclosed-trailers-for-sale' },
-      { label: 'Car Haulers',              kw: 'car',             slug: 'car-hauler-trailers-for-sale' },
-      { label: 'Race Trailers',            kw: 'race trailer',    slug: 'race-trailers-for-sale' },
-      { label: 'Living Quarters Trailers', kw: 'living quarters', slug: 'living-quarters-trailers-for-sale' },
-      { label: 'Gooseneck Trailers',       kw: 'gooseneck',       slug: 'gooseneck-trailers-for-sale' },
-      { label: 'Utility Trailers',         kw: 'utility',         slug: 'utility-trailers-for-sale' }
+      { label: 'Reefer Trailers', kw: 'reefer', slug: 'reefer-trailers-for-sale', ssr: true },
+      { label: 'Dry Van Trailers', kw: 'dry van', slug: 'dry-van-trailers-for-sale', ssr: true },
+      { label: 'Flatbed Trailers', kw: 'flatbed', slug: 'flatbed-trailers-for-sale', ssr: true },
+      { label: 'Conestoga Trailers', kw: 'conestoga', slug: 'conestoga-trailers-for-sale', ssr: true },
+      { label: 'Equipment Trailers', kw: 'equipment', slug: 'equipment-trailers-for-sale', ssr: true },
+      { label: 'Dump Trailers', kw: 'dump', slug: 'dump-trailers-for-sale', ssr: true },
+      { label: 'Enclosed Trailers', kw: 'enclosed', slug: 'enclosed-trailers-for-sale', ssr: true },
+      { label: 'Car Haulers', kw: 'car', slug: 'car-hauler-trailers-for-sale', ssr: true },
+      { label: 'Race Trailers', kw: 'race trailer', slug: 'race-trailers-for-sale', ssr: true },
+      { label: 'Living Quarters Trailers', kw: 'living quarters', slug: 'living-quarters-trailers-for-sale', ssr: true },
+      { label: 'Gooseneck Trailers', kw: 'gooseneck', slug: 'gooseneck-trailers-for-sale', ssr: true },
+      { label: 'Utility Trailers', kw: 'utility', slug: 'utility-trailers-for-sale', ssr: true }
     ],
     'Construction': [
-      { label: 'Skid Steers', kw: 'skid',      slug: 'skid-steers' },
-      { label: 'Excavators',  kw: 'excavator', slug: 'excavators' },
-      { label: 'Loaders',     kw: 'loader',    slug: 'loaders' },
-      { label: 'Forklifts',   kw: 'forklift',  slug: 'forklifts' },
-      { label: 'Backhoes',    kw: 'backhoe',   slug: 'backhoes' }
+      { label: 'Skid Steers', kw: 'skid', slug: 'skid-steers-for-sale', ssr: true },
+      { label: 'Excavators', kw: 'excavator', slug: 'excavators-for-sale', ssr: true },
+      { label: 'Loaders', kw: 'loader', slug: 'loaders' },
+      { label: 'Forklifts', kw: 'forklift', slug: 'forklifts' },
+      { label: 'Backhoes', kw: 'backhoe', slug: 'backhoes' }
     ],
     'Farm': [
-      { label: 'Tractors',     kw: 'tractor',   slug: 'tractors' },
-      { label: 'Hay Rakes',    kw: 'hay rake',  slug: 'hay-rakes' },
-      { label: 'Balers',       kw: 'baler',     slug: 'balers' },
-      { label: 'Field Mowers',    kw: 'field mower',     slug: 'field-mowers' },
-      { label: 'Rotary Cutters',   kw: 'rotary',          slug: 'rotary-cutters' },
+      { label: 'Tractors', kw: 'tractor', slug: 'tractors-for-sale', ssr: true },
+      { label: 'Rotary Cutters', kw: 'rotary', slug: 'rotary-cutters-for-sale', ssr: true },
+      { label: 'Hay Rakes', kw: 'hay rake', slug: 'hay-rakes' },
+      { label: 'Balers', kw: 'baler', slug: 'balers' },
+      { label: 'Field Mowers', kw: 'field mower', slug: 'field-mowers' },
       { label: 'Utility Vehicles', kw: 'utility vehicle', slug: 'utility-vehicles' },
-      { label: 'Harrows',          kw: 'harrow',          slug: 'harrows' },
-      { label: 'Disks',            kw: 'disk',            slug: 'disks' }
+      { label: 'Harrows', kw: 'harrow', slug: 'harrows' },
+      { label: 'Disks', kw: 'disk', slug: 'disks' }
     ],
     'Landscape': [
-      { label: 'Zero Turn Mowers',     kw: 'zero turn',     slug: 'zero-turn-mowers' },
-      { label: 'Walk Behind Mowers',   kw: 'walk behind',   slug: 'walk-behind-mowers' },
+      { label: 'Zero Turn Mowers', kw: 'zero turn', slug: 'zero-turn-mowers-for-sale', ssr: true },
+      { label: 'Lawn Tractors', kw: 'lawn tractor', slug: 'lawn-tractors-for-sale', ssr: true },
+      { label: 'Walk Behind Mowers', kw: 'walk behind', slug: 'walk-behind-mowers' },
       { label: 'Front Mounted Mowers', kw: 'front mounted', slug: 'front-mounted-mowers' },
-      { label: 'Lawn Tractors',        kw: 'lawn tractor',  slug: 'lawn-tractors' },
-      { label: 'Turf & Grounds Care',  kw: 'turf',          slug: 'turf-grounds-care' },
-      { label: 'Finish Mowers',        kw: 'finish',        slug: 'finish-mowers' }
+      { label: 'Turf & Grounds Care', kw: 'turf', slug: 'turf-grounds-care' },
+      { label: 'Finish Mowers', kw: 'finish', slug: 'finish-mowers' }
     ],
     'Other': []
   };
