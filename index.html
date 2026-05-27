@@ -1246,24 +1246,75 @@ function initDealerFilter() {
   });
 }
 
+var _dealerRotator = { timer: null, paused: false, pageSize: 9, fadeMs: 500 };
+
+function _dealerCardHTML(d) {
+  var count = InventoryEngine.ALL_INV.filter(function(u) {
+    return (u._dealer && u._dealer.key === d.key) || u.dealer === d.key;
+  }).length;
+  return '<article class="card dealer-card">' +
+    '<h3>' + d.name + '</h3>' +
+    '<p>' + d.desc + '</p>' +
+    '<div class="dealer-meta">' +
+      '<div>' + d.location + '</div>' +
+      '<div>' + d.phone + '</div>' +
+      '<div style="color:#cbd5e1;font-weight:700">' + count + ' units available</div>' +
+    '</div>' +
+    '<a class="btn btn-primary" href="/inventory.html?dealer=' + encodeURIComponent(d.key) + '">View Inventory</a>' +
+  '</article>';
+}
+
+function _shuffle(arr) {
+  var a = arr.slice();
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+
+function _paintDealerSet(grid, dealers) {
+  grid.innerHTML = dealers.slice(0, _dealerRotator.pageSize).map(_dealerCardHTML).join('');
+}
+
 function renderDealers() {
   var grid = document.getElementById('dealer-grid');
   if (!grid) return;
-  grid.innerHTML = InventoryEngine.DEALERS.map(function(d) {
-    var count = InventoryEngine.ALL_INV.filter(function(u) {
-      return (u._dealer && u._dealer.key === d.key) || u.dealer === d.key;
-    }).length;
-    return '<article class="card dealer-card">' +
-      '<h3>' + d.name + '</h3>' +
-      '<p>' + d.desc + '</p>' +
-      '<div class="dealer-meta">' +
-        '<div>' + d.location + '</div>' +
-        '<div>' + d.phone + '</div>' +
-        '<div style="color:#cbd5e1;font-weight:700">' + count + ' units available</div>' +
-      '</div>' +
-      '<a class="btn btn-primary" href="/inventory.html?dealer=' + encodeURIComponent(d.key) + '">View Inventory</a>' +
-    '</article>';
-  }).join('');
+
+  var all = InventoryEngine.DEALERS || [];
+  if (all.length <= _dealerRotator.pageSize) {
+    _paintDealerSet(grid, all);
+    return;
+  }
+
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Initial paint
+  var current = _shuffle(all);
+  _paintDealerSet(grid, current);
+
+  if (reduceMotion) return; // static set, no rotation
+
+  // Fade transition setup
+  grid.style.transition = 'opacity ' + _dealerRotator.fadeMs + 'ms ease';
+  grid.style.opacity = '1';
+
+  function cycle() {
+    if (_dealerRotator.paused) return;
+    grid.style.opacity = '0';
+    setTimeout(function () {
+      current = _shuffle(all);
+      _paintDealerSet(grid, current);
+      grid.style.opacity = '1';
+    }, _dealerRotator.fadeMs);
+  }
+
+  if (_dealerRotator.timer) clearInterval(_dealerRotator.timer);
+  _dealerRotator.timer = setInterval(cycle, 8000);
+
+  // Pause on hover, resume on leave
+  grid.addEventListener('mouseenter', function () { _dealerRotator.paused = true; });
+  grid.addEventListener('mouseleave', function () { _dealerRotator.paused = false; });
 }
 
 function renderCategoryDiscovery() {
