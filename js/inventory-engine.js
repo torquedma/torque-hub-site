@@ -242,6 +242,8 @@ window.InventoryEngine = (function () {
     else if (sort === 'price-desc')   filtered.sort(function(a, b) { return pp(b.price) - pp(a.price); });
     else if (sort === 'year-desc')    filtered.sort(function(a, b) { return (parseInt(b.year) || 0) - (parseInt(a.year) || 0); });
     else if (sort === 'year-asc')     filtered.sort(function(a, b) { return (parseInt(a.year) || 0) - (parseInt(b.year) || 0); });
+    else if (sort === 'make-asc')     filtered.sort(function(a, b) { return (a.make || '').localeCompare(b.make || '') || (a.model || '').localeCompare(b.model || '') || (parseInt(b.year) || 0) - (parseInt(a.year) || 0); });
+    else if (sort === 'make-desc')    filtered.sort(function(a, b) { return (b.make || '').localeCompare(a.make || '') || (a.model || '').localeCompare(b.model || '') || (parseInt(b.year) || 0) - (parseInt(a.year) || 0); });
 
     renderInventory(filtered);
   }
