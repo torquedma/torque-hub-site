@@ -2,6 +2,11 @@ window.InventoryEngine = (function () {
 
   // ── Constants ──────────────────────────────────────────────────────────────
   var PAGE_SIZE = 12;
+  var PAGE_SIZE_INF   = 24;
+  var AUTO_LOAD_LIMIT = 3;
+  var visibleCount    = PAGE_SIZE_INF;
+  var autoLoads       = 0;
+  var _ioSentinel     = null;
   var MAIN_CATS = ['Trucks', 'Trailers', 'Construction', 'Farm', 'Landscape'];
 
   var DEALERS = [
@@ -279,7 +284,7 @@ window.InventoryEngine = (function () {
     currentPage  = Math.min(currentPage, pages || 1);
     var slice    = featured
       ? items.slice(0, PAGE_SIZE)
-      : items.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+      : items.slice(0, visibleCount);
 
     if (!slice.length) {
       grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#64748b">No listings found. Try adjusting your filters.</div>';
@@ -350,11 +355,32 @@ window.InventoryEngine = (function () {
       }
     }
 
-    if (pg && !featured) {
-      if (pages <= 1) { pg.innerHTML = ''; return; }
-      pg.innerHTML = Array.from({ length: pages }, function(_, i) {
-        return '<button onclick="InventoryEngine.goToPage(' + (i + 1) + ')" style="padding:9px 16px;border-radius:9px;border:1px solid rgba(255,255,255,0.08);background:' + (i + 1 === currentPage ? '#334155' : 'rgba(255,255,255,0.05)') + ';color:#f8fafc;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">' + (i + 1) + '</button>';
-      }).join('');
+    if (!featured) {
+      var loadMoreWrap = document.getElementById('inv-load-more-wrap');
+      var sentinel     = document.getElementById('inv-sentinel');
+
+      if (visibleCount >= total) {
+        if (loadMoreWrap) loadMoreWrap.innerHTML = '';
+        if (sentinel) sentinel.style.display = 'none';
+        if (_ioSentinel) { _ioSentinel.disconnect(); _ioSentinel = null; }
+        if (pg) pg.innerHTML = '';
+        return;
+      }
+
+      if (autoLoads < AUTO_LOAD_LIMIT) {
+        if (loadMoreWrap) loadMoreWrap.innerHTML = '';
+        if (sentinel) {
+          sentinel.style.display = 'block';
+          _setupSentinel();
+        }
+      } else {
+        if (sentinel) sentinel.style.display = 'none';
+        if (_ioSentinel) { _ioSentinel.disconnect(); _ioSentinel = null; }
+        if (loadMoreWrap) {
+          loadMoreWrap.innerHTML = '<button id="inv-load-more-btn" type="button" onclick="InventoryEngine.loadMore()" style="padding:12px 22px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:#1e293b;color:#f8fafc;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">Load More</button>';
+        }
+      }
+      if (pg) pg.innerHTML = '';
     }
   }
 
@@ -364,8 +390,32 @@ window.InventoryEngine = (function () {
     if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  function goToPage(n) {
-    currentPage = n;
+  function _setupSentinel() {
+    var sentinel = document.getElementById('inv-sentinel');
+    if (!sentinel) return;
+    if (_ioSentinel) { _ioSentinel.disconnect(); _ioSentinel = null; }
+    if (!('IntersectionObserver' in window)) return;
+    _ioSentinel = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting && autoLoads < AUTO_LOAD_LIMIT) {
+          autoLoads++;
+          visibleCount += PAGE_SIZE_INF;
+          applyFilters();
+        }
+      });
+    }, { rootMargin: '600px 0px' });
+    _ioSentinel.observe(sentinel);
+  }
+
+  function loadMore() {
+    autoLoads    = 0;
+    visibleCount += PAGE_SIZE_INF;
+    applyFilters();
+  }
+
+  function goToPage(_n) {
+    // Legacy shim — pagination replaced by hybrid infinite scroll. Kept as no-op for compatibility.
+    return;
     applyFilters();
     _scrollToTarget();
   }
@@ -374,6 +424,8 @@ window.InventoryEngine = (function () {
     currentCat  = cat;
     currentSub  = '';
     currentPage = 1;
+    visibleCount = PAGE_SIZE_INF;
+    autoLoads = 0;
     document.querySelectorAll('.chip').forEach(function(c) { c.classList.remove('active'); });
     if (el) el.classList.add('active');
     applyFilters();
@@ -383,6 +435,8 @@ window.InventoryEngine = (function () {
     currentCat  = cat;
     currentSub  = '';
     currentPage = 1;
+    visibleCount = PAGE_SIZE_INF;
+    autoLoads = 0;
     document.querySelectorAll('.chip').forEach(function(c) { c.classList.remove('active'); });
     var chip = Array.from(document.querySelectorAll('.chip')).find(function(c) { return c.textContent.trim() === cat; });
     if (chip) chip.classList.add('active');
@@ -394,6 +448,8 @@ window.InventoryEngine = (function () {
     currentCat  = cat;
     currentSub  = sub;
     currentPage = 1;
+    visibleCount = PAGE_SIZE_INF;
+    autoLoads = 0;
     document.querySelectorAll('.chip').forEach(function(c) { c.classList.remove('active'); });
     var chip = Array.from(document.querySelectorAll('.chip')).find(function(c) { return c.textContent.trim() === cat; });
     if (chip) chip.classList.add('active');
@@ -421,6 +477,8 @@ window.InventoryEngine = (function () {
       if (allChip) allChip.classList.add('active');
     }
     currentPage = 1;
+    visibleCount = PAGE_SIZE_INF;
+    autoLoads = 0;
     applyFilters();
     _scrollToTarget();
   }
@@ -435,6 +493,7 @@ window.InventoryEngine = (function () {
     loadAll:        loadAll,
     applyFilters:   applyFilters,
     goToPage:       goToPage,
+    loadMore:       loadMore,
     setCat:         setCat,
     filterByMainCat: filterByMainCat,
     filterByCatSub: filterByCatSub,
