@@ -157,6 +157,25 @@ window.InventoryEngine = (function () {
     'Other':        'Other Equipment'
   };
 
+  // ── Sort options ───────────────────────────────────────────────────────────
+  var SORT_OPTIONS = [
+    { value: 'price-desc',   label: 'Price: High to Low' },
+    { value: 'price-asc',    label: 'Price: Low to High' },
+    { value: 'year-desc',    label: 'Model Year: Newest' },
+    { value: 'year-asc',     label: 'Model Year: Oldest' },
+    { value: 'created-desc', label: 'Recently Added' },
+    { value: 'make-asc',     label: 'Make: A to Z' },
+    { value: 'make-desc',    label: 'Make: Z to A' }
+  ];
+
+  function renderSortOptions(selectId) {
+    var sel = document.getElementById(selectId);
+    if (!sel) return;
+    sel.innerHTML = SORT_OPTIONS.map(function (o) {
+      return '<option value="' + o.value + '">' + o.label + '</option>';
+    }).join('');
+  }
+
   // ── Private state ──────────────────────────────────────────────────────────
   var _cfg = {};
   var ALL_INV = [];
@@ -408,7 +427,10 @@ window.InventoryEngine = (function () {
 
   // ── Public API ─────────────────────────────────────────────────────────────
   return {
-    init: function(cfg) { _cfg = cfg || {}; },
+    init: function(cfg) {
+      _cfg = cfg || {};
+      renderSortOptions((_cfg.filterIds && _cfg.filterIds.sort) ? _cfg.filterIds.sort : 'sort-filter');
+    },
 
     loadAll:        loadAll,
     applyFilters:   applyFilters,
@@ -424,7 +446,9 @@ window.InventoryEngine = (function () {
     MAIN_CATS:      MAIN_CATS,
     CAT_SUBS:       CAT_SUBS,
     CAT_DISPLAY:    CAT_DISPLAY,
-    PAGE_SIZE:      PAGE_SIZE
+    PAGE_SIZE:      PAGE_SIZE,
+    SORT_OPTIONS:   SORT_OPTIONS,
+    renderSortOptions: renderSortOptions
   };
 
 })();
