@@ -22,12 +22,16 @@
   var btn = document.createElement('button');
   btn.id = 'th-bug-btn';
   btn.type = 'button';
-  btn.textContent = '🐛 Report';
+  btn.title = 'Report a bug (Cmd-Shift-B)';
+  btn.textContent = '🐛';
   btn.style.cssText =
-    'position:fixed;bottom:20px;right:20px;z-index:999998;' +
-    'background:#dc2626;color:#fff;border:none;border-radius:999px;' +
-    'padding:10px 16px;font-family:system-ui,sans-serif;font-size:13px;' +
-    'font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,0.3);';
+    'position:fixed;bottom:14px;right:14px;z-index:999998;' +
+    'width:28px;height:28px;display:flex;align-items:center;justify-content:center;' +
+    'background:rgba(15,23,42,0.55);color:#fff;border:1px solid rgba(255,255,255,0.08);' +
+    'border-radius:50%;padding:0;font-family:system-ui,sans-serif;font-size:13px;' +
+    'cursor:pointer;opacity:0.35;transition:opacity 0.15s ease;';
+  btn.addEventListener('mouseenter', function () { btn.style.opacity = '1'; });
+  btn.addEventListener('mouseleave', function () { btn.style.opacity = '0.35'; });
   btn.addEventListener('click', openModal);
 
   var modal = document.createElement('div');
