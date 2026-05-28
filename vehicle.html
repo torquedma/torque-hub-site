@@ -1011,50 +1011,30 @@ async function init() {
     return;
   }
 
-  // Build stock variants to handle MPX-XXXXXX vs MPXXXXXXX stored formats
-  const stockVariants = [stock];
-  if (/^MPX-/i.test(stock)) {
-    stockVariants.push(stock.replace(/^MPX-/i, 'MPX'));
-  } else if (/^MPX[^-]/i.test(stock)) {
-    stockVariants.push('MPX-' + stock.slice(3));
-  }
-
-  async function tryFetch(sv, dealer) {
-    const url = dealer
-      ? `${SUPABASE_URL}/rest/v1/inventory?stock=eq.${encodeURIComponent(sv)}&dealer=eq.${encodeURIComponent(dealer)}&limit=1`
-      : `${SUPABASE_URL}/rest/v1/inventory?stock=eq.${encodeURIComponent(sv)}&limit=1`;
-    const res = await fetch(url, { headers: SB_HEADERS });
-    const data = await res.json();
-    return (data && data.length) ? data[0] : null;
-  }
-
+  // Fetch unit via cached function (single round-trip, handles variants + dealer-scoped + fallback server-side)
   let unit = null;
   let foundDealerKey = dealerParam || '';
 
-  // Pass 1: try each stock variant with dealer
-  if (dealerParam) {
-    for (const sv of stockVariants) {
-      try {
-        const row = await tryFetch(sv, dealerParam);
-        console.log(`[VDP] pass1 — stock:${sv} dealer:${dealerParam} rows:${row ? 1 : 0}`);
-        if (row) { unit = row; break; }
-      } catch (e) { console.warn('[VDP] pass1 error:', e.message); }
+  try {
+    const fnUrl = dealerParam
+      ? `/.netlify/functions/vehicle-by-stock?stock=${encodeURIComponent(stock)}&dealer=${encodeURIComponent(dealerParam)}`
+      : `/.netlify/functions/vehicle-by-stock?stock=${encodeURIComponent(stock)}`;
+    const res = await fetch(fnUrl);
+    if (res.ok) {
+      unit = await res.json();
+      foundDealerKey = unit.dealer || dealerParam || '';
+      console.log(`[VDP] unit loaded via function — stock:${stock} dealer:${foundDealerKey}`);
+    } else if (res.status === 404) {
+      console.warn(`[VDP] Unit not found via function — stock:${stock}`);
+    } else {
+      console.warn(`[VDP] Function returned ${res.status}`);
     }
-  }
-
-  // Pass 2: try each stock variant without dealer constraint
-  if (!unit) {
-    for (const sv of stockVariants) {
-      try {
-        const row = await tryFetch(sv, null);
-        console.log(`[VDP] pass2 — stock:${sv} rows:${row ? 1 : 0}`);
-        if (row) { unit = row; foundDealerKey = unit.dealer || dealerParam || ''; break; }
-      } catch (e) { console.warn('[VDP] pass2 error:', e.message); }
-    }
+  } catch (e) {
+    console.warn('[VDP] vehicle-by-stock fetch error:', e.message);
   }
 
   if (!unit) {
-    console.warn('[VDP] Unit not found — stock:', stock, '| dealer:', dealerParam, '| variants tried:', stockVariants);
+    console.warn('[VDP] Unit not found — stock:', stock, '| dealer:', dealerParam);
     showError();
     return;
   }
