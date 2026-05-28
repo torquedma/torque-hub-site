@@ -358,14 +358,18 @@ exports.handler = async (event) => {
     console.log(`Pre-dedupe by source_url: ${_beforeCount} → ${items.length} items (collapsed ${_beforeCount - items.length} dupes)`);
   }
 
-  // Get existing stocks
+  // Get existing rows (stock + source_listing_id for dual-key upsert)
   const { data: existing } = await supabase
     .from('inventory')
-    .select('stock,subcategory_locked,model_locked')
+    .select('stock,source_listing_id,subcategory_locked,model_locked')
     .eq('dealer', dealer)
     .eq('sold', false);
 
   const existingStocks = new Set((existing || []).map(u => u.stock));
+  const existingByListingId = new Map();
+  for (const row of (existing || [])) {
+    if (row.source_listing_id) existingByListingId.set(row.source_listing_id, row.stock);
+  }
   const lockedSubcat = new Set((existing || []).filter(u => u.subcategory_locked).map(u => u.stock));
   const lockedModel  = new Set((existing || []).filter(u => u.model_locked).map(u => u.stock));
   const incomingStocks = new Set();
@@ -441,6 +445,7 @@ exports.handler = async (event) => {
           photos: Array.isArray(item.photos) ? item.photos : [],
           source_type: (item.source_url || item.url || '').includes('machinerytrader.com') ? 'machinerytrader_apify' : (item.source_url || item.url || '').includes('truckpaper.com') ? 'truckpaper_apify' : (item.source_url || item.url || '').includes('tractorhouse.com') ? 'tractorhouse_apify' : 'sandhills_direct',
           source_url: item.source_url || item.url || '',
+          source_listing_id: item.source_listing_id || null,
         };
 
         if (anthropicKey) {
@@ -452,14 +457,30 @@ exports.handler = async (event) => {
           }
         }
 
-        const isExisting = existingStocks.has(stock);
+        // Determine upsert path: prefer (dealer, source_listing_id) when present, fall back to (dealer, stock)
+        const incomingListingId = item.source_listing_id || null;
+        const matchedExistingStock = incomingListingId ? existingByListingId.get(incomingListingId) : null;
+        const isExisting = matchedExistingStock ? true : existingStocks.has(stock);
+        const lookupStock = matchedExistingStock || stock;
+
         if (isExisting) {
-          if (lockedSubcat.has(stock)) { delete unit.subcategory; delete unit.category; delete unit.trim; }
-          if (lockedModel.has(stock))  { delete unit.make; delete unit.model; }
+          if (lockedSubcat.has(lookupStock)) { delete unit.subcategory; delete unit.category; delete unit.trim; }
+          if (lockedModel.has(lookupStock))  { delete unit.make; delete unit.model; }
         }
-        const { error } = isExisting
-          ? await supabase.from('inventory').update(unit).eq('stock', stock).eq('dealer', dealer).eq('sold', false)
-          : await supabase.from('inventory').insert([unit]);
+
+        let result;
+        if (isExisting) {
+          if (matchedExistingStock && incomingListingId) {
+            // Match by source_listing_id (stable Sandhills ID, robust against stock-derivation changes)
+            result = await supabase.from('inventory').update(unit).eq('source_listing_id', incomingListingId).eq('dealer', dealer).eq('sold', false);
+          } else {
+            // Legacy fallback: match by stock
+            result = await supabase.from('inventory').update(unit).eq('stock', stock).eq('dealer', dealer).eq('sold', false);
+          }
+        } else {
+          result = await supabase.from('inventory').insert([unit]);
+        }
+        const { error } = result;
 
         if (error) { console.error(`Error ${stock}:`, error.message); errors++; }
         else synced++;
