@@ -40,6 +40,51 @@ function normalizeMake(rawMake) {
     .join(' ');
 }
 
+// Known multi-word makes. The upstream Sandhills/actor h1 parser splits make on
+// the first space, so "Mid State Trailers Foo" arrives as make="Mid", model="State Trailers Foo".
+// This repair layer re-joins them on ingest. Exact-pattern only (make === first word
+// AND model starts with the remaining words at a word boundary) so it never over-merges.
+// Sorted longest-first so the most specific known make wins on any future overlap.
+// NOTE: duplicate of canonical make authority — promote to shared module when one exists;
+// the same list can also be applied in the Apify actor Web IDE to fix the split at source.
+const MULTI_WORD_MAKES = [
+  'Mid State Trailers',
+  'Massey Ferguson',
+  'Down 2 Earth',
+  'Road Clipper',
+  'New Holland',
+  'PJ Trailers',
+  'Land Rover',
+  'Big Country',
+  'John Deere',
+  'Load Trail',
+  'Sure Trac',
+  'Case IH',
+  'Big Tex'
+].sort((a, b) => b.length - a.length);
+
+// Returns { make, model } with a known multi-word make re-joined if the
+// split pattern is detected; otherwise returns the inputs unchanged.
+function repairMultiWordMake(make, model) {
+  const m = (make || '').trim();
+  const mod = (model || '').trim();
+  if (!m || !mod) return { make: make, model: model };
+  for (const full of MULTI_WORD_MAKES) {
+    const parts = full.split(' ');
+    const firstWord = parts[0];
+    const rest = parts.slice(1).join(' ');           // e.g. "State Trailers"
+    const restLower = rest.toLowerCase();
+    // make must equal the first word (case-insensitive) AND model must start with
+    // the rest at a word boundary (exact, or followed by a space).
+    if (m.toLowerCase() === firstWord.toLowerCase() &&
+        (mod.toLowerCase() === restLower || mod.toLowerCase().startsWith(restLower + ' '))) {
+      const newModel = mod.length === rest.length ? '' : mod.slice(rest.length).trim();
+      return { make: full, model: newModel };
+    }
+  }
+  return { make: make, model: model };
+}
+
 function normalizeModel(model) {
   if (!model) return '';
   const s = String(model).trim();
@@ -408,8 +453,9 @@ exports.handler = async (event) => {
           incomingStocksByPlatform[_plat].add(stock);
         }
 
-        const make = normalizeMake((item.make && item.make !== 'undefined') ? item.make : '') || '';
-        const model = normalizeModel((item.model && item.model !== 'undefined') ? item.model : '');
+        let make = normalizeMake((item.make && item.make !== 'undefined') ? item.make : '') || '';
+        let model = normalizeModel((item.model && item.model !== 'undefined') ? item.model : '');
+        ({ make, model } = repairMultiWordMake(make, model));
 
         let mileage = item.mileage || '';
         if (!mileage && item.description) {
