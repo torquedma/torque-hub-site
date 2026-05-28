@@ -170,6 +170,13 @@ const SUBCATEGORY_ALIASES = {
   'Curtain-Side': 'Curtain-Side Trailer',
   'Dry Van': 'Dry Van Trailer',
   'Track Loader': 'Crawler Loader',
+  // Skid-steer family canonicalization (the upstream actor emits drive-type-specific
+  // strings; we collapse them to canonical buckets per the locked taxonomy).
+  // NOTE: 'Track Loader' (above) → Crawler Loader (steel-track dozer-platform machines).
+  // These are different: a Track Skid Steer is the rubber-track skid-steer-controls class.
+  'Track Skid Steer': 'Compact Track Loader',
+  'Tracked Skid Steer': 'Compact Track Loader',
+  'Wheel Skid Steer': 'Skid Steer',
   'UTV': 'Utility Vehicle',
   'Car / Racing Trailer': 'Car Hauler Trailer',
   'Mower': '',
