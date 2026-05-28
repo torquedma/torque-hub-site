@@ -264,11 +264,21 @@ window.InventoryEngine = (function () {
     });
 
     var sbPromises = DEALERS.filter(function(d) { return !d.feedUrl; }).map(function(d) {
+      // Trimmed select: only fields the card render + filters + sort actually consume.
+      // photos->0 returns the first photo as a single object (huge payload cut vs full array).
+      // We re-wrap it back to a one-element array in .then() so the consumer code at line ~333
+      // (u.photos && u.photos.length ? u.photos[0].url : '...) keeps working identically for
+      // both Supabase-direct dealers (now thin) and push-dealer feeds (still full arrays).
+      var cols = 'id,stock,year,make,model,trim,subcategory,category,dealer,price,mileage,engine,fuel,condition,photos->0,created_at';
       return fetch(
-        SB_URL + '/rest/v1/inventory_cards?dealer=eq.' + encodeURIComponent(d.key) + '&sold=eq.false&limit=1000',
+        SB_URL + '/rest/v1/inventory_cards?select=' + cols + '&dealer=eq.' + encodeURIComponent(d.key) + '&sold=eq.false&limit=1000',
         { headers: SB_HDRS }
       ).then(function(r) { return r.json(); }).then(function(items) {
-        return (items || []).map(function(u) { return Object.assign({}, u, { _dealer: d }); });
+        return (items || []).map(function(u) {
+          // photos->0 returns either a single {url,name} object or null. Re-wrap to array shape.
+          var photosArr = (u.photos && typeof u.photos === 'object' && !Array.isArray(u.photos)) ? [u.photos] : (Array.isArray(u.photos) ? u.photos : []);
+          return Object.assign({}, u, { photos: photosArr, _dealer: d });
+        });
       }).catch(function() { return []; });
     });
 
