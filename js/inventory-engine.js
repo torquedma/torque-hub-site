@@ -27,6 +27,25 @@ window.InventoryEngine = (function () {
     { key: "Allied Truck & Trailer Sales", name: "Allied Truck & Trailer Sales", feedUrl: null,                                                                     phone: "336-388-6882",   tel: "3363886882",   location: "Madison, NC",       desc: "Commercial truck and trailer dealer in Madison, NC." }
   ];
 
+  function buildCardThumb(rawUrl) {
+    if (!rawUrl || typeof rawUrl !== 'string') return rawUrl;
+
+    // Sandhills CDN — card thumbnails only need small images, not 1200px originals.
+    if (rawUrl.includes('media.sandhills.com')) {
+      var next = rawUrl;
+      if (/[?&]w=\d+/i.test(next)) next = next.replace(/([?&])w=\d+/i, '$1w=400');
+      else next += (next.includes('?') ? '&' : '?') + 'w=400';
+
+      if (/[?&]h=\d+/i.test(next)) next = next.replace(/([?&])h=\d+/i, '$1h=300');
+      else next += '&h=300';
+
+      return next;
+    }
+
+    // HGR/Endeavor CDN resize parameters are not verified; leave untouched.
+    return rawUrl;
+  }
+
   var SB_URL  = 'https://bxsikkmqasydosmblzov.supabase.co';
   var SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4c2lra21xYXN5ZG9zbWJsem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTc1OTksImV4cCI6MjA5MDQ3MzU5OX0.JMEI7cx2tddmbvfqm_qxiIWp7f5Phuk5l0Y487DUSZg';
   var SB_HDRS = { 'apikey': SB_ANON, 'Authorization': 'Bearer ' + SB_ANON };
@@ -292,9 +311,13 @@ window.InventoryEngine = (function () {
       return;
     }
 
-    grid.innerHTML = slice.map(function(u) {
+    grid.innerHTML = slice.map(function(u, _i) {
       var d          = u._dealer || DEALERS.find(function(x) { return x.key === u.dealer; }) || {};
-      var photo      = u.photos && u.photos.length ? (u.photos[0].url || u.photos[0].dataUrl || '') : '';
+      var photoRaw   = u.photos && u.photos.length ? (u.photos[0].url || u.photos[0].dataUrl || '') : '';
+      var photo      = buildCardThumb(photoRaw);
+      var eager      = _i < 6;
+      var loadAttr   = eager ? 'eager' : 'lazy';
+      var fpAttr     = eager ? ' fetchpriority="high"' : '';
       var title      = [u.year, u.make, u.model, u.trim || u.subcategory].filter(Boolean).join(' ') || 'Unit Available';
       var vdpUrl     = 'vehicle.html?stock=' + encodeURIComponent(u.stock || '');
       var priceStr   = u.price && !isNaN(parseFloat(String(u.price).replace(/[^0-9.]/g, '')))
@@ -312,7 +335,7 @@ window.InventoryEngine = (function () {
       return '<article class="inv-card" aria-label="' + title + '">' +
         '<a class="inv-card-link" href="' + vdpUrl + '" aria-label="View listing: ' + title + '">' +
           '<div class="inv-photo">' +
-            (photo ? '<img src="' + photo + '" alt="' + title + '" loading="lazy">' : '<img src="/photos-coming-soon.png" alt="Photos coming soon" loading="lazy" style="width:100%;height:100%;object-fit:cover;">') +
+            (photo ? '<img src="' + photo + '" alt="' + title + '" loading="' + loadAttr + '"' + fpAttr + ' decoding="async">' : '<img src="/photos-coming-soon.png" alt="Photos coming soon" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;">') +
           '</div>' +
           '<div class="inv-body">' +
             '<h3 class="inv-title">' + title + '</h3>' +
