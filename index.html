@@ -1382,9 +1382,11 @@ function renderCategoryDiscovery() {
     } else {
       subItems = subs.map(function(s) {
         var label = s.label, kw = s.kw, slug = s.slug;
-        var count = catItems.filter(function(u) {
-          return (String(u.subcategory || '') + ' ' + String(u.make || '') + ' ' + String(u.model || '')).toLowerCase().includes(kw);
-        }).length;
+        var count = s.subs && s.subs.length
+          ? catItems.filter(function(u) { return s.subs.indexOf(u.subcategory) !== -1; }).length
+          : catItems.filter(function(u) {
+              return (String(u.subcategory || '') + ' ' + String(u.make || '') + ' ' + String(u.model || '')).toLowerCase().includes(kw);
+            }).length;
         var safecat = cat.replace(/'/g, "\\'");
         var safekw  = kw.replace(/'/g, "\\'");
         var href, onclickAttr;

@@ -270,7 +270,7 @@ const SUBCATEGORY_LEAVES = {
   'zero-turn-mowers-for-sale':       { subs: ['Zero Turn Mower'],               label: 'Zero Turn Mowers',     hub: 'landscape-equipment-for-sale' },
   'lawn-tractors-for-sale':          { subs: ['Lawn Tractor'],                  label: 'Lawn Tractors',        hub: 'landscape-equipment-for-sale' },
   'excavators-for-sale':             { subs: ['Excavator'],                     label: 'Excavators',           hub: 'construction-equipment-for-sale' },
-  'skid-steers-for-sale':            { subs: ['Skid Steer'],                    label: 'Skid Steers',          hub: 'construction-equipment-for-sale' },
+  'skid-steers-for-sale':            { subs: ['Skid Steer', 'Compact Track Loader'], label: 'Skid Steers',          hub: 'construction-equipment-for-sale' },
 };
 
 const HUB_CHILDREN = {};
