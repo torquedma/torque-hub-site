@@ -361,7 +361,7 @@ exports.handler = async (event) => {
   // Get existing rows (stock + source_listing_id for dual-key upsert)
   const { data: existing } = await supabase
     .from('inventory')
-    .select('stock,source_listing_id,subcategory_locked,model_locked')
+    .select('stock,source_listing_id,subcategory_locked,model_locked,source_url')
     .eq('dealer', dealer)
     .eq('sold', false);
 
@@ -374,7 +374,20 @@ exports.handler = async (event) => {
   const lockedModel  = new Set((existing || []).filter(u => u.model_locked).map(u => u.stock));
   const incomingStocks = new Set();
   const incomingListingIds = new Set();
+  const incomingPlatforms = new Set();
+  const incomingByPlatform = {};            // platform -> count of incoming items
+  const incomingStocksByPlatform = {};      // platform -> Set of incoming stocks
   let synced = 0, errors = 0;
+
+  // Derive platform from a source URL, mirroring the source_type logic below.
+  // Returns 'machinerytrader' | 'truckpaper' | 'tractorhouse' | 'other'.
+  function platformOf(url) {
+    const u = (url || '').toLowerCase();
+    if (u.includes('machinerytrader.com')) return 'machinerytrader';
+    if (u.includes('truckpaper.com')) return 'truckpaper';
+    if (u.includes('tractorhouse.com')) return 'tractorhouse';
+    return 'other';
+  }
 
   // Process in batches of 10 to avoid timeouts
   const batchSize = 10;
@@ -387,6 +400,13 @@ exports.handler = async (event) => {
         if (!stock) return;
         incomingStocks.add(stock);
         if (item.source_listing_id) incomingListingIds.add(String(item.source_listing_id));
+        {
+          const _plat = platformOf(item.source_url || item.url || '');
+          incomingPlatforms.add(_plat);
+          incomingByPlatform[_plat] = (incomingByPlatform[_plat] || 0) + 1;
+          if (!incomingStocksByPlatform[_plat]) incomingStocksByPlatform[_plat] = new Set();
+          incomingStocksByPlatform[_plat].add(stock);
+        }
 
         const make = normalizeMake((item.make && item.make !== 'undefined') ? item.make : '') || '';
         const model = normalizeModel((item.model && item.model !== 'undefined') ? item.model : '');
@@ -490,25 +510,52 @@ exports.handler = async (event) => {
     }));
   }
 
-  // Mark removed units sold — with safety check.
-  // If incoming scrape is dramatically smaller than DB, abort mark-sold loop
-  // to protect against partial scrape failures bulk-flagging good inventory.
+  // Mark removed units sold — PER-PLATFORM scoped, with per-platform safety check.
+  // Multi-task dealers (e.g. Impex: TruckPaper + MachineryTrader) run separate
+  // scrapes per platform. Each run must ONLY mark-sell units from the platform(s)
+  // it actually scraped, and only when that platform was scraped near-completely.
+  // This prevents a single-platform run from burying the other platform's inventory.
   let markedSold = 0;
-  const incomingFraction = existingStocks.size > 0 ? incomingStocks.size / existingStocks.size : 1;
-  if (incomingFraction < 0.5 && existingStocks.size >= 10) {
-    console.warn(`Mark-sold ABORTED for ${dealer}: incoming=${incomingStocks.size} existing=${existingStocks.size} (${(incomingFraction*100).toFixed(0)}%). Likely partial scrape — skipping mark-sold to preserve inventory.`);
-  } else {
-    for (const row of (existing || [])) {
-      // A unit is only "gone" if it matches NOTHING incoming by either key.
-      // Primary key: source_listing_id (stable Sandhills ID, robust against stock-derivation drift).
-      // Fallback: stock, only for rows that have no source_listing_id.
-      const rowListingId = row.source_listing_id ? String(row.source_listing_id) : '';
-      const stillPresentByListingId = rowListingId && incomingListingIds.has(rowListingId);
-      const stillPresentByStock = incomingStocks.has(row.stock);
-      if (stillPresentByListingId || stillPresentByStock) continue;
-      await supabase.from('inventory').update({ sold: true, sold_type: 'feed_removed' }).eq('stock', row.stock).eq('dealer', dealer);
-      markedSold++;
+
+  // Count existing rows per platform (scoped to this dealer).
+  // NOTE: rows with missing/unknown source_url resolve to platform 'other' and are
+  // therefore only ever mark-sold by a run that itself scraped 'other'-platform items.
+  // In practice that means orphan/null-source rows are protected unless explicitly scraped.
+  const existingByPlatform = {};
+  for (const row of (existing || [])) {
+    const p = platformOf(row.source_url);
+    existingByPlatform[p] = (existingByPlatform[p] || 0) + 1;
+  }
+
+  // Decide which platforms are safe to mark-sell this run: present in the incoming
+  // scrape AND scraped to at least 50% of that platform's existing count.
+  const platformsToMarkSold = new Set();
+  for (const plat of incomingPlatforms) {
+    const inc = incomingByPlatform[plat] || 0;
+    const exist = existingByPlatform[plat] || 0;
+    const frac = exist > 0 ? inc / exist : 1;
+    if (exist >= 10 && frac < 0.5) {
+      console.warn(`Mark-sold ABORTED for ${dealer} platform=${plat}: incoming=${inc} existing=${exist} (${(frac*100).toFixed(0)}%). Likely partial scrape — skipping this platform.`);
+    } else {
+      console.log(`Mark-sold ENABLED for ${dealer} platform=${plat}: incoming=${inc} existing=${exist}`);
+      platformsToMarkSold.add(plat);
     }
+  }
+
+  for (const row of (existing || [])) {
+    const rowPlatform = platformOf(row.source_url);
+    // Scope gate: skip rows whose platform this run didn't scrape (or scraped too partially).
+    if (!platformsToMarkSold.has(rowPlatform)) continue;
+    // A unit is only "gone" if it matches NOTHING incoming by either key.
+    // source_listing_id is treated as the stable Sandhills listing identity.
+    // Keep it global here because stock is the collision-prone derived key (so stock is platform-scoped).
+    const rowListingId = row.source_listing_id ? String(row.source_listing_id) : '';
+    const stillPresentByListingId = rowListingId && incomingListingIds.has(rowListingId);
+    const platStocks = incomingStocksByPlatform[rowPlatform];
+    const stillPresentByStock = !!(platStocks && platStocks.has(row.stock));
+    if (stillPresentByListingId || stillPresentByStock) continue;
+    await supabase.from('inventory').update({ sold: true, sold_type: 'feed_removed' }).eq('stock', row.stock).eq('dealer', dealer);
+    markedSold++;
   }
 
   const result = { synced, errors, markedSold, total: items.length, dealer };
