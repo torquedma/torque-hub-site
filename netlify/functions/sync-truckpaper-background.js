@@ -142,6 +142,24 @@ function deriveSubcategory(item) {
   const url = (item.source_url || item.url || '').toLowerCase();
   if (url) {
     const URL_SLUGS = [
+      // MachineryTrader construction equipment
+      [/[\/-]track-skid-steers?\b/, 'Track Skid Steer'],
+      [/[\/-]wheel-skid-steers?\b/, 'Wheel Skid Steer'],
+      [/[\/-]mini-skid-steers?\b/, 'Mini Skid Steer'],
+      [/[\/-]mini-excavators?\b/, 'Mini Excavator'],
+      [/[\/-]crawler-excavators?\b/, 'Crawler Excavator'],
+      [/[\/-]wheel-loaders?\b/, 'Wheel Loader'],
+      [/[\/-]crawler-dozers?\b/, 'Crawler Dozer'],
+      [/[\/-]rough-terrain-forklifts(?:-lifts)?\b/, 'Forklift'],
+      [/[\/-]cushion-tire-forklifts(?:-lifts)?\b/, 'Forklift'],
+      [/[\/-]forklifts(?:-lifts)?\b/, 'Forklift'],
+      [/[\/-]personnel-lifts\b/, 'Boom Lift'],
+      [/[\/-]slab-scissor-lifts\b/, 'Scissor Lift'],
+      [/[\/-]rough-terrain-scissor-lifts\b/, 'Scissor Lift'],
+      [/[\/-]scissor-lifts\b/, 'Scissor Lift'],
+      [/[\/-]air-compressors\b/, 'Air Compressor'],
+      [/[\/-]dumpers\b/, 'Mini Dumper'],
+      [/[\/-]utility-vehicles\b/, 'Utility Vehicle'],
       [/[\/-]day-cab-trucks?\b/, 'Day Cab Tractor'],
       [/[\/-]sleeper-trucks?\b/, 'Sleeper Tractor'],
       [/[\/-]cab-and-chassis-trucks?\b/, 'Cab & Chassis'],
@@ -307,6 +325,39 @@ exports.handler = async (event) => {
 
   const dealer = items.find(i => i.dealer)?.dealer || dealerName;
 
+  // Pre-dedupe items by source_url. Same listing can appear twice if the
+  // actor's stock-derivation falls back to listingId on one pass and reads
+  // the dealer-style stock on another. Pick the best item per source_url.
+  function _scoreItem(it) {
+    var s = 0;
+    var photos = Array.isArray(it.photos) ? it.photos : [];
+    s += photos.length * 10;
+    if (it.year) s += 1;
+    if (it.price) s += 1;
+    if (it.trim) s += 1;
+    if (it.subcategory) s += 2;
+    if (it.category) s += 1;
+    var st = String(it.stock || it.stockNumber || '');
+    if (st && !/^\d+$/.test(st)) s += 5; // prefer dealer-style stock over pure-numeric listing-id
+    return s;
+  }
+  const _bySourceUrl = new Map();
+  for (const it of items) {
+    const key = String(it.source_url || it.url || '').trim();
+    if (!key) {
+      // No source_url — keep as-is (can't dedupe)
+      _bySourceUrl.set('__nokey_' + Math.random(), it);
+      continue;
+    }
+    const prev = _bySourceUrl.get(key);
+    if (!prev || _scoreItem(it) > _scoreItem(prev)) _bySourceUrl.set(key, it);
+  }
+  const _beforeCount = items.length;
+  items = Array.from(_bySourceUrl.values());
+  if (items.length < _beforeCount) {
+    console.log(`Pre-dedupe by source_url: ${_beforeCount} → ${items.length} items (collapsed ${_beforeCount - items.length} dupes)`);
+  }
+
   // Get existing stocks
   const { data: existing } = await supabase
     .from('inventory')
@@ -365,9 +416,13 @@ exports.handler = async (event) => {
 
         const sub = deriveSubcategory(item);
         const subLower = (sub || '').toLowerCase();
+        const CONSTRUCTION_SUBS = ['skid steer','excavator','wheel loader','crawler dozer','forklift','scissor lift','boom lift','air compressor','mini dumper','crane','backhoe','telehandler','grader','asphalt'];
+        const FARM_SUBS = ['utility vehicle','tractor','mower','hay','baler','tedder','rake','planter','combine','sprayer','tillage'];
         let derivedCategory;
         if (subLower.includes('trailer')) derivedCategory = 'Trailers';
         else if (['suv','sedan','coupe','classic car','motorcycle','engine','power plant','boat'].some(function(k){ return subLower.includes(k); })) derivedCategory = 'Other';
+        else if (CONSTRUCTION_SUBS.some(function(k){ return subLower.includes(k); })) derivedCategory = 'Construction';
+        else if (FARM_SUBS.some(function(k){ return subLower.includes(k); })) derivedCategory = 'Farm';
         else if (item.category) derivedCategory = item.category;
         else derivedCategory = 'Trucks';
         const unit = {
@@ -384,7 +439,7 @@ exports.handler = async (event) => {
           category: derivedCategory,
           subcategory: sub, sold: false, featured: 0, days: '0',
           photos: Array.isArray(item.photos) ? item.photos : [],
-          source_type: 'truckpaper_apify',
+          source_type: (item.source_url || item.url || '').includes('machinerytrader.com') ? 'machinerytrader_apify' : (item.source_url || item.url || '').includes('truckpaper.com') ? 'truckpaper_apify' : (item.source_url || item.url || '').includes('tractorhouse.com') ? 'tractorhouse_apify' : 'sandhills_direct',
           source_url: item.source_url || item.url || '',
         };
 
