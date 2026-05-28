@@ -18,7 +18,8 @@
   <link rel="canonical" href="https://hub.torquedma.com/inventory.html" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800;900&display=swap" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800;900&display=swap" /></noscript>
 
   <style>
     :root {
@@ -325,8 +326,9 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
     </a>
   </nav>
 
-  <script src="/js/inventory-engine.js"></script>
+  <script src="/js/inventory-engine.js" defer></script>
   <script>
+    document.addEventListener('DOMContentLoaded', function() {
     function initDealerFilter() {
       var sel = document.getElementById('dealer-filter');
       if (!sel) return;
@@ -437,6 +439,7 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
       history.replaceState(null, '', '/inventory.html');
       InventoryEngine.applyFilters();
     };
+    });
   </script>
 
 <script src="/js/bug-report.js" defer></script>
