@@ -312,7 +312,7 @@ window.InventoryEngine = (function () {
       return '<article class="inv-card" aria-label="' + title + '">' +
         '<a class="inv-card-link" href="' + vdpUrl + '" aria-label="View listing: ' + title + '">' +
           '<div class="inv-photo">' +
-            (photo ? '<img src="' + photo + '" alt="' + title + '" loading="lazy">' : '<div class="inv-no-photo">No Photo</div>') +
+            (photo ? '<img src="' + photo + '" alt="' + title + '" loading="lazy">' : '<img src="/photos-coming-soon.png" alt="Photos coming soon" loading="lazy" style="width:100%;height:100%;object-fit:cover;">') +
           '</div>' +
           '<div class="inv-body">' +
             '<h3 class="inv-title">' + title + '</h3>' +

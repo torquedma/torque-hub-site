@@ -608,9 +608,13 @@ function initGallery(rawPhotos) {
   console.log('[gallery] mainEl:', mainEl ? 'found' : 'NULL — element missing from DOM');
 
   if (!photos.length) {
-    console.warn('[gallery] no photos — hiding gallery element');
-    const galleryEl = mainEl.closest('.gallery');
-    if (galleryEl) galleryEl.style.display = 'none';
+    console.warn('[gallery] no photos — showing placeholder');
+    const mainEl = document.getElementById('gallery-main');
+    const thumbsEl = document.getElementById('gallery-thumbs');
+    if (mainEl) {
+      mainEl.innerHTML = '<div class="gallery-slide" style="background:var(--panel-2);"><img src="/photos-coming-soon.png" alt="Photos coming soon" style="width:100%;height:100%;object-fit:contain;"></div>';
+    }
+    if (thumbsEl) thumbsEl.innerHTML = '';
     return;
   }
 
@@ -901,7 +905,7 @@ async function loadSimilar(currentUnit, dealerKey) {
       const title = [u.year, u.make, u.model, u.trim].filter(Boolean).join(' ');
       const href = `vehicle.html?stock=${encodeURIComponent(u.stock)}`;
       return `<a class="sim-item" href="${href}">
-        <div class="sim-img">${photo ? `<img src="${photo}" alt="${title}" loading="lazy">` : `<div style="width:100%;height:100%;background:var(--panel);display:flex;align-items:center;justify-content:center;color:var(--soft);font-size:12px">No Photo</div>`}</div>
+        <div class="sim-img">${photo ? `<img src="${photo}" alt="${title}" loading="lazy">` : `<img src="/photos-coming-soon.png" alt="Photos coming soon" loading="lazy" style="width:100%;height:100%;object-fit:cover;">`}</div>
         <div class="sim-body">
           <div class="sim-title">${title}</div>
           <div class="sim-price">${formatPrice(u.price)}</div>
