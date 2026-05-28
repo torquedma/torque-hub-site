@@ -988,7 +988,7 @@ async function init() {
   if (window.__VDP_UNIT__) {
     console.log('[VDP] init — using SSR data for', window.__VDP_UNIT__.stock);
     render(window.__VDP_UNIT__, window.__VDP_DEALER_KEY__ || '');
-    loadSimilar(window.__VDP_UNIT__, window.__VDP_DEALER_KEY__ || '');
+    (window.requestIdleCallback || ((cb) => setTimeout(cb, 200)))(() => loadSimilar(window.__VDP_UNIT__, window.__VDP_DEALER_KEY__ || ''));
     return;
   }
 
@@ -1041,7 +1041,8 @@ async function init() {
 
   foundDealerKey = foundDealerKey || unit.dealer || '';
   render(unit, foundDealerKey);
-  loadSimilar(unit, foundDealerKey);
+  // Defer similar-units load until after main render paints — gives critical content the network/render budget first
+  (window.requestIdleCallback || ((cb) => setTimeout(cb, 200)))(() => loadSimilar(unit, foundDealerKey));
 }
 
 init();
