@@ -42,6 +42,23 @@ window.InventoryEngine = (function () {
       return next;
     }
 
+    // Supabase storage — transform add-on confirmed enabled on this project.
+    // Rewrite the public object path to the render/image path and request a
+    // card-sized thumbnail. Leave already-rendered/transformed URLs untouched.
+    if (rawUrl.includes('/storage/v1/object/public/') && rawUrl.indexOf('/render/image/') === -1) {
+      var sb = rawUrl.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/');
+      if (!/[?&](width|height|resize)=/i.test(sb)) {
+        sb += (sb.includes('?') ? '&' : '?') + 'width=400&height=300&resize=cover';
+      }
+      return sb;
+    }
+
+    // carsforsale CDN — path-segment sizing (proven by the Joe's photo bookmarklet).
+    // Swap a /WIDTHxHEIGHT/ segment down to card thumbnail size.
+    if (rawUrl.includes('cdn05.carsforsale.com') && /\/\d+x\d+\//.test(rawUrl)) {
+      return rawUrl.replace(/\/\d+x\d+\//, '/400x300/');
+    }
+
     // HGR/Endeavor CDN resize parameters are not verified; leave untouched.
     return rawUrl;
   }
