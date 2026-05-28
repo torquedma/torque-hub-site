@@ -1,46 +1,34 @@
-const https = require('https');
+const { createClient } = require('@supabase/supabase-js');
 
-const SUPABASE_URL = 'bxsikkmqasydosmblzov.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4c2lra21xYXN5ZG9zbWJsem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTc1OTksImV4cCI6MjA5MDQ3MzU5OX0.JMEI7cx2tddmbvfqm_qxiIWp7f5Phuk5l0Y487DUSZg';
-const DEALER = "HGR's Truck and Trailer";
-
-function supabaseFetch(path) {
-  return new Promise((resolve, reject) => {
-    const options = {
-      hostname: SUPABASE_URL,
-      path,
-      method: 'GET',
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`,
-        'Content-Type': 'application/json'
-      }
-    };
-    const req = https.request(options, res => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => resolve(data));
-    });
-    req.on('error', reject);
-    req.end();
-  });
-}
-
-exports.handler = async () => {
+exports.handler = async (event) => {
   const headers = {
     'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type',
     'Content-Type': 'application/json',
-    'Cache-Control': 'public, max-age=300'
+    'Cache-Control': 'public, max-age=60, s-maxage=300, stale-while-revalidate=600'
   };
 
+  if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers, body: '' };
+
   try {
-    const encoded = encodeURIComponent(DEALER);
-    const data = await supabaseFetch(
-      `/rest/v1/inventory?dealer=eq.${encoded}&sold=eq.false&select=*&order=created_at.desc&limit=500`
-    );
-    return { statusCode: 200, headers, body: data };
-  } catch (err) {
-    console.error('HGR inventory fetch error:', err.message);
-    return { statusCode: 500, headers, body: JSON.stringify({ error: err.message }) };
+    const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+
+    const { data, error } = await supabase
+      .from('inventory')
+      .select('stock,dealer,year,make,model,trim,price,subcategory,category,photos')
+      .eq('dealer', "HGR's Truck and Trailer")
+      .eq('sold', false)
+      .order('year', { ascending: false });
+
+    if (error) throw error;
+
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify(data || [])
+    };
+  } catch (e) {
+    console.error('hgr-inventory error:', e.message);
+    return { statusCode: 500, headers, body: JSON.stringify({ error: e.message }) };
   }
 };

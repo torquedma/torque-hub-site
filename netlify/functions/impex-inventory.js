@@ -4,7 +4,8 @@ exports.handler = async (event) => {
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type',
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'Cache-Control': 'public, max-age=60, s-maxage=300, stale-while-revalidate=600'
   };
 
   if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers, body: '' };
@@ -14,7 +15,7 @@ exports.handler = async (event) => {
 
     const { data, error } = await supabase
       .from('inventory')
-      .select('*')
+      .select('stock,dealer,year,make,model,trim,price,subcategory,category,photos')
       .eq('dealer', 'Impex Heavy Metal')
       .eq('sold', false)
       .order('year', { ascending: false });
