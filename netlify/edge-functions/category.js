@@ -269,8 +269,10 @@ const SUBCATEGORY_LEAVES = {
   'rotary-cutters-for-sale':         { subs: ['Rotary Cutter'],                 label: 'Rotary Cutters',       hub: 'farm-equipment-for-sale' },
   'zero-turn-mowers-for-sale':       { subs: ['Zero Turn Mower'],               label: 'Zero Turn Mowers',     hub: 'landscape-equipment-for-sale' },
   'lawn-tractors-for-sale':          { subs: ['Lawn Tractor'],                  label: 'Lawn Tractors',        hub: 'landscape-equipment-for-sale' },
-  'excavators-for-sale':             { subs: ['Excavator'],                     label: 'Excavators',           hub: 'construction-equipment-for-sale' },
-  'skid-steers-for-sale':            { subs: ['Skid Steer', 'Compact Track Loader'], label: 'Skid Steers',          hub: 'construction-equipment-for-sale' },
+  'excavators-for-sale':             { subs: ['Excavator', 'Crawler Excavator', 'Mini Excavator'], label: 'Excavators',           hub: 'construction-equipment-for-sale' },
+  'mini-excavators-for-sale':        { subs: ['Mini Excavator'],                label: 'Mini Excavators',      hub: 'construction-equipment-for-sale' },
+  'skid-steers-for-sale':            { subs: ['Skid Steer', 'Compact Track Loader', 'Mini Skid Steer'], label: 'Skid Steers',          hub: 'construction-equipment-for-sale' },
+  'mini-skid-steers-for-sale':       { subs: ['Mini Skid Steer'],               label: 'Mini Skid Steers',     hub: 'construction-equipment-for-sale' },
 };
 
 const HUB_CHILDREN = {};

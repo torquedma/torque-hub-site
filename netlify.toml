@@ -153,13 +153,21 @@
   path = "/lawn-tractors-for-sale"
   function = "category"
 
-# Construction subcategories (2)
+# Construction subcategories (4)
 [[edge_functions]]
   path = "/excavators-for-sale"
   function = "category"
 
 [[edge_functions]]
+  path = "/mini-excavators-for-sale"
+  function = "category"
+
+[[edge_functions]]
   path = "/skid-steers-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/mini-skid-steers-for-sale"
   function = "category"
 
 [[redirects]]
