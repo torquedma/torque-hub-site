@@ -373,6 +373,7 @@ exports.handler = async (event) => {
   const lockedSubcat = new Set((existing || []).filter(u => u.subcategory_locked).map(u => u.stock));
   const lockedModel  = new Set((existing || []).filter(u => u.model_locked).map(u => u.stock));
   const incomingStocks = new Set();
+  const incomingListingIds = new Set();
   let synced = 0, errors = 0;
 
   // Process in batches of 10 to avoid timeouts
@@ -385,6 +386,7 @@ exports.handler = async (event) => {
         const stock = normalizeStockNumber(rawStock, dealer);
         if (!stock) return;
         incomingStocks.add(stock);
+        if (item.source_listing_id) incomingListingIds.add(String(item.source_listing_id));
 
         const make = normalizeMake((item.make && item.make !== 'undefined') ? item.make : '') || '';
         const model = normalizeModel((item.model && item.model !== 'undefined') ? item.model : '');
@@ -496,11 +498,16 @@ exports.handler = async (event) => {
   if (incomingFraction < 0.5 && existingStocks.size >= 10) {
     console.warn(`Mark-sold ABORTED for ${dealer}: incoming=${incomingStocks.size} existing=${existingStocks.size} (${(incomingFraction*100).toFixed(0)}%). Likely partial scrape — skipping mark-sold to preserve inventory.`);
   } else {
-    for (const stock of existingStocks) {
-      if (!incomingStocks.has(stock)) {
-        await supabase.from('inventory').update({ sold: true, sold_type: 'feed_removed' }).eq('stock', stock).eq('dealer', dealer);
-        markedSold++;
-      }
+    for (const row of (existing || [])) {
+      // A unit is only "gone" if it matches NOTHING incoming by either key.
+      // Primary key: source_listing_id (stable Sandhills ID, robust against stock-derivation drift).
+      // Fallback: stock, only for rows that have no source_listing_id.
+      const rowListingId = row.source_listing_id ? String(row.source_listing_id) : '';
+      const stillPresentByListingId = rowListingId && incomingListingIds.has(rowListingId);
+      const stillPresentByStock = incomingStocks.has(row.stock);
+      if (stillPresentByListingId || stillPresentByStock) continue;
+      await supabase.from('inventory').update({ sold: true, sold_type: 'feed_removed' }).eq('stock', row.stock).eq('dealer', dealer);
+      markedSold++;
     }
   }
 
