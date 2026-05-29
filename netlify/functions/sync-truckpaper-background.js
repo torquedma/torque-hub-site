@@ -127,13 +127,23 @@ const DEALER_PREFIXES = {
   'Mid Atlantic Power & Equipment': 'MAP-',
   'The Trailer Source': 'TTS-',
   'Allied Truck & Trailer Sales': 'ATT-',
+  'DeBary Truck Sales': 'DBT-',
 };
 
-function normalizeStockNumber(rawStock, dealerName) {
-  if (!rawStock) return null;
+function normalizeStockNumber(rawStock, dealerName, sourceListingId) {
+  const raw = rawStock ? String(rawStock).trim() : '';
+  const sourceId = sourceListingId ? String(sourceListingId).trim() : '';
   const prefix = DEALER_PREFIXES[dealerName];
-  if (!prefix) return rawStock;
-  return rawStock.startsWith(prefix) ? rawStock : `${prefix}${rawStock}`;
+  if (!prefix) return raw || null;
+  // Strip existing prefix for comparison purposes
+  const stripped = raw.startsWith(prefix) ? raw.slice(prefix.length) : raw;
+  // Fallback rule: if no real internal stock parsed (either missing OR equal to source_listing_id),
+  // use last 6 digits of source_listing_id
+  if (!stripped || (sourceId && stripped === sourceId)) {
+    if (!sourceId) return null;
+    return `${prefix}${sourceId.slice(-6)}`;
+  }
+  return raw.startsWith(prefix) ? raw : `${prefix}${stripped}`;
 }
 
 // ── Canonical subcategory authority (first brick of the shared normalization layer) ──
@@ -448,7 +458,7 @@ exports.handler = async (event) => {
     await Promise.all(batch.map(async (item) => {
       try {
         const rawStock = item.stock || item.stockNumber || (item.listingId ? String(item.listingId) : null);
-        const stock = normalizeStockNumber(rawStock, dealer);
+        const stock = normalizeStockNumber(rawStock, dealer, item.source_listing_id);
         if (!stock) return;
         incomingStocks.add(stock);
         if (item.source_listing_id) incomingListingIds.add(String(item.source_listing_id));
