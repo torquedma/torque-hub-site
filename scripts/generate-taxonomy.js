@@ -84,6 +84,11 @@ const TARGETS = [
     content: cjsContent,
     label: 'admin CJS',
   },
+  {
+    path: path.join(ADMIN_ROOT, 'js/taxonomy.browser.js'),
+    content: browserContent,
+    label: 'admin browser global',
+  },
 ];
 
 for (const t of TARGETS) {

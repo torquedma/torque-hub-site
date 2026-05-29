@@ -32,9 +32,10 @@ function buildBrowser() {
 }
 
 const expected = {
-  [path.join(ROOT, 'netlify/functions/lib/taxonomy.generated.js')]: buildCJS(),
-  [path.join(ROOT, 'js/taxonomy.browser.js')]:                       buildBrowser(),
+  [path.join(ROOT, 'netlify/functions/lib/taxonomy.generated.js')]:       buildCJS(),
+  [path.join(ROOT, 'js/taxonomy.browser.js')]:                             buildBrowser(),
   [path.join(ADMIN_ROOT, 'netlify/functions/lib/taxonomy.generated.js')]: buildCJS(),
+  [path.join(ADMIN_ROOT, 'js/taxonomy.browser.js')]:                       buildBrowser(),
 };
 
 let drifted = false;
