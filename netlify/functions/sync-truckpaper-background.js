@@ -130,6 +130,10 @@ const DEALER_PREFIXES = {
   'DeBary Truck Sales': 'DBT-',
 };
 
+const FORCE_FALLBACK_DEALERS = new Set([
+  'Allied Truck & Trailer Sales',
+]);
+
 function normalizeStockNumber(rawStock, dealerName, sourceListingId) {
   const raw = rawStock ? String(rawStock).trim() : '';
   const sourceId = sourceListingId ? String(sourceListingId).trim() : '';
@@ -137,9 +141,11 @@ function normalizeStockNumber(rawStock, dealerName, sourceListingId) {
   if (!prefix) return raw || null;
   // Strip existing prefix for comparison purposes
   const stripped = raw.startsWith(prefix) ? raw.slice(prefix.length) : raw;
+  const forceFallback = FORCE_FALLBACK_DEALERS.has(dealerName);
   // Fallback rule: if no real internal stock parsed (either missing OR equal to source_listing_id),
+  // OR if dealer is in FORCE_FALLBACK_DEALERS (parsed stock is unreliable, e.g. Allied's ad-hoc labels),
   // use last 6 digits of source_listing_id
-  if (!stripped || (sourceId && stripped === sourceId)) {
+  if (!stripped || (sourceId && stripped === sourceId) || forceFallback) {
     if (!sourceId) return null;
     return `${prefix}${sourceId.slice(-6)}`;
   }
