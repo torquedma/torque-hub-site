@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "gen-taxonomy": "node scripts/generate-taxonomy.js",
+    "verify-taxonomy": "node scripts/verify-taxonomy.js"
+  },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.0",
     "resend": "^4.0.0"
