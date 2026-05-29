@@ -1,5 +1,6 @@
 const { createClient } = require('@supabase/supabase-js');
 const { generateDescription } = require('./lib/generate-description');
+const { CANONICAL_SUBCATEGORIES, SUBCATEGORY_ALIASES, canonicalize } = require('./lib/taxonomy.generated.js');
 
 // Strip marketing filler after a dash/em-dash separator, e.g.
 // "Cummins ISB 6.7L - Powerful and efficient" → "Cummins ISB 6.7L"
@@ -150,60 +151,6 @@ function normalizeStockNumber(rawStock, dealerName, sourceListingId) {
     return `${prefix}${sourceId.slice(-6)}`;
   }
   return raw.startsWith(prefix) ? raw : `${prefix}${stripped}`;
-}
-
-// ── Canonical subcategory authority (first brick of the shared normalization layer) ──
-const CANONICAL_SUBCATEGORIES = new Set([
-  'Box Truck','Day Cab Tractor','Sleeper Tractor','Service Truck','Dump Truck',
-  'Rollback Tow Truck','Tow Truck','Flatbed Truck','Car Carrier Truck','Cargo Van',
-  'Passenger Van','Pickup Truck','Crane Truck','Refrigerated Truck','Tanker Truck',
-  'Fuel Truck','Step Van','Garbage Truck','Concrete Mixer','Grain Dump Truck',
-  'Bucket Truck','Mixer Truck','Yard Spotter','Cab & Chassis','Fire Truck','Winch Truck',
-  'Crane Service Truck','Enclosed Landscape Truck',
-  'Enclosed Trailer','Car Hauler Trailer','Utility Trailer','Dump Trailer','Equipment Trailer',
-  'Gooseneck Trailer','Concession Trailer','Race Trailer','Deckover Trailer','Tilt Trailer',
-  'Dovetail Trailer','Tank Trailer','Tanker Trailer','Dry Van Trailer','Motorcycle Trailer',
-  'Landscape Trailer','Frameless Dump','Other Trailer','Reefer Trailer','Pole Trailer',
-  'Reel / Cable Trailer','Curtain-Side Trailer','Lowboy Trailer','Flatbed Trailer',
-  'Vending / Concession Trailer',
-  'Skid Steer','Compact Track Loader','Loader','Wheel Loader','Boom Lift','Backhoe',
-  'Excavator','Crawler Dozer','Forklift','Digger Derrick','Trencher','Scissor Lift',
-  'Compactor','Scraper','Air Compressor','Motor Grader','Backhoe Attachment','Crawler Loader',
-  'Tractor','Lawn Tractor','Zero Turn Mower','Walk Behind Mower','Front Mounted Mower',
-  'Field Mower','Finish Mower','Rotary Cutter','Hay Rake','Baler','Cultivator','Planter',
-  'Combine','Log Splitter','Wagon','Harrow','Disk','Box Scraper','Utility Vehicle','Land Leveler',
-  'Overseeder','V-Ripper','Turf & Grounds Care',
-  'SUV','Motorcycle','Classic Car','Engine','Side by Side','Boat','Freezer Box Body','Body',
-]);
-
-const SUBCATEGORY_ALIASES = {
-  'Cargo / Enclosed Trailer': 'Enclosed Trailer',
-  'Cargo Trailer': 'Enclosed Trailer',
-  'Refrigerated Trailer': 'Reefer Trailer',
-  'Equipment Trailers': 'Equipment Trailer',
-  'Harrows': 'Harrow',
-  'Disks': 'Disk',
-  'Curtain-Side': 'Curtain-Side Trailer',
-  'Dry Van': 'Dry Van Trailer',
-  'Track Loader': 'Crawler Loader',
-  // Skid-steer family canonicalization (the upstream actor emits drive-type-specific
-  // strings; we collapse them to canonical buckets per the locked taxonomy).
-  // NOTE: 'Track Loader' (above) → Crawler Loader (steel-track dozer-platform machines).
-  // These are different: a Track Skid Steer is the rubber-track skid-steer-controls class.
-  'Track Skid Steer': 'Compact Track Loader',
-  'Tracked Skid Steer': 'Compact Track Loader',
-  'Wheel Skid Steer': 'Skid Steer',
-  'UTV': 'Utility Vehicle',
-  'Car / Racing Trailer': 'Car Hauler Trailer',
-  'Mower': '',
-  'Lawn & Garden': '',
-};
-
-function canonicalize(value) {
-  if (!value) return '';
-  const v = value.toString().trim();
-  const mapped = SUBCATEGORY_ALIASES.hasOwnProperty(v) ? SUBCATEGORY_ALIASES[v] : v;
-  return CANONICAL_SUBCATEGORIES.has(mapped) ? mapped : '';
 }
 
 function deriveSubcategory(item) {
