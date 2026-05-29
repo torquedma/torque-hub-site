@@ -273,6 +273,7 @@ const SUBCATEGORY_LEAVES = {
   'mini-excavators-for-sale':        { subs: ['Mini Excavator'],                label: 'Mini Excavators',      hub: 'construction-equipment-for-sale' },
   'skid-steers-for-sale':            { subs: ['Skid Steer', 'Compact Track Loader', 'Mini Skid Steer'], label: 'Skid Steers',          hub: 'construction-equipment-for-sale' },
   'mini-skid-steers-for-sale':       { subs: ['Mini Skid Steer'],               label: 'Mini Skid Steers',     hub: 'construction-equipment-for-sale' },
+  'loaders-for-sale':                { subs: ['Wheel Loader', 'Crawler Loader'], label: 'Loaders',              hub: 'construction-equipment-for-sale' },
 };
 
 const HUB_CHILDREN = {};

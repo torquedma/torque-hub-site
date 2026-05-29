@@ -105,6 +105,7 @@ const CATEGORY_URLS = [
   { loc: '/mini-excavators-for-sale',       changefreq: 'daily', priority: '0.8' },
   { loc: '/skid-steers-for-sale',           changefreq: 'daily', priority: '0.8' },
   { loc: '/mini-skid-steers-for-sale',      changefreq: 'daily', priority: '0.8' },
+  { loc: '/loaders-for-sale',               changefreq: 'daily', priority: '0.8' },
 ];
 
 exports.handler = async () => {

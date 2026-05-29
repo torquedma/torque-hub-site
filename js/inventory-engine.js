@@ -166,7 +166,7 @@ window.InventoryEngine = (function () {
       { label: 'Mini Skid Steers', kw: 'mini skid steer', subs: ['Mini Skid Steer'], slug: 'mini-skid-steers-for-sale', ssr: true },
       { label: 'Excavators', kw: 'excavator', subs: ['Excavator', 'Crawler Excavator', 'Mini Excavator'], slug: 'excavators-for-sale', ssr: true },
       { label: 'Mini Excavators', kw: 'mini excavator', subs: ['Mini Excavator'], slug: 'mini-excavators-for-sale', ssr: true },
-      { label: 'Loaders', kw: 'loader', slug: 'loaders' },
+      { label: 'Loaders', kw: 'loader', subs: ['Wheel Loader', 'Crawler Loader'], slug: 'loaders-for-sale', ssr: true },
       { label: 'Forklifts', kw: 'forklift', slug: 'forklifts' },
       { label: 'Backhoes', kw: 'backhoe', slug: 'backhoes' }
     ],
