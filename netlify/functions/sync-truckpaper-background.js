@@ -10,6 +10,18 @@ function trimSpec(val) {
   return val.split(/\s*[—–]\s*|\s+-\s+/)[0].trim();
 }
 
+function cleanEngine(v) {
+  if (!v) return '';
+  v = String(v).trim();
+  if (!v) return '';
+  if (/[*|]/.test(v)) return '';                         // bullet/feature-list delimiters
+  if (/^[a-z]/.test(v)) return '';                       // prose fragment (lowercase start)
+  if (/^\d+(\.\d+)?\s*(hours?|hrs?|miles?|mi)\b/i.test(v)) return '';  // "12000 HOURS" usage fragments
+  if (/\b(speed|automatic|manual|allison|eaton|fuller|transmission|brake|frame|axle|gvw|gvwr|invert|pintle|gladhand|differential|divider|suspension|wheel\s?base|cab to frame|lockers|cruise|power steering|cold ac)\b/i.test(v)) return '';
+  if (v.length > 50) return '';
+  return v;
+}
+
 const MAKE_ACRONYMS = new Set(['GMC', 'RAM', 'JCB', 'BMW', 'KTM', 'ASV', 'CAT', 'JLG', 'GM', 'PJ']);
 
 function normalizeMake(rawMake) {
@@ -438,7 +450,7 @@ exports.handler = async (event) => {
           const m = item.description.match(/Engine[:\s•]+([^\n•✔]{5,60})/i);
           if (m) engine = m[1].trim();
         }
-        engine = trimSpec(engine);
+        engine = cleanEngine(trimSpec(engine));
 
         let transmission = item.transmission || '';
         if (!transmission && item.description) {
