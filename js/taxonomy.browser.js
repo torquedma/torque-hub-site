@@ -37,6 +37,7 @@
     "Dump Trailer",
     "Equipment Trailer",
     "Gooseneck Trailer",
+    "Conestoga Trailer",
     "Concession Trailer",
     "Race Trailer",
     "Deckover Trailer",
