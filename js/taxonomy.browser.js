@@ -30,7 +30,7 @@
     "Fire Truck",
     "Winch Truck",
     "Crane Service Truck",
-    "Enclosed Landscape Truck",
+    "Landscape Truck",
     "Enclosed Trailer",
     "Car Hauler Trailer",
     "Utility Trailer",
@@ -135,6 +135,7 @@
     'Ditch Mower': 'Boom Mower',
     'Verge Mower': 'Boom Mower',
     'Boom Flail Mower': 'Boom Mower',
+    'Enclosed Landscape Truck': 'Landscape Truck',
     'Hay Wagon': 'Wagon',
     'Mower': '',
     'Lawn & Garden': ''
