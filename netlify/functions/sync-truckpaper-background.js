@@ -232,6 +232,9 @@ function deriveSubcategory(item) {
       [/[\/-]flatbed-trailers?\b/, 'Flatbed Trailer'],
       [/[\/-]reefer-trailers?\b/, 'Reefer Trailer'],
       [/[\/-]refrigerated-trailers?\b/, 'Reefer Trailer'],
+      [/[\/-]boom-mowers?(?:[\/-]|$)/, 'Boom Mower'],
+      [/[\/-]flail-mowers?(?:[\/-]|$)/, 'Boom Mower'],
+      [/[\/-]drum-mowers?(?:[\/-]|$)/, 'Drum Mower'],
       [/[\/-]suvs?\b/, 'SUV'],
     ];
     for (const [rx, label] of URL_SLUGS) {
@@ -277,6 +280,8 @@ function deriveSubcategory(item) {
     [/\bcargo\s*trailer\b|\benclosed\s*trailer\b/, 'Enclosed Trailer'],
     [/\blowboy\b/, 'Lowboy Trailer'],
     [/\bdry\s*van\b/, 'Dry Van Trailer'],
+    [/\bboom\s*mower\b|\bflail\s*mower\b|\bditch\s*mower\b|\bverge\s*mower\b/, 'Boom Mower'],
+    [/\bdrum\s*mower\b/, 'Drum Mower'],
     [/\bpickup\b/, 'Pickup Truck'],
   ];
 
