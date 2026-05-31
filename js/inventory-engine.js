@@ -129,7 +129,22 @@ window.InventoryEngine = (function () {
 
     // Use-case synonym: generic "lawn mower" maps to all consumer mower types,
     // since no single canonical subcategory contains that literal phrase.
-    'lawn mower':            ['zero turn mower', 'walk behind mower', 'lawn tractor']
+    'lawn mower':            ['zero turn mower', 'walk behind mower', 'lawn tractor'],
+
+    'septic':                ['vacuum truck'],
+    'septic truck':          ['vacuum truck'],
+    'septic pump':           ['vacuum truck'],
+    'vac truck':             ['vacuum truck'],
+    'vacuum':                ['vacuum truck'],
+    'sewer truck':           ['vacuum truck'],
+    'sewer cleaner':         ['vacuum truck'],
+    'vactor':                ['vacuum truck'],
+    'jetter':                ['vacuum truck'],
+    'jetter truck':          ['vacuum truck'],
+    'flail mower':           ['boom mower'],
+    'ditch mower':           ['boom mower'],
+    'verge mower':           ['boom mower'],
+    'landscaper truck':      ['landscape truck']
   };
 
   var CAT_SUBS = {
