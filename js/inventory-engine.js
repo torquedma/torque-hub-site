@@ -158,6 +158,7 @@ window.InventoryEngine = (function () {
       { label: 'Cab & Chassis Trucks', kw: 'chassis', subs: ['Cab & Chassis'], slug: 'cab-and-chassis-trucks-for-sale', ssr: true },
       { label: 'Rollback Tow Trucks', kw: 'rollback', subs: ['Rollback Tow Truck'], slug: 'rollback-tow-trucks-for-sale', ssr: true },
       { label: 'Boom Trucks', kw: 'boom', subs: ['Boom Truck'], slug: 'boom-trucks-for-sale', ssr: true },
+      { label: 'Vacuum Trucks', kw: 'vacuum', subs: ['Vacuum Truck'], slug: 'vacuum-trucks-for-sale', ssr: true },
       { label: 'Yard Spotters', kw: 'spotter', subs: ['Yard Spotter'], slug: 'yard-spotters-for-sale', ssr: true },
       { label: 'Car Carrier Trucks', kw: 'car carrier', subs: ['Car Carrier Truck'], slug: 'car-carrier-trucks-for-sale', ssr: true },
       { label: 'Cargo Vans', kw: 'cargo van', subs: ['Cargo Van'], slug: 'cargo-vans-for-sale', ssr: true }

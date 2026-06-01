@@ -86,6 +86,10 @@
   path = "/boom-trucks-for-sale"
   function = "category"
 
+[[edge_functions]]
+  path = "/vacuum-trucks-for-sale"
+  function = "category"
+
 # Trailer subcategories (12)
 [[edge_functions]]
   path = "/reefer-trailers-for-sale"

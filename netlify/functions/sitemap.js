@@ -80,6 +80,7 @@ const CATEGORY_URLS = [
   { loc: '/cargo-vans-for-sale',            changefreq: 'daily', priority: '0.8' },
   { loc: '/yard-spotters-for-sale',         changefreq: 'daily', priority: '0.8' },
   { loc: '/boom-trucks-for-sale',           changefreq: 'daily', priority: '0.8' },
+  { loc: '/vacuum-trucks-for-sale',         changefreq: 'daily', priority: '0.8' },
   { loc: '/car-carrier-trucks-for-sale',    changefreq: 'daily', priority: '0.8' },
   // Trailer leaves
   { loc: '/reefer-trailers-for-sale',              changefreq: 'daily', priority: '0.8' },
