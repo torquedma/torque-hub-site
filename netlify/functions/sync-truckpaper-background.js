@@ -147,6 +147,15 @@ const FORCE_FALLBACK_DEALERS = new Set([
   'Allied Truck & Trailer Sales',
 ]);
 
+function reorderDbtPhotos(photos, dealer) {
+  if (dealer !== 'DeBary Truck Sales') return photos;
+  if (!Array.isArray(photos) || photos.length < 3) return photos;
+  const originalFirst = photos[0];
+  const third = photos[2];
+  const middle = photos.slice(1, 2).concat(photos.slice(3)); // indices 1, then 3..end
+  return [third].concat(middle).concat([originalFirst]);
+}
+
 function normalizeStockNumber(rawStock, dealerName, sourceListingId) {
   const raw = rawStock ? String(rawStock).trim() : '';
   const sourceId = sourceListingId ? String(sourceListingId).trim() : '';
@@ -512,6 +521,8 @@ exports.handler = async (event) => {
           source_url: item.source_url || item.url || '',
           source_listing_id: item.source_listing_id || null,
         };
+
+        unit.photos = reorderDbtPhotos(unit.photos, dealer);
 
         if (anthropicKey) {
           try {
