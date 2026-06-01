@@ -55,6 +55,31 @@ exports.handler = async (event) => {
   const source   = payload.source   || 'finance_form';
   const property = payload.property || 'Torque Hub';
 
+  let resolvedLender = payload.lender || null;
+  if (payload.stock_number) {
+    try {
+      const { data: inv } = await supabase
+        .from('inventory')
+        .select('dealer')
+        .eq('stock', payload.stock_number)
+        .single();
+      if (inv && inv.dealer) {
+        const { data: route } = await supabase
+          .from('finance_routes')
+          .select('lender_name')
+          .eq('dealer_name', inv.dealer)
+          .eq('status', 'active')
+          .single();
+        if (route && route.lender_name) {
+          resolvedLender = route.lender_name;
+        }
+      }
+    } catch (e) {
+      // attribution is best-effort; never block a lead from saving
+      console.error('finance_routes attribution lookup failed:', e);
+    }
+  }
+
   const { error } = await supabase.from('leads').insert([{
     customer_name:  customer_name.trim(),
     customer_phone: customer_phone.trim(),
@@ -65,7 +90,7 @@ exports.handler = async (event) => {
     source_url:     payload.source_url     || null,
     message:        payload.message        || null,
     credit_score:   payload.credit_score   || null,
-    lender:         payload.lender         || null,
+    lender:         resolvedLender,
     rep:            payload.rep            || null,
     referrer:       payload.referrer       || null,
     source,
