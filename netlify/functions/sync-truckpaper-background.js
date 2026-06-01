@@ -147,6 +147,15 @@ const FORCE_FALLBACK_DEALERS = new Set([
   'Allied Truck & Trailer Sales',
 ]);
 
+function stripSandhillsJunkPhotos(photos) {
+  if (!Array.isArray(photos)) return photos;
+  return photos.filter(function(p) {
+    var url = (p && p.url) ? String(p.url) : '';
+    // Injected branding frames are served with wid=0; real listing photos carry the dealer widget id.
+    return !/[?&]wid=0(?:&|$)/.test(url);
+  });
+}
+
 function reorderDbtPhotos(photos, dealer) {
   if (dealer !== 'DeBary Truck Sales') return photos;
   if (!Array.isArray(photos) || photos.length < 3) return photos;
@@ -522,6 +531,7 @@ exports.handler = async (event) => {
           source_listing_id: item.source_listing_id || null,
         };
 
+        unit.photos = stripSandhillsJunkPhotos(unit.photos);
         unit.photos = reorderDbtPhotos(unit.photos, dealer);
 
         if (anthropicKey) {
