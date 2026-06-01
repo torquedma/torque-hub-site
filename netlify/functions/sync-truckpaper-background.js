@@ -607,6 +607,8 @@ exports.handler = async (event) => {
   }
 
   for (const row of (existing || [])) {
+    // Manual entries (no feed origin) are never feed-removed.
+    if (!row.source_url && !row.source_listing_id) continue;
     const rowPlatform = platformOf(row.source_url);
     // Scope gate: skip rows whose platform this run didn't scrape (or scraped too partially).
     if (!platformsToMarkSold.has(rowPlatform)) continue;
