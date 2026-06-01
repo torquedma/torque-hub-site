@@ -580,6 +580,12 @@ function buildVdpSlideUrl(rawUrl) {
     return rawUrl.replace(/\/\d+x\d+\//, '/1400x1050/');
   }
 
+  if (rawUrl.includes('cdnmedia.endeavorsuite.com')) {
+    return /[?&]width=\d+/i.test(rawUrl)
+      ? rawUrl.replace(/([?&]width=)\d+/i, '$11400')
+      : rawUrl + (rawUrl.includes('?') ? '&' : '?') + 'width=1400';
+  }
+
   return rawUrl;
 }
 
@@ -603,6 +609,12 @@ function buildVdpThumbUrl(rawUrl) {
 
   if (rawUrl.includes('cdn05.carsforsale.com') && /\/\d+x\d+\//.test(rawUrl)) {
     return rawUrl.replace(/\/\d+x\d+\//, '/200x150/');
+  }
+
+  if (rawUrl.includes('cdnmedia.endeavorsuite.com')) {
+    return /[?&]width=\d+/i.test(rawUrl)
+      ? rawUrl.replace(/([?&]width=)\d+/i, '$1200')
+      : rawUrl + (rawUrl.includes('?') ? '&' : '?') + 'width=200';
   }
 
   return rawUrl;
