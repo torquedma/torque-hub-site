@@ -70,5 +70,67 @@ if (drifted) {
   process.exit(1);
 } else {
   console.log('\nverify-taxonomy: OK — all generated files match taxonomy.json');
+}
+
+// ---------------------------------------------------------------------------
+// ORPHAN_SUB pass — catch subcategories wired into buyer-facing layers that
+// are neither canonical nor a defined alias (the Boom Truck / Conestoga /
+// Living Quarters Trailer bug class).
+// ---------------------------------------------------------------------------
+
+const canonicalSet = new Set(canonical);
+
+// Extract every value from every subs: [...] array in a JS source file.
+// Strategy: find each `subs: [...]` block, then pull every single-quoted
+// string out of it.  Handles multi-value arrays like ['Foo', 'Bar'] and
+// tight spacing like ['Foo','Bar'].
+function extractSubsFrom(src, filePath) {
+  const results = [];
+  const blockRe = /\bsubs:\s*\[([^\]]*)\]/g;
+  const strRe   = /'([^']+)'/g;
+  let block;
+  while ((block = blockRe.exec(src)) !== null) {
+    const inner = block[1];
+    let m;
+    while ((m = strRe.exec(inner)) !== null) {
+      results.push({ sub: m[1], file: filePath });
+    }
+  }
+  return results;
+}
+
+const CAT_SUBS_FILE   = path.join(ROOT, 'js/inventory-engine.js');
+const LEAVES_FILE     = path.join(ROOT, 'netlify/edge-functions/category.js');
+
+const catSubsRefs   = extractSubsFrom(fs.readFileSync(CAT_SUBS_FILE,   'utf8'), 'CAT_SUBS (inventory-engine.js)');
+const leavesRefs    = extractSubsFrom(fs.readFileSync(LEAVES_FILE,     'utf8'), 'SUBCATEGORY_LEAVES (category.js)');
+const allRefs       = [...catSubsRefs, ...leavesRefs];
+
+// Deduplicate for the OK count, but keep per-source info for failure output.
+const uniqueSubs = new Set(allRefs.map(r => r.sub));
+
+// REVIEW-ONLY verbose output — remove or stop setting VERIFY_VERBOSE once
+// you've confirmed the parse caught everything expected.
+if (process.env.VERIFY_VERBOSE) {
+  console.log('\n--- REVIEW: all subs extracted from CAT_SUBS ---');
+  catSubsRefs.forEach(r => console.log('  ' + r.sub));
+  console.log('\n--- REVIEW: all subs extracted from SUBCATEGORY_LEAVES ---');
+  leavesRefs.forEach(r => console.log('  ' + r.sub));
+  console.log('--- END REVIEW ---\n');
+}
+
+let orphaned = false;
+for (const { sub, file } of allRefs) {
+  if (!canonicalSet.has(sub) && !Object.prototype.hasOwnProperty.call(aliases, sub)) {
+    console.error(`ORPHAN_SUB: '${sub}' referenced in ${file} is neither canonical nor a defined alias`);
+    orphaned = true;
+  }
+}
+
+if (orphaned) {
+  console.error('\nverify-taxonomy: FAILED — orphaned subcategories found (run npm run gen-taxonomy if taxonomy.json was just updated)');
+  process.exit(1);
+} else {
+  console.log(`ORPHAN_SUB OK: checked ${uniqueSubs.size} unique subcategories across CAT_SUBS and SUBCATEGORY_LEAVES`);
   process.exit(0);
 }
