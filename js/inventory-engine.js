@@ -159,6 +159,7 @@ window.InventoryEngine = (function () {
       { label: 'Rollback Tow Trucks', kw: 'rollback', subs: ['Rollback Tow Truck'], slug: 'rollback-tow-trucks-for-sale', ssr: true },
       { label: 'Boom Trucks', kw: 'boom', subs: ['Boom Truck'], slug: 'boom-trucks-for-sale', ssr: true },
       { label: 'Vacuum Trucks', kw: 'vacuum', subs: ['Vacuum Truck'], slug: 'vacuum-trucks-for-sale', ssr: true },
+      { label: 'Landscape Trucks', kw: 'landscape truck', subs: ['Landscape Truck'], slug: 'landscape-trucks-for-sale', ssr: true },
       { label: 'Yard Spotters', kw: 'spotter', subs: ['Yard Spotter'], slug: 'yard-spotters-for-sale', ssr: true },
       { label: 'Car Carrier Trucks', kw: 'car carrier', subs: ['Car Carrier Truck'], slug: 'car-carrier-trucks-for-sale', ssr: true },
       { label: 'Cargo Vans', kw: 'cargo van', subs: ['Cargo Van'], slug: 'cargo-vans-for-sale', ssr: true }
@@ -189,6 +190,8 @@ window.InventoryEngine = (function () {
     'Farm': [
       { label: 'Tractors', kw: 'tractor', subs: ['Tractor'], slug: 'tractors-for-sale', ssr: true },
       { label: 'Rotary Cutters', kw: 'rotary', subs: ['Rotary Cutter'], slug: 'rotary-cutters-for-sale', ssr: true },
+      { label: 'Boom Mowers', kw: 'boom mower', subs: ['Boom Mower'], slug: 'boom-mowers-for-sale', ssr: true },
+      { label: 'Drum Mowers', kw: 'drum mower', subs: ['Drum Mower'], slug: 'drum-mowers-for-sale', ssr: true },
       { label: 'Hay Rakes', kw: 'hay rake', slug: 'hay-rakes' },
       { label: 'Balers', kw: 'baler', slug: 'balers' },
       { label: 'Field Mowers', kw: 'field mower', slug: 'field-mowers' },

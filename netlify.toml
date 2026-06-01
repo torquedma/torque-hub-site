@@ -90,6 +90,10 @@
   path = "/vacuum-trucks-for-sale"
   function = "category"
 
+[[edge_functions]]
+  path = "/landscape-trucks-for-sale"
+  function = "category"
+
 # Trailer subcategories (12)
 [[edge_functions]]
   path = "/reefer-trailers-for-sale"
@@ -139,13 +143,21 @@
   path = "/gooseneck-trailers-for-sale"
   function = "category"
 
-# Farm subcategories (2)
+# Farm subcategories (4)
 [[edge_functions]]
   path = "/tractors-for-sale"
   function = "category"
 
 [[edge_functions]]
   path = "/rotary-cutters-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/boom-mowers-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/drum-mowers-for-sale"
   function = "category"
 
 # Landscape subcategories (2)

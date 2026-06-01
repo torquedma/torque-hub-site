@@ -81,6 +81,7 @@ const CATEGORY_URLS = [
   { loc: '/yard-spotters-for-sale',         changefreq: 'daily', priority: '0.8' },
   { loc: '/boom-trucks-for-sale',           changefreq: 'daily', priority: '0.8' },
   { loc: '/vacuum-trucks-for-sale',         changefreq: 'daily', priority: '0.8' },
+  { loc: '/landscape-trucks-for-sale',      changefreq: 'daily', priority: '0.8' },
   { loc: '/car-carrier-trucks-for-sale',    changefreq: 'daily', priority: '0.8' },
   // Trailer leaves
   { loc: '/reefer-trailers-for-sale',              changefreq: 'daily', priority: '0.8' },
@@ -98,6 +99,8 @@ const CATEGORY_URLS = [
   // Farm leaves
   { loc: '/tractors-for-sale',              changefreq: 'daily', priority: '0.8' },
   { loc: '/rotary-cutters-for-sale',        changefreq: 'daily', priority: '0.8' },
+  { loc: '/boom-mowers-for-sale',           changefreq: 'daily', priority: '0.8' },
+  { loc: '/drum-mowers-for-sale',           changefreq: 'daily', priority: '0.8' },
   // Landscape leaves
   { loc: '/zero-turn-mowers-for-sale',      changefreq: 'daily', priority: '0.8' },
   { loc: '/lawn-tractors-for-sale',         changefreq: 'daily', priority: '0.8' },
