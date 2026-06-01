@@ -91,6 +91,7 @@
 
     /* GALLERY */
     .gallery { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+    .gallery-stage { position: relative; }
     .gallery-main { position: relative; aspect-ratio: 16/9; background: var(--panel-2); display: flex; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; scrollbar-width: none; width: 100%; max-width: 100%; min-width: 0; cursor: pointer; }
     .gallery-main::-webkit-scrollbar { display: none; }
     .gallery-slide { flex: 0 0 100%; scroll-snap-align: center; scroll-snap-stop: always; height: 100%; min-width: 0; display: flex; align-items: center; justify-content: center; background: var(--panel-2); }
@@ -304,9 +305,10 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
 
         <!-- Gallery -->
         <div class="gallery">
-          <div class="gallery-main" id="gallery-main">
-            <button class="gallery-arrow gallery-prev" id="gallery-prev" onclick="galleryNav(-1)" style="display:none">‹</button>
-            <button class="gallery-arrow gallery-next" id="gallery-next" onclick="galleryNav(1)" style="display:none">›</button>
+          <div class="gallery-stage">
+            <div class="gallery-main" id="gallery-main"></div>
+            <button class="gallery-arrow gallery-prev" id="gallery-prev" onclick="galleryNav(-1)" style="display:none">&#x2039;</button>
+            <button class="gallery-arrow gallery-next" id="gallery-next" onclick="galleryNav(1)" style="display:none">&#x203a;</button>
             <div class="gallery-counter" id="gallery-counter" style="display:none">1 / 1</div>
           </div>
           <div class="gallery-thumbs" id="gallery-thumbs"></div>
@@ -675,17 +677,14 @@ function initGallery(rawPhotos) {
     return;
   }
 
-  // Rebuild gallery-main completely so the image and buttons are all present.
-  // Setting innerHTML piecemeal destroys sibling nodes, so we write everything
-  // at once then re-query the buttons and counter from the live DOM.
-  mainEl.innerHTML = `
-    ${photos.map((p, i) => `<div class="gallery-slide"><img src="${buildVdpSlideUrl(p.url)}" alt="Photo ${i + 1}" loading="${i === 0 ? 'eager' : 'lazy'}" decoding="async"></div>`).join('')}
-    <button class="gallery-arrow gallery-prev" id="gallery-prev" onclick="galleryNav(-1)">&#x2039;</button>
-    <button class="gallery-arrow gallery-next" id="gallery-next" onclick="galleryNav(1)">&#x203a;</button>
-    <div class="gallery-counter" id="gallery-counter">1 / ${photos.length}</div>
-  `.trim();
+  // Populate gallery-main with slides only. Arrows and counter live in .gallery-stage
+  // (siblings of gallery-main, outside the scroll container) so they stay fixed in the
+  // viewport across all photos instead of scrolling away with the content.
+  mainEl.innerHTML = photos.map((p, i) =>
+    `<div class="gallery-slide"><img src="${buildVdpSlideUrl(p.url)}" alt="Photo ${i + 1}" loading="${i === 0 ? 'eager' : 'lazy'}" decoding="async"></div>`
+  ).join('');
 
-  // Re-query after innerHTML rebuild — old references are now detached
+  // Arrows and counter are static DOM siblings — no re-query needed after innerHTML.
   const prevBtnLive = document.getElementById('gallery-prev');
   const nextBtnLive = document.getElementById('gallery-next');
   const counterLive = document.getElementById('gallery-counter');
@@ -693,7 +692,7 @@ function initGallery(rawPhotos) {
   if (photos.length > 1) {
     if (prevBtnLive) prevBtnLive.style.display = 'flex';
     if (nextBtnLive) nextBtnLive.style.display = 'flex';
-    if (counterLive) counterLive.style.display = 'block';
+    if (counterLive) { counterLive.style.display = 'block'; counterLive.textContent = `1 / ${photos.length}`; }
   } else {
     if (prevBtnLive) prevBtnLive.style.display = 'none';
     if (nextBtnLive) nextBtnLive.style.display = 'none';
