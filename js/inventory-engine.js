@@ -59,7 +59,13 @@ window.InventoryEngine = (function () {
       return rawUrl.replace(/\/\d+x\d+\//, '/400x300/');
     }
 
-    // HGR/Endeavor CDN resize parameters are not verified; leave untouched.
+    // Endeavor CDN — honors ?width= and scales proportionally (no height param needed).
+    if (rawUrl.includes('cdnmedia.endeavorsuite.com')) {
+      return /[?&]width=\d+/i.test(rawUrl)
+        ? rawUrl.replace(/([?&]width=)\d+/i, '$1400')
+        : rawUrl + (rawUrl.includes('?') ? '&' : '?') + 'width=400';
+    }
+
     return rawUrl;
   }
 
