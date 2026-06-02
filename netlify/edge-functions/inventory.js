@@ -46,6 +46,11 @@ function esc(s) {
     .replace(/"/g, '&quot;');
 }
 
+// Mirrors client pp() in inventory-engine.js:268.
+// `price` is a TEXT column — strip everything except digits and decimal point,
+// then parse as float. Returns 0 for null / empty / non-numeric (sinks to bottom).
+const ppNum = (p) => parseFloat(String(p == null ? '' : p).replace(/[^0-9.]/g, '')) || 0;
+
 // Mirrors buildCardThumb() in js/inventory-engine.js line 30–70.
 // All four CDN branches replicated exactly; 400-wide thumbnails.
 function buildCardThumb(rawUrl) {
@@ -182,64 +187,65 @@ export default async function handler(request, context) {
     // case, etc.) return the original page untouched rather than injecting into the wrong spot.
     if (!html.includes(GRID_MARKER)) return response;
 
+    // ── Single Supabase fetch ──────────────────────────────────────────────────
+    // ONE request covers both the preload hint and the card grid.
+    // NO order param: `price` is a TEXT column so Supabase sorts lexically
+    // ("9999" > "148500"). We pull all units (limit=1000 comfortably covers the
+    // ~370-unit table) and sort numerically in JS, matching the client's pp() exactly.
+    const invRes = await fetch(
+      SUPABASE_URL +
+        '/rest/v1/inventory?sold=eq.false&limit=1000' +
+        '&select=stock,year,make,model,trim,subcategory,price,mileage,engine,fuel,condition,photos,dealer',
+      { headers: SB_HEADERS }
+    ).catch(() => null);
+
+    if (!invRes || !invRes.ok) return response;
+
+    let allUnits;
+    try { allUnits = await invRes.json(); } catch (e) { return response; }
+    if (!Array.isArray(allUnits) || !allUnits.length) return response;
+
+    // Filter to rows with a usable first photo, then sort by ppNum(price) descending.
+    // Filtering first ensures: (a) the preload candidate always has an image to preload,
+    // (b) all 6 SSR cards render a real photo rather than the "coming soon" placeholder.
+    const sorted = allUnits
+      .filter(u => { const ph = getPhotos(u); return ph.length > 0 && (ph[0].url || ph[0].dataUrl); })
+      .sort((a, b) => ppNum(b.price) - ppNum(a.price));
+
+    // Nothing photo-bearing in Supabase (extremely unlikely) — serve static page.
+    if (!sorted.length) return response;
+
+    const top   = sorted[0];          // highest-priced photo-bearing unit
+    const cards = sorted.slice(0, 6); // top 6 for the SSR card grid
+
     // ── LCP preload hint ────────────────────────────────────────────────────────
-    // One cheap Supabase call (limit 1) to find the highest-priced unit server-side.
     // Injects <link rel="preload" as="image" fetchpriority="high"> in <head> so the
-    // browser starts fetching the LCP image immediately — before JS runs and calls
-    // Supabase itself (which currently causes a 3.5s discovery delay).
-    //
-    // Isolated in its own try/catch: ANY failure (network, parse, missing </head>)
-    // is silently swallowed. The page continues to card injection unaffected.
+    // browser starts the LCP image fetch immediately — before JS runs and discovers the URL.
+    // Isolated in its own try/catch — any failure silently skips the preload; the page
+    // continues to card injection unaffected.
     let finalHtml = html;
     try {
-      const lcpRes = await fetch(
-        SUPABASE_URL + '/rest/v1/inventory?sold=eq.false&order=price.desc.nullslast&limit=1&select=price,photos',
-        { headers: SB_HEADERS }
-      ).catch(() => null);
+      const topPrice = ppNum(top.price);
 
-      if (lcpRes && lcpRes.ok) {
-        const lcpData = await lcpRes.json().catch(() => null);
-        if (Array.isArray(lcpData) && lcpData.length) {
-          const top = lcpData[0];
-          const topPrice = parseFloat(String(top.price || '').replace(/[^0-9.]/g, '')) || 0;
+      // Threshold guard: Supabase top must clearly beat the highest known external-feed
+      // price ($60k Davenport) by a $5k margin. Below threshold we cannot confirm Supabase
+      // has the global top card — emit no preload rather than preloading the wrong image.
+      if (topPrice >= 65000) {
+        const topPhotos = getPhotos(top);
+        const photoUrl  = topPhotos[0].url || topPhotos[0].dataUrl || '';
+        const thumbUrl  = buildCardThumb(photoUrl);
 
-          // Threshold guard: only emit the preload if the Supabase top clearly beats
-          // the highest known external-feed price ($60k Davenport). 65000 gives a $5k
-          // safety margin. If Supabase top is below threshold we cannot confirm it is
-          // the global top card — emit nothing rather than preloading the wrong image.
-          if (topPrice >= 65000) {
-            const topPhotos = getPhotos(top);
-            const photoUrl = topPhotos.length ? (topPhotos[0].url || topPhotos[0].dataUrl || '') : '';
-            const thumbUrl = buildCardThumb(photoUrl);
-
-            if (thumbUrl && finalHtml.includes('</head>')) {
-              const preloadLink = `<link rel="preload" as="image" fetchpriority="high" href="${esc(thumbUrl)}">`;
-              finalHtml = finalHtml.replace('</head>', preloadLink + '\n</head>');
-            }
-          }
+        if (thumbUrl && finalHtml.includes('</head>')) {
+          const preloadLink = `<link rel="preload" as="image" fetchpriority="high" href="${esc(thumbUrl)}">`;
+          finalHtml = finalHtml.replace('</head>', preloadLink + '\n</head>');
         }
       }
     } catch (e) { /* preload skipped — continue to card injection */ }
 
-    // Fetch top 6 units sorted by price descending — matches the client default sort
-    // (applyFilters() line 325: `value: 'price-desc'` fallback when the <select> is absent).
-    // nullslast keeps null-price units below priced ones.
-    // NOTE: this queries Supabase only. The client also merges external feed dealers
-    // (Davenport, Fat Daddy's, Wilson, HGR, Impex) fetched at runtime. The SSR and
-    // client top-6 may differ if feed-dealer units outrank Supabase units by price.
-    // This is acceptable: SSR cards are early-paint placeholders that JS replaces.
-    const query = SUPABASE_URL +
-      '/rest/v1/inventory?sold=eq.false&order=price.desc.nullslast&limit=6' +
-      '&select=stock,year,make,model,trim,subcategory,price,mileage,engine,fuel,condition,photos,dealer';
-
-    const invRes = await fetch(query, { headers: SB_HEADERS }).catch(() => null);
-    if (!invRes || !invRes.ok) return response;
-
-    let units;
-    try { units = await invRes.json(); } catch (e) { return response; }
-    if (!Array.isArray(units) || !units.length) return response;
-
-    const sixCardsHtml = buildSixCards(units);
+    // ── SSR card grid ──────────────────────────────────────────────────────────
+    // Same sorted array: cards[0] === top, so the preload image and the first SSR card
+    // image are always the same URL.
+    const sixCardsHtml = buildSixCards(cards);
     const injectedHtml = finalHtml.replace(
       GRID_MARKER,
       '<div class="inventory-grid" id="inventory-grid">' + sixCardsHtml + '</div>'
