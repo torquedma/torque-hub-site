@@ -13,7 +13,7 @@ const DEALER_CONTACT = {
   'Dick Smith Equipment':          { name: 'Dick Smith Equipment',          phone: '919-734-1191', location: 'Goldsboro, NC' },
   'Suttontown Repair Service':     { name: 'Suttontown Repair Service',     phone: '910-530-1732', location: 'Faison, NC' },
   'Fannon Land & Auction Co.':     { name: 'Fannon Land & Auction Co.',     phone: '276-821-1194', location: 'Pennington Gap, VA' },
-  'Mid Atlantic Power & Equipment':{ name: 'Mid Atlantic Power & Equipment',phone: '910-889-9201', location: 'Dunn, NC' },
+  'Mid-Atlantic Power & Equipment':{ name: 'Mid-Atlantic Power & Equipment',phone: '910-889-9201', location: 'Dunn, NC' },
   'DeBary Truck Sales':            { name: 'DeBary Truck Sales',            phone: '(407) 993-2364', location: 'Sanford, FL' },
   'A F Sales & Service':           { name: 'A F Sales & Service',           phone: '(317) 449-8903', location: 'Indianapolis, IN' },
   'The Trailer Source':            { name: 'The Trailer Source',            phone: '336-850-8176',   location: 'Winston Salem, NC' },

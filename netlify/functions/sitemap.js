@@ -18,7 +18,7 @@ const DEALERS = [
   { key: "Dick Smith Equipment",           feedUrl: null },
   { key: "Suttontown Repair Service",      feedUrl: null },
   { key: "Fannon Land & Auction Co.",      feedUrl: null },
-  { key: "Mid Atlantic Power & Equipment", feedUrl: null },
+  { key: "Mid-Atlantic Power & Equipment", feedUrl: null },
   { key: "DeBary Truck Sales",            feedUrl: null },
   { key: "A F Sales & Service",           feedUrl: null },
   { key: "The Trailer Source",            feedUrl: null },
