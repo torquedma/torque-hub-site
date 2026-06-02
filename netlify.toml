@@ -13,6 +13,10 @@
   timeout = 900
 
 [[edge_functions]]
+  path = "/inventory.html"
+  function = "inventory"
+
+[[edge_functions]]
   path = "/vehicle.html"
   function = "vehicle"
 
