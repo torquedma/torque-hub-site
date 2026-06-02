@@ -374,7 +374,7 @@ window.InventoryEngine = (function () {
       ((_el(_fids.condition) || { value: '' }).value === '') &&
       currentCat === '' && currentSub === '' &&
       (!location.search || location.search === '');
-    if (!_ssrHandedOff && _isDefView && grid.children.length > 0) {
+    if (!_ssrHandedOff && _isDefView && grid.querySelector('.inv-card') !== null) {
       _ssrHandedOff = true;
       // SSR cards present on first default-view render — preserve them, skip wholesale replace.
     } else {
