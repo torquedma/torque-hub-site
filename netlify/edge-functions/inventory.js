@@ -182,6 +182,45 @@ export default async function handler(request, context) {
     // case, etc.) return the original page untouched rather than injecting into the wrong spot.
     if (!html.includes(GRID_MARKER)) return response;
 
+    // ── LCP preload hint ────────────────────────────────────────────────────────
+    // One cheap Supabase call (limit 1) to find the highest-priced unit server-side.
+    // Injects <link rel="preload" as="image" fetchpriority="high"> in <head> so the
+    // browser starts fetching the LCP image immediately — before JS runs and calls
+    // Supabase itself (which currently causes a 3.5s discovery delay).
+    //
+    // Isolated in its own try/catch: ANY failure (network, parse, missing </head>)
+    // is silently swallowed. The page continues to card injection unaffected.
+    let finalHtml = html;
+    try {
+      const lcpRes = await fetch(
+        SUPABASE_URL + '/rest/v1/inventory?sold=eq.false&order=price.desc.nullslast&limit=1&select=price,photos',
+        { headers: SB_HEADERS }
+      ).catch(() => null);
+
+      if (lcpRes && lcpRes.ok) {
+        const lcpData = await lcpRes.json().catch(() => null);
+        if (Array.isArray(lcpData) && lcpData.length) {
+          const top = lcpData[0];
+          const topPrice = parseFloat(String(top.price || '').replace(/[^0-9.]/g, '')) || 0;
+
+          // Threshold guard: only emit the preload if the Supabase top clearly beats
+          // the highest known external-feed price ($60k Davenport). 65000 gives a $5k
+          // safety margin. If Supabase top is below threshold we cannot confirm it is
+          // the global top card — emit nothing rather than preloading the wrong image.
+          if (topPrice >= 65000) {
+            const topPhotos = getPhotos(top);
+            const photoUrl = topPhotos.length ? (topPhotos[0].url || topPhotos[0].dataUrl || '') : '';
+            const thumbUrl = buildCardThumb(photoUrl);
+
+            if (thumbUrl && finalHtml.includes('</head>')) {
+              const preloadLink = `<link rel="preload" as="image" fetchpriority="high" href="${esc(thumbUrl)}">`;
+              finalHtml = finalHtml.replace('</head>', preloadLink + '\n</head>');
+            }
+          }
+        }
+      }
+    } catch (e) { /* preload skipped — continue to card injection */ }
+
     // Fetch top 6 units sorted by price descending — matches the client default sort
     // (applyFilters() line 325: `value: 'price-desc'` fallback when the <select> is absent).
     // nullslast keeps null-price units below priced ones.
@@ -201,7 +240,7 @@ export default async function handler(request, context) {
     if (!Array.isArray(units) || !units.length) return response;
 
     const sixCardsHtml = buildSixCards(units);
-    const injectedHtml = html.replace(
+    const injectedHtml = finalHtml.replace(
       GRID_MARKER,
       '<div class="inventory-grid" id="inventory-grid">' + sixCardsHtml + '</div>'
     );
