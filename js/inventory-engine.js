@@ -250,6 +250,7 @@ window.InventoryEngine = (function () {
   var currentCat = '';
   var currentSub = '';
   var currentPage = 1;
+  var _ssrHandedOff = false;
 
   // ── Helpers ────────────────────────────────────────────────────────────────
   function _el(id) { return id ? document.getElementById(id) : null; }
@@ -365,42 +366,56 @@ window.InventoryEngine = (function () {
       return;
     }
 
-    grid.innerHTML = slice.map(function(u, _i) {
-      var d          = u._dealer || DEALERS.find(function(x) { return x.key === u.dealer; }) || {};
-      var photoRaw   = u.photos && u.photos.length ? (u.photos[0].url || u.photos[0].dataUrl || '') : '';
-      var photo      = buildCardThumb(photoRaw);
-      var eager      = _i < 6;
-      var loadAttr   = eager ? 'eager' : 'lazy';
-      var fpAttr     = eager ? ' fetchpriority="high"' : '';
-      var title      = [u.year, u.make, u.model, u.trim || u.subcategory].filter(Boolean).join(' ') || 'Unit Available';
-      var vdpUrl     = 'vehicle.html?stock=' + encodeURIComponent(u.stock || '');
-      var priceStr   = u.price && !isNaN(parseFloat(String(u.price).replace(/[^0-9.]/g, '')))
-                         ? '$' + Number(String(u.price).replace(/[^0-9.]/g, '')).toLocaleString()
-                         : (u.price && u.price !== '0' ? u.price : 'Call');
-      var dealerLine = [d.name || u.dealer, d.location || ''].filter(Boolean).join(' &middot; ');
-      var mileageVal = fmtMileage(u.hours || u.mileage);
-      var engineVal  = trimEngine(u.engine);
-      var chips = [];
-      if (mileageVal && mileageVal !== '—') chips.push(mileageVal + (u.hours ? ' hrs' : ' mi'));
-      if (chips.length < 2 && engineVal  && engineVal  !== '—') chips.push(engineVal);
-      if (chips.length < 2 && u.fuel     && u.fuel     !== '—') chips.push(u.fuel);
-      if (chips.length < 2 && u.condition) chips.push(u.condition);
+    var _fids = _cfg.filterIds || {};
+    var _isDefView =
+      ((_el(_fids.sort)      || { value: 'price-desc' }).value === 'price-desc') &&
+      ((_el(_fids.search)    || { value: '' }).value.toLowerCase().trim() === '') &&
+      ((_el(_fids.dealer)    || { value: '' }).value === '') &&
+      ((_el(_fids.condition) || { value: '' }).value === '') &&
+      currentCat === '' && currentSub === '' &&
+      (!location.search || location.search === '');
+    if (!_ssrHandedOff && _isDefView && grid.children.length > 0) {
+      _ssrHandedOff = true;
+      // SSR cards present on first default-view render — preserve them, skip wholesale replace.
+    } else {
+      _ssrHandedOff = true;
+      grid.innerHTML = slice.map(function(u, _i) {
+        var d          = u._dealer || DEALERS.find(function(x) { return x.key === u.dealer; }) || {};
+        var photoRaw   = u.photos && u.photos.length ? (u.photos[0].url || u.photos[0].dataUrl || '') : '';
+        var photo      = buildCardThumb(photoRaw);
+        var eager      = _i < 6;
+        var loadAttr   = eager ? 'eager' : 'lazy';
+        var fpAttr     = eager ? ' fetchpriority="high"' : '';
+        var title      = [u.year, u.make, u.model, u.trim || u.subcategory].filter(Boolean).join(' ') || 'Unit Available';
+        var vdpUrl     = 'vehicle.html?stock=' + encodeURIComponent(u.stock || '');
+        var priceStr   = u.price && !isNaN(parseFloat(String(u.price).replace(/[^0-9.]/g, '')))
+                           ? '$' + Number(String(u.price).replace(/[^0-9.]/g, '')).toLocaleString()
+                           : (u.price && u.price !== '0' ? u.price : 'Call');
+        var dealerLine = [d.name || u.dealer, d.location || ''].filter(Boolean).join(' &middot; ');
+        var mileageVal = fmtMileage(u.hours || u.mileage);
+        var engineVal  = trimEngine(u.engine);
+        var chips = [];
+        if (mileageVal && mileageVal !== '—') chips.push(mileageVal + (u.hours ? ' hrs' : ' mi'));
+        if (chips.length < 2 && engineVal  && engineVal  !== '—') chips.push(engineVal);
+        if (chips.length < 2 && u.fuel     && u.fuel     !== '—') chips.push(u.fuel);
+        if (chips.length < 2 && u.condition) chips.push(u.condition);
 
-      return '<article class="inv-card" aria-label="' + title + '">' +
-        '<a class="inv-card-link" href="' + vdpUrl + '" aria-label="View listing: ' + title + '">' +
-          '<div class="inv-photo">' +
-            (photo ? '<img src="' + photo + '" alt="' + title + '" loading="' + loadAttr + '"' + fpAttr + ' decoding="async">' : '<img src="/photos-coming-soon.png" alt="Photos coming soon" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;">') +
-          '</div>' +
-          '<div class="inv-body">' +
-            '<h3 class="inv-title">' + title + '</h3>' +
-            '<div class="inv-price">' + priceStr + '</div>' +
-            '<div class="inv-dealer">' + dealerLine + '</div>' +
-            (chips.length ? '<div class="inv-specs">' + chips.map(function(c) { return '<span class="inv-spec">' + c + '</span>'; }).join('') + '</div>' : '') +
-            '<div class="inv-cta-wrap"><span class="inv-cta">View Listing</span></div>' +
-          '</div>' +
-        '</a>' +
-      '</article>';
-    }).join('');
+        return '<article class="inv-card" aria-label="' + title + '">' +
+          '<a class="inv-card-link" href="' + vdpUrl + '" aria-label="View listing: ' + title + '">' +
+            '<div class="inv-photo">' +
+              (photo ? '<img src="' + photo + '" alt="' + title + '" loading="' + loadAttr + '"' + fpAttr + ' decoding="async">' : '<img src="/photos-coming-soon.png" alt="Photos coming soon" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;">') +
+            '</div>' +
+            '<div class="inv-body">' +
+              '<h3 class="inv-title">' + title + '</h3>' +
+              '<div class="inv-price">' + priceStr + '</div>' +
+              '<div class="inv-dealer">' + dealerLine + '</div>' +
+              (chips.length ? '<div class="inv-specs">' + chips.map(function(c) { return '<span class="inv-spec">' + c + '</span>'; }).join('') + '</div>' : '') +
+              '<div class="inv-cta-wrap"><span class="inv-cta">View Listing</span></div>' +
+            '</div>' +
+          '</a>' +
+        '</article>';
+      }).join('');
+    }
 
     // Featured-mode footer CTA
     if (featured) {
