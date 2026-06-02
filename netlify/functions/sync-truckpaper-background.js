@@ -151,8 +151,17 @@ function stripSandhillsJunkPhotos(photos) {
   if (!Array.isArray(photos)) return photos;
   return photos.filter(function(p) {
     var url = (p && p.url) ? String(p.url) : '';
-    // Injected branding frames are served with wid=0; real listing photos carry the dealer widget id.
-    return !/[?&]wid=0(?:&|$)/.test(url);
+    // Junk class 1: injected branding frames served with wid=0 (real photos carry the dealer widget id).
+    if (/[?&]wid=0(?:&|$)/.test(url)) return false;
+    // Junk class 2: page-furniture frames (disclaimer/sticker/QR/similar-listings) the scraper sweeps in
+    // via querySelectorAll('img').
+    // Observed 2026-06-01 (418 units / 5 Sandhills dealers):
+    //   Real photo checksums:        ~46-60 chars
+    //   Junk/page-furniture checksums: 164+ chars
+    //   Threshold set at >100 to leave a large safety margin; max 4 junk frames per unit, zero false positives.
+    var cs = (url.match(/[?&]checksum=([^&]+)/) || [])[1] || '';
+    if (cs.length > 100) return false;
+    return true;
   });
 }
 
