@@ -251,6 +251,8 @@ window.InventoryEngine = (function () {
   var currentSub = '';
   var currentPage = 1;
   var _ssrHandedOff = false;
+  var _userScrolled = false;
+  var _scrollListenerAdded = false;
 
   // ── Helpers ────────────────────────────────────────────────────────────────
   function _el(id) { return id ? document.getElementById(id) : null; }
@@ -489,6 +491,7 @@ window.InventoryEngine = (function () {
     if (!('IntersectionObserver' in window)) return;
     _ioSentinel = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) {
+        if (!_userScrolled) return;
         if (e.isIntersecting && autoLoads < AUTO_LOAD_LIMIT) {
           autoLoads++;
           visibleCount += PAGE_SIZE_INF;
@@ -497,6 +500,25 @@ window.InventoryEngine = (function () {
       });
     }, { rootMargin: '600px 0px' });
     _ioSentinel.observe(sentinel);
+
+    // One-time scroll gate: prevents sentinel from auto-loading on page load.
+    // On first real scroll, sets the flag and checks whether the sentinel is
+    // already within the rootMargin zone — if so, triggers the load that was
+    // gated, avoiding a dead-state where the user scrolls and nothing loads.
+    if (!_userScrolled && !_scrollListenerAdded) {
+      _scrollListenerAdded = true;
+      window.addEventListener('scroll', function () {
+        _userScrolled = true;
+        if (_ioSentinel && autoLoads < AUTO_LOAD_LIMIT) {
+          var s = document.getElementById('inv-sentinel');
+          if (s && s.getBoundingClientRect().top < window.innerHeight + 600) {
+            autoLoads++;
+            visibleCount += PAGE_SIZE_INF;
+            applyFilters();
+          }
+        }
+      }, { passive: true, once: true });
+    }
   }
 
   function loadMore() {
