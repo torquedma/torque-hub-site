@@ -15,17 +15,22 @@ exports.handler = async (event) => {
 
     const { data, error } = await supabase
       .from('inventory')
-      .select('stock,dealer,year,make,model,trim,price,subcategory,category,photos')
+      .select('stock,dealer,year,make,model,trim,price,subcategory,category,first_photo:photos->0')
       .eq('dealer', 'Impex Heavy Metal')
       .eq('sold', false)
       .order('year', { ascending: false });
 
     if (error) throw error;
 
+    const rows = (data || []).map(({ first_photo, ...unit }) => ({
+      ...unit,
+      photos: first_photo ? [first_photo] : []
+    }));
+
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify(data || [])
+      body: JSON.stringify(rows)
     };
   } catch (e) {
     console.error('impex-inventory error:', e.message);
