@@ -424,13 +424,13 @@ window.InventoryEngine = (function () {
         var cat = (u.category||'').toLowerCase();
         var MOWERS = {'zero turn mower':1,'walk behind mower':1,'lawn tractor':1,'front deck mower':1};
         var order;
-        if (sub === 'tractor')           order = ['horsepower','drivetrain','hours'];
-        else if (MOWERS[sub])            order = ['deck_width','hours','horsepower','engine'];
+        if (sub === 'tractor')           order = ['horsepower','hours'];
+        else if (MOWERS[sub])            order = ['deck_width','hours','horsepower'];
         else if (cat === 'trailers')     order = ['length','gvwr','axles'];
         else if (cat === 'trucks')       order = ['mileage','engine','transmission','drivetrain','fuel'];
-        else if (cat === 'construction') order = ['hours','horsepower','operating_weight','engine'];
-        else if (cat === 'farm')         order = ['hours','horsepower','engine'];
-        else                             order = ['mileage','hours','engine','fuel'];
+        else if (cat === 'construction') order = ['horsepower','operating_weight'];
+        else if (cat === 'farm')         order = ['horsepower','hours'];
+        else                             order = ['mileage','fuel'];
         var isNew = !badText(u.condition) && String(u.condition).trim().toLowerCase() === 'new';
         var chips = [];
         if (isNew) chips.push('NEW');
