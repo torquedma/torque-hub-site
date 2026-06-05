@@ -412,7 +412,7 @@ window.InventoryEngine = (function () {
           engine:           function(){ return badText(u.engine)? null : (typeof trimEngine==='function'?trimEngine(u.engine):String(u.engine).trim()); },
           transmission:     function(){ return badText(u.transmission)? null : String(u.transmission).trim(); },
           drivetrain:       function(){ return badText(u.drivetrain)? null : String(u.drivetrain).trim(); },
-          fuel:             function(){ return badText(u.fuel)? null : String(u.fuel).trim(); },
+          fuel:             function(){ if(badText(u.fuel)) return null; var f=String(u.fuel).trim(); return /diesel/i.test(f)? null : f; },
           horsepower:       function(){ var n=num(u.horsepower); return n? fmtNum(n)+' HP':null; },
           operating_weight: function(){ var n=num(u.operating_weight); return n? fmtNum(n)+' lb':null; },
           length:           function(){ return badText(u.length)? null : String(u.length).trim(); },

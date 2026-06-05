@@ -125,7 +125,7 @@ function buildCardChips(u) {
     engine:           () => badText(u.engine)? null : trimEngine(u.engine),
     transmission:     () => badText(u.transmission)? null : String(u.transmission).trim(),
     drivetrain:       () => badText(u.drivetrain)? null : String(u.drivetrain).trim(),
-    fuel:             () => badText(u.fuel)? null : String(u.fuel).trim(),
+    fuel:             () => { if(badText(u.fuel)) return null; const f=String(u.fuel).trim(); return /diesel/i.test(f)? null : f; },
     horsepower:       () => { const n=num(u.horsepower); return n? fmtNum(n)+' HP':null; },
     operating_weight: () => { const n=num(u.operating_weight); return n? fmtNum(n)+' lb':null; },
     length:           () => badText(u.length)? null : String(u.length).trim(),
