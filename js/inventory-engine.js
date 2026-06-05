@@ -263,6 +263,18 @@ window.InventoryEngine = (function () {
     return isNaN(n) ? String(val) : n.toLocaleString('en-US');
   }
 
+  // Canonical vehicle title: year make model trim, then append subcategory
+  // only when present AND not already represented in the title (de-dupe guard).
+  // Prevents "Box Truck Box Truck" while allowing "Silverado 3500HD Service Truck".
+  function buildVehicleTitle(u) {
+    var base = [u.year, u.make, u.model, u.trim].filter(Boolean).join(' ');
+    var sub = (u.subcategory || '').trim();
+    if (sub && !base.toLowerCase().includes(sub.toLowerCase())) {
+      return (base + ' ' + sub).trim() || 'Unit Available';
+    }
+    return base || 'Unit Available';
+  }
+
   function trimEngine(val) {
     if (!val) return '—';
     return val.split(/\s+[-–—]\s+/)[0].replace(/\s+Engine\s*$/i, '').trim();
@@ -272,7 +284,7 @@ window.InventoryEngine = (function () {
 
   function financeUrl(u, src) {
     src = src || 'inventory';
-    var title    = [u.year, u.make, u.model, u.trim || u.subcategory].filter(Boolean).join(' ');
+    var title    = buildVehicleTitle(u);
     var unitSlug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     var priceNum = parseFloat(String(u.price || '').replace(/[^0-9.]/g, '')) || '';
     return '/finance.html?stock=' + encodeURIComponent(u.stock || '') +
@@ -388,7 +400,7 @@ window.InventoryEngine = (function () {
         var eager      = _i < 6;
         var loadAttr   = eager ? 'eager' : 'lazy';
         var fpAttr     = eager ? ' fetchpriority="high"' : '';
-        var title      = [u.year, u.make, u.model, u.trim || u.subcategory].filter(Boolean).join(' ') || 'Unit Available';
+        var title      = buildVehicleTitle(u);
         var vdpUrl     = 'vehicle.html?stock=' + encodeURIComponent(u.stock || '');
         var priceStr   = u.price && !isNaN(parseFloat(String(u.price).replace(/[^0-9.]/g, '')))
                            ? '$' + Number(String(u.price).replace(/[^0-9.]/g, '')).toLocaleString()
