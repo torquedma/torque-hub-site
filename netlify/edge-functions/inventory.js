@@ -106,6 +106,54 @@ function trimEngine(val) {
   return val.split(/\s+[-–—]\s+/)[0].replace(/\s+Engine\s*$/i, '').trim();
 }
 
+function buildCardChips(u) {
+  const JUNK = {'':1,'—':1,'-':1,'--':1,'n/a':1,'na':1,'none':1,'unknown':1,'null':1};
+  function badText(v){ return !v || JUNK[String(v).trim().toLowerCase()]; }
+  function num(v){
+    if (v === null || v === undefined) return null;
+    const s = String(v).trim();
+    if (/\bto\b/i.test(s)) return null;
+    const m = s.replace(/[, ]/g,'').match(/^-?\d+(\.\d+)?/);
+    if (!m) return null;
+    const n = parseFloat(m[0]);
+    return (isFinite(n) && n > 0) ? n : null;
+  }
+  function fmtNum(n){ return n.toLocaleString('en-US'); }
+  const F = {
+    mileage:          () => { const n=num(u.mileage); return n? fmtNum(n)+' mi':null; },
+    hours:            () => { const n=num(u.hours); return n? fmtNum(n)+' hrs':null; },
+    engine:           () => badText(u.engine)? null : trimEngine(u.engine),
+    transmission:     () => badText(u.transmission)? null : String(u.transmission).trim(),
+    drivetrain:       () => badText(u.drivetrain)? null : String(u.drivetrain).trim(),
+    fuel:             () => badText(u.fuel)? null : String(u.fuel).trim(),
+    horsepower:       () => { const n=num(u.horsepower); return n? fmtNum(n)+' HP':null; },
+    operating_weight: () => { const n=num(u.operating_weight); return n? fmtNum(n)+' lb':null; },
+    length:           () => badText(u.length)? null : String(u.length).trim(),
+    gvwr:             () => badText(u.gvwr)? null : String(u.gvwr).trim(),
+    axles:            () => badText(u.axles)? null : String(u.axles).trim(),
+    deck_width:       () => badText(u.deck_width)? null : String(u.deck_width).trim()
+  };
+  const sub = (u.subcategory||'').toLowerCase();
+  const cat = (u.category||'').toLowerCase();
+  const MOWERS = {'zero turn mower':1,'walk behind mower':1,'lawn tractor':1,'front deck mower':1};
+  let order;
+  if (sub === 'tractor')           order = ['horsepower','drivetrain','hours'];
+  else if (MOWERS[sub])            order = ['deck_width','hours','horsepower','engine'];
+  else if (cat === 'trailers')     order = ['length','gvwr','axles'];
+  else if (cat === 'trucks')       order = ['mileage','engine','transmission','drivetrain','fuel'];
+  else if (cat === 'construction') order = ['hours','horsepower','operating_weight','engine'];
+  else if (cat === 'farm')         order = ['hours','horsepower','engine'];
+  else                             order = ['mileage','hours','engine','fuel'];
+  const isNew = !badText(u.condition) && String(u.condition).trim().toLowerCase() === 'new';
+  const chips = [];
+  if (isNew) chips.push('NEW');
+  for (let i=0;i<order.length && chips.length<2;i++){
+    const v = F[order[i]] && F[order[i]]();
+    if (v) chips.push(v);
+  }
+  return chips;
+}
+
 // Build card HTML matching renderInventory() in inventory-engine.js line 368–403.
 // Outer element: <article class="inv-card"> — confirmed at engine line 389.
 // Cards 0–5 all get loading="eager"; card 0 also gets fetchpriority="high".
@@ -135,17 +183,8 @@ function buildSixCards(units) {
     // Dealer line: mirrors engine line 380. &middot; used raw in the HTML string.
     const dealerLine = [d.name, d.location].filter(Boolean).join(' &middot; ');
 
-    // Spec chips: mirrors engine lines 381–387.
-    // Note: SSR queries the `inventory` table (Supabase-only); `hours` column not
-    // selected. If u.hours is absent, mileage always gets ' mi' suffix — correct
-    // for the Supabase-direct dealer pool.
-    const mileageVal = fmtMileage(u.mileage);
-    const engineVal = trimEngine(u.engine);
-    const chips = [];
-    if (mileageVal) chips.push(mileageVal + ' mi');
-    if (chips.length < 2 && engineVal) chips.push(engineVal);
-    if (chips.length < 2 && u.fuel && u.fuel !== '—') chips.push(u.fuel);
-    if (chips.length < 2 && u.condition) chips.push(u.condition);
+    // Spec chips: category-aware profiles via buildCardChips.
+    const chips = buildCardChips(u);
 
     const imgHtml = photo
       ? `<img src="${esc(photo)}" alt="${esc(title)}" loading="eager"${fp} decoding="async">`
@@ -195,7 +234,7 @@ export default async function handler(request, context) {
     const invRes = await fetch(
       SUPABASE_URL +
         '/rest/v1/inventory?sold=eq.false&limit=1000' +
-        '&select=stock,year,make,model,trim,subcategory,price,mileage,engine,fuel,condition,photos,dealer',
+        '&select=stock,year,make,model,trim,subcategory,category,price,mileage,engine,fuel,condition,photos,dealer',
       { headers: SB_HEADERS }
     ).catch(() => null);
 
