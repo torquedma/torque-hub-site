@@ -311,7 +311,7 @@ window.InventoryEngine = (function () {
       // We re-wrap it back to a one-element array in .then() so the consumer code at line ~333
       // (u.photos && u.photos.length ? u.photos[0].url : '...) keeps working identically for
       // both Supabase-direct dealers (now thin) and push-dealer feeds (still full arrays).
-      var cols = 'id,stock,year,make,model,trim,subcategory,category,dealer,price,mileage,engine,fuel,condition,photos->0,created_at';
+      var cols = 'id,stock,year,make,model,trim,subcategory,category,dealer,price,mileage,hours,engine,fuel,condition,photos->0,created_at';
       return fetch(
         SB_URL + '/rest/v1/inventory_cards?select=' + cols + '&dealer=eq.' + encodeURIComponent(d.key) + '&sold=eq.false&limit=1000',
         { headers: SB_HDRS }
@@ -393,6 +393,54 @@ window.InventoryEngine = (function () {
       // SSR cards present on first default-view render — preserve them, skip wholesale replace.
     } else {
       _ssrHandedOff = true;
+      function buildCardChips(u) {
+        var JUNK = {'':1,'—':1,'-':1,'--':1,'n/a':1,'na':1,'none':1,'unknown':1,'null':1};
+        function badText(v){ return !v || JUNK[String(v).trim().toLowerCase()]; }
+        function num(v){
+          if (v === null || v === undefined) return null;
+          var s = String(v).trim();
+          if (/\bto\b/i.test(s)) return null;
+          var m = s.replace(/[, ]/g,'').match(/^-?\d+(\.\d+)?/);
+          if (!m) return null;
+          var n = parseFloat(m[0]);
+          return (isFinite(n) && n > 0) ? n : null;
+        }
+        function fmtNum(n){ return n.toLocaleString('en-US'); }
+        var F = {
+          mileage:          function(){ var n=num(u.mileage); return n? fmtNum(n)+' mi':null; },
+          hours:            function(){ var n=num(u.hours); return n? fmtNum(n)+' hrs':null; },
+          engine:           function(){ return badText(u.engine)? null : (typeof trimEngine==='function'?trimEngine(u.engine):String(u.engine).trim()); },
+          transmission:     function(){ return badText(u.transmission)? null : String(u.transmission).trim(); },
+          drivetrain:       function(){ return badText(u.drivetrain)? null : String(u.drivetrain).trim(); },
+          fuel:             function(){ return badText(u.fuel)? null : String(u.fuel).trim(); },
+          horsepower:       function(){ var n=num(u.horsepower); return n? fmtNum(n)+' HP':null; },
+          operating_weight: function(){ var n=num(u.operating_weight); return n? fmtNum(n)+' lb':null; },
+          length:           function(){ return badText(u.length)? null : String(u.length).trim(); },
+          gvwr:             function(){ return badText(u.gvwr)? null : String(u.gvwr).trim(); },
+          axles:            function(){ return badText(u.axles)? null : String(u.axles).trim(); },
+          deck_width:       function(){ return badText(u.deck_width)? null : String(u.deck_width).trim(); }
+        };
+        var sub = (u.subcategory||'').toLowerCase();
+        var cat = (u.category||'').toLowerCase();
+        var MOWERS = {'zero turn mower':1,'walk behind mower':1,'lawn tractor':1,'front deck mower':1};
+        var order;
+        if (sub === 'tractor')           order = ['horsepower','drivetrain','hours'];
+        else if (MOWERS[sub])            order = ['deck_width','hours','horsepower','engine'];
+        else if (cat === 'trailers')     order = ['length','gvwr','axles'];
+        else if (cat === 'trucks')       order = ['mileage','engine','transmission','drivetrain','fuel'];
+        else if (cat === 'construction') order = ['hours','horsepower','operating_weight','engine'];
+        else if (cat === 'farm')         order = ['hours','horsepower','engine'];
+        else                             order = ['mileage','hours','engine','fuel'];
+        var isNew = !badText(u.condition) && String(u.condition).trim().toLowerCase() === 'new';
+        var chips = [];
+        if (isNew) chips.push('NEW');
+        for (var i=0;i<order.length && chips.length<2;i++){
+          var v = F[order[i]] && F[order[i]]();
+          if (v) chips.push(v);
+        }
+        return chips;
+      }
+
       grid.innerHTML = slice.map(function(u, _i) {
         var d          = u._dealer || DEALERS.find(function(x) { return x.key === u.dealer; }) || {};
         var photoRaw   = u.photos && u.photos.length ? (u.photos[0].url || u.photos[0].dataUrl || '') : '';
@@ -406,13 +454,7 @@ window.InventoryEngine = (function () {
                            ? '$' + Number(String(u.price).replace(/[^0-9.]/g, '')).toLocaleString()
                            : (u.price && u.price !== '0' ? u.price : 'Call');
         var dealerLine = [d.name || u.dealer, d.location || ''].filter(Boolean).join(' &middot; ');
-        var mileageVal = fmtMileage(u.hours || u.mileage);
-        var engineVal  = trimEngine(u.engine);
-        var chips = [];
-        if (mileageVal && mileageVal !== '—') chips.push(mileageVal + (u.hours ? ' hrs' : ' mi'));
-        if (chips.length < 2 && engineVal  && engineVal  !== '—') chips.push(engineVal);
-        if (chips.length < 2 && u.fuel     && u.fuel     !== '—') chips.push(u.fuel);
-        if (chips.length < 2 && u.condition) chips.push(u.condition);
+        var chips = buildCardChips(u);
 
         return '<article class="inv-card" aria-label="' + title + '">' +
           '<a class="inv-card-link" href="' + vdpUrl + '" aria-label="View listing: ' + title + '">' +
