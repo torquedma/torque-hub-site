@@ -96,7 +96,8 @@ const SHELL = `<!DOCTYPE html>
     .cat-card-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
     .cat-card-title { font-size: 15px; font-weight: 700; line-height: 1.3; color: var(--text); }
     .cat-card-sub { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em; color: var(--soft); }
-    .cat-card-miles { font-size: 13px; color: var(--muted); }
+    .cat-card-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+    .cat-card-chip { font-size: 11px; font-weight: 600; color: var(--muted); background: rgba(255,255,255,0.06); border-radius: 4px; padding: 2px 8px; white-space: nowrap; }
     .cat-card-price { font-family: "Barlow Condensed", sans-serif; font-size: 22px; font-weight: 900; color: #e2e8f0; margin-top: 4px; }
 
     /* EMPTY STATE */
@@ -302,6 +303,61 @@ function getPhotos(unit) {
   return Array.isArray(p) ? p : [];
 }
 
+// Mirrors trimEngine() in inventory-engine.js line 263–266.
+function trimEngine(val) {
+  if (!val) return '';
+  return val.split(/\s+[-–—]\s+/)[0].replace(/\s+Engine\s*$/i, '').trim();
+}
+
+function buildCardChips(u) {
+  const JUNK = {'':1,'—':1,'-':1,'--':1,'n/a':1,'na':1,'none':1,'unknown':1,'null':1};
+  function badText(v){ return !v || JUNK[String(v).trim().toLowerCase()]; }
+  function num(v){
+    if (v === null || v === undefined) return null;
+    const s = String(v).trim();
+    if (/\bto\b/i.test(s)) return null;
+    const m = s.replace(/[, ]/g,'').match(/^-?\d+(\.\d+)?/);
+    if (!m) return null;
+    const n = parseFloat(m[0]);
+    return (isFinite(n) && n > 0) ? n : null;
+  }
+  function fmtNum(n){ return n.toLocaleString('en-US'); }
+  const F = {
+    mileage:          () => { const n=num(u.mileage); return n? fmtNum(n)+' mi':null; },
+    hours:            () => { const n=num(u.hours); return n? fmtNum(n)+' hrs':null; },
+    engine:           () => badText(u.engine)? null : trimEngine(u.engine),
+    transmission:     () => badText(u.transmission)? null : String(u.transmission).trim(),
+    drivetrain:       () => badText(u.drivetrain)? null : String(u.drivetrain).trim(),
+    fuel:             () => { if(badText(u.fuel)) return null; const f=String(u.fuel).trim(); return /diesel/i.test(f)? null : f; },
+    horsepower:       () => { const n=num(u.horsepower); return n? fmtNum(n)+' HP':null; },
+    operating_weight: () => { const n=num(u.operating_weight); return n? fmtNum(n)+' lb':null; },
+    length:           () => badText(u.length)? null : String(u.length).trim(),
+    gvwr:             () => badText(u.gvwr)? null : String(u.gvwr).trim(),
+    axles:            () => badText(u.axles)? null : String(u.axles).trim(),
+    deck_width:       () => badText(u.deck_width)? null : String(u.deck_width).trim()
+  };
+  const sub = (u.subcategory||'').toLowerCase();
+  const cat = (u.category||'').toLowerCase();
+  const MOWERS = {'zero turn mower':1,'walk behind mower':1,'lawn tractor':1,'front deck mower':1};
+  let order;
+  if (sub === 'tractor')           order = ['horsepower','hours'];
+  else if (MOWERS[sub])            order = ['deck_width','hours','horsepower'];
+  else if (sub === 'crane truck')  order = ['mileage','engine'];
+  else if (cat === 'trailers')     order = ['length','gvwr','axles'];
+  else if (cat === 'trucks')       order = ['mileage','engine','transmission','drivetrain','fuel'];
+  else if (cat === 'construction') order = ['horsepower','operating_weight'];
+  else if (cat === 'farm')         order = ['horsepower','hours'];
+  else                             order = ['mileage','fuel'];
+  const isNew = !badText(u.condition) && String(u.condition).trim().toLowerCase() === 'new';
+  const chips = [];
+  if (isNew) chips.push('NEW');
+  for (let i=0;i<order.length && chips.length<2;i++){
+    const v = F[order[i]] && F[order[i]]();
+    if (v) chips.push(v);
+  }
+  return chips;
+}
+
 function buildCardGrid(units) {
   if (!units.length) return '';
   return units.map(u => {
@@ -309,15 +365,16 @@ function buildCardGrid(units) {
     const img = (photos[0] && (photos[0].url || photos[0].dataUrl)) || '/torque-logo.png';
     const title = [u.year, u.make, u.model].filter(Boolean).join(' ') || (u.subcategory || 'Unit');
     const price = formatPrice(u.price);
-    const miles = (u.mileage != null && u.mileage !== '') ? (Number(String(u.mileage).replace(/[^0-9.]/g,'')).toLocaleString() + ' mi') : '';
     const href = '/vehicle.html?stock=' + encodeURIComponent(u.stock);
+    const chips = buildCardChips(u);
+    const chipsHtml = chips.length ? '<div class="cat-card-chips">' + chips.map(c => '<span class="cat-card-chip">' + esc(c) + '</span>').join('') + '</div>' : '';
     return (
       '<a class="cat-card" href="' + escAttr(href) + '">' +
       '<div class="cat-card-img"><img src="' + escAttr(img) + '" alt="' + escAttr(title) + '" loading="lazy" width="400" height="300" /></div>' +
       '<div class="cat-card-body">' +
       '<div class="cat-card-title">' + esc(title) + '</div>' +
       (u.subcategory ? '<div class="cat-card-sub">' + esc(u.subcategory) + '</div>' : '') +
-      (miles ? '<div class="cat-card-miles">' + esc(miles) + '</div>' : '') +
+      chipsHtml +
       '<div class="cat-card-price">' + esc(price) + '</div>' +
       '</div></a>'
     );
@@ -360,14 +417,14 @@ export default async function handler(request) {
     let query;
     if (isHub) {
       query = SUPABASE_URL + '/rest/v1/inventory?category=eq.' + encodeURIComponent(hub.category) +
-        '&sold=eq.false&order=created_at.desc&limit=250&select=stock,year,make,model,price,mileage,subcategory,photos';
+        '&sold=eq.false&order=created_at.desc&limit=250&select=stock,year,make,model,price,mileage,subcategory,category,engine,fuel,condition,photos';
     } else {
       // Variant B encoding: encodeURIComponent each value, join with literal commas, no quotes.
       // SAFE because no subcategory value contains a comma. If a comma-containing value is ever
       // added, switch to quoted form ("val1","val2").
       const inList = leaf.subs.map(s => encodeURIComponent(s)).join(',');
       query = SUPABASE_URL + '/rest/v1/inventory?subcategory=in.(' + inList + ')' +
-        '&sold=eq.false&order=created_at.desc&limit=250&select=stock,year,make,model,price,mileage,subcategory,photos';
+        '&sold=eq.false&order=created_at.desc&limit=250&select=stock,year,make,model,price,mileage,subcategory,category,engine,fuel,condition,photos';
     }
 
     const invRes = await fetch(query, { headers: SB_HEADERS }).catch(() => null);
