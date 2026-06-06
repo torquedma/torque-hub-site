@@ -427,6 +427,7 @@ window.InventoryEngine = (function () {
         var order;
         if (sub === 'tractor')           order = ['horsepower','hours'];
         else if (MOWERS[sub])            order = ['deck_width','hours','horsepower'];
+        else if (sub === 'crane truck')  order = ['mileage','engine'];
         else if (cat === 'trailers')     order = ['length','gvwr','axles'];
         else if (cat === 'trucks')       order = ['mileage','engine','transmission','drivetrain','fuel'];
         else if (cat === 'construction') order = ['horsepower','operating_weight'];
