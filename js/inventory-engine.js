@@ -277,8 +277,17 @@ window.InventoryEngine = (function () {
   }
 
   function trimEngine(val) {
-    if (!val) return '—';
-    return val.split(/\s+[-–—]\s+/)[0].replace(/\s+Engine\s*$/i, '').trim();
+    if (!val) return '';
+    let s = val.split(/\s+[-–—]\s+/)[0].replace(/\s+Engine\s*$/i, '').trim();
+    // strip trailing torque (e.g. "660-1050ft. lbs.", "850ft. lbs.")
+    s = s.replace(/\s*\d+(?:[.,]\d+)?(?:-\d+(?:[.,]\d+)?)?\s*ft\.?\s*lbs?\.?\s*$/i, '').trim();
+    // strip trailing horsepower (e.g. "260-360hp", "370hp", "455 HP")
+    s = s.replace(/\s*\d+(?:[.,]\d+)?(?:-\d+(?:[.,]\d+)?)?\s*hp\b\.?\s*$/i, '').trim();
+    // strip leading horsepower (e.g. "400 HP Cummins ISX12", "455hp Detroit DD15")
+    s = s.replace(/^\d+(?:[.,]\d+)?(?:-\d+(?:[.,]\d+)?)?\s*hp\b\.?\s*/i, '').trim();
+    // if nothing meaningful remains (e.g. "74hp" -> "", or it was just a number/junk), return empty so no chip renders
+    if (!s || /^\d+(?:[.,]\d+)?$/.test(s)) return '';
+    return s;
   }
 
   function pp(p) { return parseFloat(String(p || '').replace(/[^0-9.]/g, '')) || 0; }
