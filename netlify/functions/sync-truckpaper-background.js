@@ -337,6 +337,10 @@ exports.handler = async (event) => {
   let body;
   try { body = JSON.parse(event.body || '{}'); } catch(e) { return { statusCode: 400, body: 'Invalid JSON' }; }
 
+  const dryRun = body.dryRun === true;
+  const dryRunLog = [];
+  if (dryRun) console.log('DRY RUN MODE — no writes will be performed');
+
   console.log('Webhook payload keys:', Object.keys(body).join(', '));
   console.log('Payload:', JSON.stringify(body).slice(0, 300));
 
@@ -564,7 +568,12 @@ exports.handler = async (event) => {
         }
 
         let result;
-        if (isExisting) {
+        if (dryRun) {
+          const path = isExisting
+            ? (matchedExistingStock && incomingListingId ? 'update-by-listing-id' : 'update-by-stock')
+            : 'insert';
+          dryRunLog.push({ path, stock, dealer, unit });
+        } else if (isExisting) {
           if (matchedExistingStock && incomingListingId) {
             // Match by source_listing_id (stable Sandhills ID, robust against stock-derivation changes)
             result = await supabase.from('inventory').update(unit).eq('source_listing_id', incomingListingId).eq('dealer', dealer).eq('sold', false);
@@ -575,7 +584,7 @@ exports.handler = async (event) => {
         } else {
           result = await supabase.from('inventory').insert([unit]);
         }
-        const { error } = result;
+        const { error } = result || {};
 
         if (error) { console.error(`Error ${stock}:`, error.message); errors++; }
         else synced++;
@@ -629,11 +638,19 @@ exports.handler = async (event) => {
     const platStocks = incomingStocksByPlatform[rowPlatform];
     const stillPresentByStock = !!(platStocks && platStocks.has(row.stock));
     if (stillPresentByListingId || stillPresentByStock) continue;
-    await supabase.from('inventory').update({ sold: true, sold_type: 'feed_removed' }).eq('stock', row.stock).eq('dealer', dealer);
+    if (!dryRun) {
+      await supabase.from('inventory').update({ sold: true, sold_type: 'feed_removed' }).eq('stock', row.stock).eq('dealer', dealer);
+    }
     markedSold++;
   }
 
   const result = { synced, errors, markedSold, total: items.length, dealer };
+  if (dryRun) {
+    result.dryRun = true;
+    result.dryRunLog = dryRunLog;
+    result.dryRunCount = dryRunLog.length;
+    console.log('DRY RUN COMPLETE — NO WRITES PERFORMED. Proposed writes:', dryRunLog.length);
+  }
   console.log('Sync complete:', result);
   return { statusCode: 200, body: JSON.stringify(result) };
 };
