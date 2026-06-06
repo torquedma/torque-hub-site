@@ -194,6 +194,10 @@
   path = "/loaders-for-sale"
   function = "category"
 
+[[edge_functions]]
+  path = "/crane-trucks-for-sale"
+  function = "category"
+
 [[redirects]]
   from = "/sitemap.xml"
   to = "/.netlify/functions/sitemap"
