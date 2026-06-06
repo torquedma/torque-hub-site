@@ -287,6 +287,7 @@ function deriveSubcategory(item) {
     [/\bdump\s*truck\b|\bdump\s*body\b/, 'Dump Truck'],
     [/\bbox\s*truck\b|\bbox\s*van\b|\bcube\s*van\b/, 'Box Truck'],
     [/\brefrigerated\b|\breefer\b/, 'Refrigerated Truck'],
+    [/\bflatbed\s*trailer\b/, 'Flatbed Trailer'],
     [/\bflatbed\b/, 'Flatbed Truck'],
     [/\bcargo\s*van\b/, 'Cargo Van'],
     [/\bpassenger\s*van\b/, 'Passenger Van'],
@@ -521,6 +522,7 @@ exports.handler = async (event) => {
         let derivedCategory;
         if (subLower.includes('trailer')) derivedCategory = 'Trailers';
         else if (['suv','sedan','coupe','classic car','motorcycle','engine','power plant','boat'].some(function(k){ return subLower.includes(k); })) derivedCategory = 'Other';
+        else if (subLower.includes('day cab') || subLower.includes('sleeper')) derivedCategory = 'Trucks';
         else if (CONSTRUCTION_SUBS.some(function(k){ return subLower.includes(k); })) derivedCategory = 'Construction';
         else if (FARM_SUBS.some(function(k){ return subLower.includes(k); })) derivedCategory = 'Farm';
         else if (item.category) derivedCategory = item.category;
