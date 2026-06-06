@@ -276,7 +276,7 @@ const SUBCATEGORY_LEAVES = {
   'lawn-tractors-for-sale':          { subs: ['Lawn Tractor'],                  label: 'Lawn Tractors',        hub: 'landscape-equipment-for-sale' },
   'excavators-for-sale':             { subs: ['Excavator', 'Crawler Excavator', 'Mini Excavator'], label: 'Excavators',           hub: 'construction-equipment-for-sale' },
   'mini-excavators-for-sale':        { subs: ['Mini Excavator'],                label: 'Mini Excavators',      hub: 'construction-equipment-for-sale' },
-  'skid-steers-for-sale':            { subs: ['Skid Steer', 'Compact Track Loader', 'Mini Skid Steer'], label: 'Skid Steers',          hub: 'construction-equipment-for-sale' },
+  'skid-steers-for-sale':            { subs: ['Skid Steer', 'Compact Track Loader', 'Mini Skid Steer', 'Track Skid Steer', 'Wheel Skid Steer'], label: 'Skid Steers',          hub: 'construction-equipment-for-sale' },
   'mini-skid-steers-for-sale':       { subs: ['Mini Skid Steer'],               label: 'Mini Skid Steers',     hub: 'construction-equipment-for-sale' },
   'loaders-for-sale':                { subs: ['Wheel Loader', 'Crawler Loader'], label: 'Loaders',              hub: 'construction-equipment-for-sale' },
   'crane-trucks-for-sale':           { subs: ['Crane Truck'],                   label: 'Crane Trucks',         hub: 'construction-equipment-for-sale' },

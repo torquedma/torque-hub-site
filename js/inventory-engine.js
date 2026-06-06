@@ -185,7 +185,7 @@ window.InventoryEngine = (function () {
       { label: 'Utility Trailers', kw: 'utility', subs: ['Utility Trailer'], slug: 'utility-trailers-for-sale', ssr: true }
     ],
     'Construction': [
-      { label: 'Skid Steers', kw: 'skid', subs: ['Skid Steer', 'Compact Track Loader', 'Mini Skid Steer'], slug: 'skid-steers-for-sale', ssr: true },
+      { label: 'Skid Steers', kw: 'skid', subs: ['Skid Steer', 'Compact Track Loader', 'Mini Skid Steer', 'Track Skid Steer', 'Wheel Skid Steer'], slug: 'skid-steers-for-sale', ssr: true },
       { label: 'Mini Skid Steers', kw: 'mini skid steer', subs: ['Mini Skid Steer'], slug: 'mini-skid-steers-for-sale', ssr: true },
       { label: 'Excavators', kw: 'excavator', subs: ['Excavator', 'Crawler Excavator', 'Mini Excavator'], slug: 'excavators-for-sale', ssr: true },
       { label: 'Mini Excavators', kw: 'mini excavator', subs: ['Mini Excavator'], slug: 'mini-excavators-for-sale', ssr: true },
