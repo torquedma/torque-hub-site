@@ -571,6 +571,9 @@ exports.handler = async (event) => {
         if (isExisting) {
           if (lockedSubcat.has(lookupStock)) { delete unit.subcategory; delete unit.category; delete unit.trim; }
           if (lockedModel.has(lookupStock))  { delete unit.make; delete unit.model; }
+          // Preserve curated DX on existing rows — backfill data fields without rewriting descriptions
+          delete unit.description;
+          delete unit.raw_description;
         }
 
         let result;
