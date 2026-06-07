@@ -76,6 +76,8 @@ const MULTI_WORD_MAKES = [
   'Big Tex'
 ].sort((a, b) => b.length - a.length);
 
+const KNOWN_EQUIPMENT_CRANE_MAKES = ['imt','hiab','fassi','palfinger','national','terex','effer','manitex','elliott','altec','linkbelt','grove','tadano','manitowoc','liebherr'];
+
 // Returns { make, model } with a known multi-word make re-joined if the
 // split pattern is detected; otherwise returns the inputs unchanged.
 function repairMultiWordMake(make, model) {
@@ -523,6 +525,8 @@ exports.handler = async (event) => {
         if (subLower.includes('trailer')) derivedCategory = 'Trailers';
         else if (['suv','sedan','coupe','classic car','motorcycle','engine','power plant','boat'].some(function(k){ return subLower.includes(k); })) derivedCategory = 'Other';
         else if (subLower.includes('day cab') || subLower.includes('sleeper')) derivedCategory = 'Trucks';
+        else if (subLower.includes('crane') && (function(){ const mn = (make || '').toLowerCase().replace(/[\s-]+/g,''); return KNOWN_EQUIPMENT_CRANE_MAKES.some(function(em){ return mn === em.replace(/[\s-]+/g,''); }); }())) derivedCategory = 'Construction';
+        else if (subLower.includes('crane')) derivedCategory = 'Trucks';
         else if (CONSTRUCTION_SUBS.some(function(k){ return subLower.includes(k); })) derivedCategory = 'Construction';
         else if (FARM_SUBS.some(function(k){ return subLower.includes(k); })) derivedCategory = 'Farm';
         else if (item.category) derivedCategory = item.category;
