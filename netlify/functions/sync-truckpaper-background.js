@@ -245,6 +245,7 @@ function deriveSubcategory(item) {
       [/[\/-]vacuum-trucks?(?:[\/-]|$)/, 'Vacuum Truck'],
       [/[\/-]septic-trucks?(?:[\/-]|$)/, 'Vacuum Truck'],
       [/[\/-]sewer-trucks?(?:[\/-]|$)/,  'Vacuum Truck'],
+      [/knuckle-boom-cranes?\b|[\/-]mounted-cranes?\b|boom-cranes?\b/, 'Crane Truck'],
       [/[\/-]crane-trucks?\b/, 'Crane Truck'],
       [/[\/-]landscape-trucks?(?:[\/-]|$)/, 'Landscape Truck'],
       [/[\/-]cargo-vans?\b/, 'Cargo Van'],
