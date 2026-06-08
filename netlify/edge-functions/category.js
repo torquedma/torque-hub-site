@@ -354,7 +354,7 @@ function buildCardChips(u) {
   else if (sub === 'crane truck')  order = ['mileage','engine'];
   else if (cat === 'trailers')     order = ['length','gvwr','axles'];
   else if (cat === 'trucks')       order = ['mileage','engine','transmission','drivetrain','fuel'];
-  else if (cat === 'construction') order = ['horsepower','operating_weight'];
+  else if (cat === 'construction') order = ['horsepower','hours','operating_weight'];
   else if (cat === 'farm')         order = ['horsepower','hours'];
   else                             order = ['mileage','fuel'];
   const isNew = !badText(u.condition) && String(u.condition).trim().toLowerCase() === 'new';
@@ -426,14 +426,14 @@ export default async function handler(request) {
     let query;
     if (isHub) {
       query = SUPABASE_URL + '/rest/v1/inventory?category=eq.' + encodeURIComponent(hub.category) +
-        '&sold=eq.false&order=created_at.desc&limit=250&select=stock,year,make,model,price,mileage,subcategory,category,engine,fuel,condition,photos';
+        '&sold=eq.false&order=created_at.desc&limit=250&select=stock,year,make,model,price,mileage,subcategory,category,engine,horsepower,hours,fuel,condition,photos';
     } else {
       // Variant B encoding: encodeURIComponent each value, join with literal commas, no quotes.
       // SAFE because no subcategory value contains a comma. If a comma-containing value is ever
       // added, switch to quoted form ("val1","val2").
       const inList = leaf.subs.map(s => encodeURIComponent(s)).join(',');
       query = SUPABASE_URL + '/rest/v1/inventory?subcategory=in.(' + inList + ')' +
-        '&sold=eq.false&order=created_at.desc&limit=250&select=stock,year,make,model,price,mileage,subcategory,category,engine,fuel,condition,photos';
+        '&sold=eq.false&order=created_at.desc&limit=250&select=stock,year,make,model,price,mileage,subcategory,category,engine,horsepower,hours,fuel,condition,photos';
     }
 
     const invRes = await fetch(query, { headers: SB_HEADERS }).catch(() => null);

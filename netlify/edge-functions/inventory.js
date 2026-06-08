@@ -151,7 +151,7 @@ function buildCardChips(u) {
   else if (sub === 'crane truck')  order = ['mileage','engine'];
   else if (cat === 'trailers')     order = ['length','gvwr','axles'];
   else if (cat === 'trucks')       order = ['mileage','engine','transmission','drivetrain','fuel'];
-  else if (cat === 'construction') order = ['horsepower','operating_weight'];
+  else if (cat === 'construction') order = ['horsepower','hours','operating_weight'];
   else if (cat === 'farm')         order = ['horsepower','hours'];
   else                             order = ['mileage','fuel'];
   const isNew = !badText(u.condition) && String(u.condition).trim().toLowerCase() === 'new';
@@ -244,7 +244,7 @@ export default async function handler(request, context) {
     const invRes = await fetch(
       SUPABASE_URL +
         '/rest/v1/inventory?sold=eq.false&limit=1000' +
-        '&select=stock,year,make,model,trim,subcategory,category,price,mileage,engine,fuel,condition,photos,dealer',
+        '&select=stock,year,make,model,trim,subcategory,category,price,mileage,engine,horsepower,hours,fuel,condition,photos,dealer',
       { headers: SB_HEADERS }
     ).catch(() => null);
 
