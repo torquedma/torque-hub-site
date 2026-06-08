@@ -321,7 +321,7 @@ window.InventoryEngine = (function () {
       // We re-wrap it back to a one-element array in .then() so the consumer code at line ~333
       // (u.photos && u.photos.length ? u.photos[0].url : '...) keeps working identically for
       // both Supabase-direct dealers (now thin) and push-dealer feeds (still full arrays).
-      var cols = 'id,stock,year,make,model,trim,subcategory,category,dealer,price,mileage,engine,fuel,condition,photos->0,created_at';
+      var cols = 'id,stock,year,make,model,trim,subcategory,category,dealer,price,mileage,engine,horsepower,hours,fuel,condition,photos->0,created_at';
       return fetch(
         SB_URL + '/rest/v1/inventory_cards?select=' + cols + '&dealer=eq.' + encodeURIComponent(d.key) + '&sold=eq.false&limit=1000',
         { headers: SB_HDRS }
@@ -439,7 +439,7 @@ window.InventoryEngine = (function () {
         else if (sub === 'crane truck')  order = ['mileage','engine'];
         else if (cat === 'trailers')     order = ['length','gvwr','axles'];
         else if (cat === 'trucks')       order = ['mileage','engine','transmission','drivetrain','fuel'];
-        else if (cat === 'construction') order = ['horsepower','operating_weight'];
+        else if (cat === 'construction') order = ['horsepower','hours','operating_weight'];
         else if (cat === 'farm')         order = ['horsepower','hours'];
         else                             order = ['mileage','fuel'];
         var isNew = !badText(u.condition) && String(u.condition).trim().toLowerCase() === 'new';
