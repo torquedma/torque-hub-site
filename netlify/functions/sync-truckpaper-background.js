@@ -539,6 +539,8 @@ exports.handler = async (event) => {
           trim: item.trim || sub || '',
           price: item.price ? String(item.price).replace(/[^0-9.]/g, '') : '',
           mileage, vin: item.vin || '', engine, transmission, drivetrain,
+          horsepower: item.horsepower || '',
+          hours: item.hours || '',
           fuel: item.fuel || 'Diesel',
           condition: item.condition || 'Used',
           raw_description: rawDescription,
