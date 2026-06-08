@@ -739,7 +739,7 @@ function el(id) { return document.getElementById(id); }
 
 function render(unit, dealerKey) {
   const d = DEALERS[dealerKey] || DEALERS[unit.dealer] || {};
-  const title = [unit.year, unit.make, unit.model, unit.trim].filter(Boolean).join(' ') || 'Unit Available';
+  const title = [unit.year, unit.make, unit.model].filter(Boolean).join(' ') || 'Unit Available';
   const price = formatPrice(unit.price);
   const isSold = unit.sold === true;
   const subcat = unit.subcategory || '';
