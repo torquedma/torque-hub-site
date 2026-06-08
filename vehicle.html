@@ -918,7 +918,7 @@ async function loadSimilar(currentUnit, dealerKey) {
     const sub  = encodeURIComponent(currentUnit.subcategory || '');
     const dlr  = encodeURIComponent(dealerKey);
     const flds = 'stock,year,make,model,trim,price,photos,dealer,category,subcategory';
-    const base = `${SUPABASE_URL}/rest/v1/inventory?sold=eq.false&select=${flds}`;
+    const base = `${SUPABASE_URL}/rest/v1/inventory_cards?sold=eq.false&select=${flds}`;
     const excl = u => u.stock !== currentUnit.stock;
 
     let items = [], matchQuality = 'subcategory';
