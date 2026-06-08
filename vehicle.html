@@ -766,7 +766,7 @@ function render(unit, dealerKey) {
 
   // Page meta — all guarded; edge function may have already set these
   const pageUrl = `https://hub.torquedma.com/vehicle.html?stock=${encodeURIComponent(unit.stock)}`;
-  const titleTag = [unit.year, unit.make, unit.model, unit.trim, subcat].filter(Boolean).join(' ');
+  const titleTag = [unit.year, unit.make, unit.model, subcat].filter(Boolean).join(' ');
   document.title = `${titleTag} for Sale in ${cityState} | Torque Hub`;
   const descContent = `${title}${subcat ? ' ' + subcat : ''} for sale in ${cityState}. ${price}. Call ${d.phone || 'the dealer'} or apply for financing online. Torque Hub.`;
 
