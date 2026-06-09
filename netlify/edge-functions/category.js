@@ -1,6 +1,9 @@
+import { TAXONOMY_TEST } from '../../js/_taxonomy-import-test.js';
 const SUPABASE_URL = 'https://bxsikkmqasydosmblzov.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4c2lra21xYXN5ZG9zbWJsem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTc1OTksImV4cCI6MjA5MDQ3MzU5OX0.JMEI7cx2tddmbvfqm_qxiIWp7f5Phuk5l0Y487DUSZg';
 const SB_HEADERS = { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON };
+const TAXONOMY_IMPORT_OK = TAXONOMY_TEST && TAXONOMY_TEST.ok === true;
+console.log('[taxonomy-import-test]', TAXONOMY_IMPORT_OK, TAXONOMY_TEST && TAXONOMY_TEST.marker);
 const BASE = 'https://hub.torquedma.com';
 
 // Shell HTML embedded directly — no context.next() dependency on a static file at the route path.
