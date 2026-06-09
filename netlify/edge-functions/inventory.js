@@ -243,7 +243,7 @@ export default async function handler(request, context) {
     // ~370-unit table) and sort numerically in JS, matching the client's pp() exactly.
     const invRes = await fetch(
       SUPABASE_URL +
-        '/rest/v1/inventory?sold=eq.false&limit=1000' +
+        '/rest/v1/inventory_cards?sold=eq.false&limit=1000' +
         '&select=stock,year,make,model,trim,subcategory,category,price,mileage,engine,horsepower,hours,fuel,condition,photos,dealer',
       { headers: SB_HEADERS }
     ).catch(() => null);
