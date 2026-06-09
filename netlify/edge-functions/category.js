@@ -1,3 +1,4 @@
+import { TAXONOMY_DATA, CATEGORY_HUB } from '../../js/taxonomy-data.js';
 const SUPABASE_URL = 'https://bxsikkmqasydosmblzov.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4c2lra21xYXN5ZG9zbWJsem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTc1OTksImV4cCI6MjA5MDQ3MzU5OX0.JMEI7cx2tddmbvfqm_qxiIWp7f5Phuk5l0Y487DUSZg';
 const SB_HEADERS = { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON };
@@ -241,46 +242,14 @@ const CATEGORY_HUBS = {
   'landscape-equipment-for-sale':   { category: 'Landscape',    label: 'Landscape Equipment' },
 };
 
-const SUBCATEGORY_LEAVES = {
-  'box-trucks-for-sale':             { subs: ['Box Truck'],                     label: 'Box Trucks',           hub: 'trucks-for-sale' },
-  'refrigerated-trucks-for-sale':    { subs: ['Refrigerated Truck'],            label: 'Refrigerated Trucks',  hub: 'trucks-for-sale' },
-  'semi-trucks-for-sale':            { subs: ['Day Cab Tractor','Sleeper Tractor'], label: 'Semi Trucks',          hub: 'trucks-for-sale' },
-  'service-trucks-for-sale':         { subs: ['Service Truck'],                 label: 'Service Trucks',       hub: 'trucks-for-sale' },
-  'dump-trucks-for-sale':            { subs: ['Dump Truck','Grain Dump Truck'], label: 'Dump Trucks',          hub: 'trucks-for-sale' },
-  'cab-and-chassis-trucks-for-sale': { subs: ['Cab & Chassis'],                 label: 'Cab & Chassis Trucks', hub: 'trucks-for-sale' },
-  'flatbed-trucks-for-sale':         { subs: ['Flatbed Truck'],                 label: 'Flatbed Trucks',       hub: 'trucks-for-sale' },
-  'rollback-tow-trucks-for-sale':    { subs: ['Rollback Tow Truck'],            label: 'Rollback Tow Trucks',  hub: 'trucks-for-sale' },
-  'cargo-vans-for-sale':             { subs: ['Cargo Van'],                     label: 'Cargo Vans',           hub: 'trucks-for-sale' },
-  'yard-spotters-for-sale':          { subs: ['Yard Spotter'],                  label: 'Yard Spotters',        hub: 'trucks-for-sale' },
-  'boom-trucks-for-sale':            { subs: ['Boom Truck'],                    label: 'Boom Trucks',          hub: 'trucks-for-sale' },
-  'vacuum-trucks-for-sale':         { subs: ['Vacuum Truck'],                  label: 'Vacuum Trucks',        hub: 'trucks-for-sale' },
-  'landscape-trucks-for-sale':      { subs: ['Landscape Truck'],               label: 'Landscape Trucks',     hub: 'trucks-for-sale' },
-  'car-carrier-trucks-for-sale':     { subs: ['Car Carrier Truck'],             label: 'Car Carrier Trucks',   hub: 'trucks-for-sale' },
-  'reefer-trailers-for-sale':          { subs: ['Reefer Trailer'],              label: 'Reefer Trailers',              hub: 'trailers-for-sale' },
-  'dry-van-trailers-for-sale':         { subs: ['Dry Van Trailer'],             label: 'Dry Van Trailers',             hub: 'trailers-for-sale' },
-  'flatbed-trailers-for-sale':         { subs: ['Flatbed Trailer'],             label: 'Flatbed Trailers',             hub: 'trailers-for-sale' },
-  'conestoga-trailers-for-sale':       { subs: ['Conestoga Trailer'],           label: 'Conestoga Trailers',           hub: 'trailers-for-sale' },
-  'enclosed-trailers-for-sale':        { subs: ['Enclosed Trailer'],            label: 'Enclosed Trailers',            hub: 'trailers-for-sale' },
-  'car-hauler-trailers-for-sale':      { subs: ['Car Hauler Trailer'],          label: 'Car Hauler Trailers',          hub: 'trailers-for-sale' },
-  'utility-trailers-for-sale':         { subs: ['Utility Trailer'],             label: 'Utility Trailers',             hub: 'trailers-for-sale' },
-  'equipment-trailers-for-sale':       { subs: ['Equipment Trailer'],           label: 'Equipment Trailers',           hub: 'trailers-for-sale' },
-  'dump-trailers-for-sale':            { subs: ['Dump Trailer'],                label: 'Dump Trailers',                hub: 'trailers-for-sale' },
-  'gooseneck-trailers-for-sale':       { subs: ['Gooseneck Trailer'],           label: 'Gooseneck Trailers',           hub: 'trailers-for-sale' },
-  'race-trailers-for-sale':            { subs: ['Race Trailer'],                label: 'Race Trailers',                hub: 'trailers-for-sale' },
-  'living-quarters-trailers-for-sale': { subs: ['Living Quarters Trailer'],    label: 'Living Quarters Trailers',     hub: 'trailers-for-sale' },
-  'tractors-for-sale':               { subs: ['Tractor'],                       label: 'Tractors',             hub: 'farm-equipment-for-sale' },
-  'rotary-cutters-for-sale':         { subs: ['Rotary Cutter'],                 label: 'Rotary Cutters',       hub: 'farm-equipment-for-sale' },
-  'boom-mowers-for-sale':            { subs: ['Boom Mower'],                    label: 'Boom Mowers',          hub: 'farm-equipment-for-sale' },
-  'drum-mowers-for-sale':            { subs: ['Drum Mower'],                    label: 'Drum Mowers',          hub: 'farm-equipment-for-sale' },
-  'zero-turn-mowers-for-sale':       { subs: ['Zero Turn Mower'],               label: 'Zero Turn Mowers',     hub: 'landscape-equipment-for-sale' },
-  'lawn-tractors-for-sale':          { subs: ['Lawn Tractor'],                  label: 'Lawn Tractors',        hub: 'landscape-equipment-for-sale' },
-  'excavators-for-sale':             { subs: ['Excavator', 'Crawler Excavator', 'Mini Excavator'], label: 'Excavators',           hub: 'construction-equipment-for-sale' },
-  'mini-excavators-for-sale':        { subs: ['Mini Excavator'],                label: 'Mini Excavators',      hub: 'construction-equipment-for-sale' },
-  'skid-steers-for-sale':            { subs: ['Skid Steer', 'Compact Track Loader', 'Mini Skid Steer', 'Track Skid Steer', 'Wheel Skid Steer'], label: 'Skid Steers',          hub: 'construction-equipment-for-sale' },
-  'mini-skid-steers-for-sale':       { subs: ['Mini Skid Steer'],               label: 'Mini Skid Steers',     hub: 'construction-equipment-for-sale' },
-  'loaders-for-sale':                { subs: ['Wheel Loader', 'Crawler Loader'], label: 'Loaders',              hub: 'construction-equipment-for-sale' },
-  'crane-trucks-for-sale':           { subs: ['Crane Truck'],                   label: 'Crane Trucks',         hub: 'construction-equipment-for-sale' },
-};
+const SUBCATEGORY_LEAVES = (() => {
+  const out = {};
+  for (const e of TAXONOMY_DATA) {
+    if (!e.ssr) continue;
+    out[e.slug] = { subs: e.subs, label: e.label, hub: CATEGORY_HUB[e.category] };
+  }
+  return out;
+})();
 
 const HUB_CHILDREN = {};
 for (const [slug, def] of Object.entries(SUBCATEGORY_LEAVES)) {
