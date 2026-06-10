@@ -83,6 +83,7 @@ const CATEGORY_URLS = [
   { loc: '/vacuum-trucks-for-sale',         changefreq: 'daily', priority: '0.8' },
   { loc: '/landscape-trucks-for-sale',      changefreq: 'daily', priority: '0.8' },
   { loc: '/car-carrier-trucks-for-sale',    changefreq: 'daily', priority: '0.8' },
+  { loc: '/pickup-trucks-for-sale',         changefreq: 'daily', priority: '0.8' },
   // Trailer leaves
   { loc: '/reefer-trailers-for-sale',              changefreq: 'daily', priority: '0.8' },
   { loc: '/dry-van-trailers-for-sale',             changefreq: 'daily', priority: '0.8' },
@@ -114,6 +115,7 @@ const CATEGORY_URLS = [
   { loc: '/loaders-for-sale',               changefreq: 'daily', priority: '0.8' },
   { loc: '/crane-trucks-for-sale',          changefreq: 'daily', priority: '0.8' },
   { loc: '/forklifts-for-sale',             changefreq: 'daily', priority: '0.8' },
+  { loc: '/scissor-lifts-for-sale',         changefreq: 'daily', priority: '0.8' },
 ];
 
 exports.handler = async () => {

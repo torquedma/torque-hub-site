@@ -41,7 +41,7 @@
   path = "/landscape-equipment-for-sale"
   function = "category"
 
-# Truck subcategories (11)
+# Truck subcategories (15)
 [[edge_functions]]
   path = "/box-trucks-for-sale"
   function = "category"
@@ -96,6 +96,10 @@
 
 [[edge_functions]]
   path = "/landscape-trucks-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/pickup-trucks-for-sale"
   function = "category"
 
 # Trailer subcategories (12)
@@ -181,7 +185,7 @@
   path = "/lawn-tractors-for-sale"
   function = "category"
 
-# Construction subcategories (7)
+# Construction subcategories (8)
 [[edge_functions]]
   path = "/excavators-for-sale"
   function = "category"
@@ -208,6 +212,10 @@
 
 [[edge_functions]]
   path = "/forklifts-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/scissor-lifts-for-sale"
   function = "category"
 
 [[redirects]]

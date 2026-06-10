@@ -21,7 +21,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 const TAXONOMY_DATA = [
-  // ── Trucks (14 SSR) ──
+  // ── Trucks (15 SSR) ──
   { category: 'Trucks', slug: 'box-trucks-for-sale',            label: 'Box Trucks',           kw: 'box',             subs: ['Box Truck'],                          ssr: true },
   { category: 'Trucks', slug: 'refrigerated-trucks-for-sale',   label: 'Refrigerated Trucks',  kw: 'refrigerated',    subs: ['Refrigerated Truck'],                 ssr: true },
   { category: 'Trucks', slug: 'semi-trucks-for-sale',           label: 'Semi Trucks',          kw: 'tractor',         subs: ['Day Cab Tractor', 'Sleeper Tractor'], ssr: true },
@@ -36,6 +36,7 @@ const TAXONOMY_DATA = [
   { category: 'Trucks', slug: 'yard-spotters-for-sale',         label: 'Yard Spotters',        kw: 'spotter',         subs: ['Yard Spotter'],                       ssr: true },
   { category: 'Trucks', slug: 'car-carrier-trucks-for-sale',    label: 'Car Carrier Trucks',   kw: 'car carrier',     subs: ['Car Carrier Truck'],                  ssr: true },
   { category: 'Trucks', slug: 'cargo-vans-for-sale',            label: 'Cargo Vans',           kw: 'cargo van',       subs: ['Cargo Van'],                          ssr: true },
+  { category: 'Trucks', slug: 'pickup-trucks-for-sale',         label: 'Pickup Trucks',         kw: 'pickup',          subs: ['Pickup Truck'],                       ssr: true },
 
   // ── Trailers (12 SSR) ──
   { category: 'Trailers', slug: 'reefer-trailers-for-sale',          label: 'Reefer Trailers',          kw: 'reefer',          subs: ['Reefer Trailer'],          ssr: true },
@@ -51,7 +52,7 @@ const TAXONOMY_DATA = [
   { category: 'Trailers', slug: 'gooseneck-trailers-for-sale',       label: 'Gooseneck Trailers',       kw: 'gooseneck',       subs: ['Gooseneck Trailer'],       ssr: true },
   { category: 'Trailers', slug: 'utility-trailers-for-sale',         label: 'Utility Trailers',         kw: 'utility',         subs: ['Utility Trailer'],         ssr: true },
 
-  // ── Construction (7 SSR + 1 kw-only) ──
+  // ── Construction (8 SSR + 1 kw-only) ──
   { category: 'Construction', slug: 'skid-steers-for-sale',      label: 'Skid Steers',      kw: 'skid',            subs: ['Skid Steer', 'Compact Track Loader', 'Mini Skid Steer'],                                         ssr: true },
   { category: 'Construction', slug: 'mini-skid-steers-for-sale', label: 'Mini Skid Steers', kw: 'mini skid steer', subs: ['Mini Skid Steer'],                       ssr: true },
   { category: 'Construction', slug: 'excavators-for-sale',       label: 'Excavators',       kw: 'excavator',       subs: ['Excavator', 'Crawler Excavator', 'Mini Excavator'], ssr: true },
@@ -59,6 +60,7 @@ const TAXONOMY_DATA = [
   { category: 'Construction', slug: 'loaders-for-sale',          label: 'Loaders',          kw: 'loader',          subs: ['Wheel Loader', 'Crawler Loader'],        ssr: true },
   { category: 'Construction', slug: 'crane-trucks-for-sale',     label: 'Crane Trucks',     kw: 'crane truck',     subs: ['Crane Truck'],                           ssr: true },
   { category: 'Construction', slug: 'forklifts-for-sale',        label: 'Forklifts',        kw: 'forklift',        subs: ['Forklift'],                              ssr: true  },
+  { category: 'Construction', slug: 'scissor-lifts-for-sale',    label: 'Scissor Lifts',    kw: 'scissor',         subs: ['Scissor Lift'],                          ssr: true  },
   { category: 'Construction', slug: 'backhoes',                  label: 'Backhoes',         kw: 'backhoe',         subs: [],                                        ssr: false },
 
   // ── Farm (6 SSR + 4 kw-only) ──

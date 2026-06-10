@@ -168,7 +168,8 @@ window.InventoryEngine = (function () {
       { label: 'Landscape Trucks', kw: 'landscape truck', subs: ['Landscape Truck'], slug: 'landscape-trucks-for-sale', ssr: true },
       { label: 'Yard Spotters', kw: 'spotter', subs: ['Yard Spotter'], slug: 'yard-spotters-for-sale', ssr: true },
       { label: 'Car Carrier Trucks', kw: 'car carrier', subs: ['Car Carrier Truck'], slug: 'car-carrier-trucks-for-sale', ssr: true },
-      { label: 'Cargo Vans', kw: 'cargo van', subs: ['Cargo Van'], slug: 'cargo-vans-for-sale', ssr: true }
+      { label: 'Cargo Vans', kw: 'cargo van', subs: ['Cargo Van'], slug: 'cargo-vans-for-sale', ssr: true },
+      { label: 'Pickup Trucks', kw: 'pickup', slug: 'pickup-trucks-for-sale' }
     ],
     'Trailers': [
       { label: 'Reefer Trailers', kw: 'reefer', subs: ['Reefer Trailer'], slug: 'reefer-trailers-for-sale', ssr: true },
@@ -192,7 +193,8 @@ window.InventoryEngine = (function () {
       { label: 'Loaders', kw: 'loader', subs: ['Wheel Loader', 'Crawler Loader'], slug: 'loaders-for-sale', ssr: true },
       { label: 'Crane Trucks', kw: 'crane truck', subs: ['Crane Truck'], slug: 'crane-trucks-for-sale', ssr: true },
       { label: 'Forklifts', kw: 'forklift', slug: 'forklifts-for-sale' },
-      { label: 'Backhoes', kw: 'backhoe', slug: 'backhoes' }
+      { label: 'Backhoes', kw: 'backhoe', slug: 'backhoes' },
+      { label: 'Scissor Lifts', kw: 'scissor', slug: 'scissor-lifts-for-sale' }
     ],
     'Farm': [
       { label: 'Tractors', kw: 'tractor', subs: ['Tractor'], slug: 'tractors-for-sale', ssr: true },
