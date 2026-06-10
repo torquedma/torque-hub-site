@@ -51,17 +51,17 @@ const TAXONOMY_DATA = [
   { category: 'Trailers', slug: 'gooseneck-trailers-for-sale',       label: 'Gooseneck Trailers',       kw: 'gooseneck',       subs: ['Gooseneck Trailer'],       ssr: true },
   { category: 'Trailers', slug: 'utility-trailers-for-sale',         label: 'Utility Trailers',         kw: 'utility',         subs: ['Utility Trailer'],         ssr: true },
 
-  // ── Construction (6 SSR + 2 kw-only) ──
+  // ── Construction (7 SSR + 1 kw-only) ──
   { category: 'Construction', slug: 'skid-steers-for-sale',      label: 'Skid Steers',      kw: 'skid',            subs: ['Skid Steer', 'Compact Track Loader', 'Mini Skid Steer'],                                         ssr: true },
   { category: 'Construction', slug: 'mini-skid-steers-for-sale', label: 'Mini Skid Steers', kw: 'mini skid steer', subs: ['Mini Skid Steer'],                       ssr: true },
   { category: 'Construction', slug: 'excavators-for-sale',       label: 'Excavators',       kw: 'excavator',       subs: ['Excavator', 'Crawler Excavator', 'Mini Excavator'], ssr: true },
   { category: 'Construction', slug: 'mini-excavators-for-sale',  label: 'Mini Excavators',  kw: 'mini excavator',  subs: ['Mini Excavator'],                        ssr: true },
   { category: 'Construction', slug: 'loaders-for-sale',          label: 'Loaders',          kw: 'loader',          subs: ['Wheel Loader', 'Crawler Loader'],        ssr: true },
   { category: 'Construction', slug: 'crane-trucks-for-sale',     label: 'Crane Trucks',     kw: 'crane truck',     subs: ['Crane Truck'],                           ssr: true },
-  { category: 'Construction', slug: 'forklifts',                 label: 'Forklifts',        kw: 'forklift',        subs: [],                                        ssr: false },
+  { category: 'Construction', slug: 'forklifts-for-sale',        label: 'Forklifts',        kw: 'forklift',        subs: ['Forklift'],                              ssr: true  },
   { category: 'Construction', slug: 'backhoes',                  label: 'Backhoes',         kw: 'backhoe',         subs: [],                                        ssr: false },
 
-  // ── Farm (4 SSR + 6 kw-only) ──
+  // ── Farm (6 SSR + 4 kw-only) ──
   { category: 'Farm', slug: 'tractors-for-sale',       label: 'Tractors',         kw: 'tractor',        subs: ['Tractor'],       ssr: true },
   { category: 'Farm', slug: 'rotary-cutters-for-sale', label: 'Rotary Cutters',   kw: 'rotary',         subs: ['Rotary Cutter'], ssr: true },
   { category: 'Farm', slug: 'boom-mowers-for-sale',    label: 'Boom Mowers',      kw: 'boom mower',     subs: ['Boom Mower'],    ssr: true },
@@ -69,7 +69,7 @@ const TAXONOMY_DATA = [
   { category: 'Farm', slug: 'hay-rakes-for-sale',       label: 'Hay Rakes',        kw: 'hay rake',       subs: ['Hay Rake'],      ssr: true },
   { category: 'Farm', slug: 'balers',                  label: 'Balers',           kw: 'baler',          subs: [],                ssr: false },
   { category: 'Farm', slug: 'field-mowers',            label: 'Field Mowers',     kw: 'field mower',    subs: [],                ssr: false },
-  { category: 'Farm', slug: 'utility-vehicles',        label: 'Utility Vehicles', kw: 'utility vehicle',subs: [],                ssr: false },
+  { category: 'Farm', slug: 'utility-vehicles-for-sale', label: 'Utility Vehicles', kw: 'utility vehicle', subs: ['Utility Vehicle'], ssr: true  },
   { category: 'Farm', slug: 'harrows',                 label: 'Harrows',          kw: 'harrow',         subs: [],                ssr: false },
   { category: 'Farm', slug: 'disks',                   label: 'Disks',            kw: 'disk',           subs: [],                ssr: false },
 

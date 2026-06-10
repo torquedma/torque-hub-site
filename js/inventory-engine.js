@@ -191,7 +191,7 @@ window.InventoryEngine = (function () {
       { label: 'Mini Excavators', kw: 'mini excavator', subs: ['Mini Excavator'], slug: 'mini-excavators-for-sale', ssr: true },
       { label: 'Loaders', kw: 'loader', subs: ['Wheel Loader', 'Crawler Loader'], slug: 'loaders-for-sale', ssr: true },
       { label: 'Crane Trucks', kw: 'crane truck', subs: ['Crane Truck'], slug: 'crane-trucks-for-sale', ssr: true },
-      { label: 'Forklifts', kw: 'forklift', slug: 'forklifts' },
+      { label: 'Forklifts', kw: 'forklift', slug: 'forklifts-for-sale' },
       { label: 'Backhoes', kw: 'backhoe', slug: 'backhoes' }
     ],
     'Farm': [
@@ -202,7 +202,7 @@ window.InventoryEngine = (function () {
       { label: 'Hay Rakes', kw: 'hay rake', slug: 'hay-rakes-for-sale' },
       { label: 'Balers', kw: 'baler', slug: 'balers' },
       { label: 'Field Mowers', kw: 'field mower', slug: 'field-mowers' },
-      { label: 'Utility Vehicles', kw: 'utility vehicle', slug: 'utility-vehicles' },
+      { label: 'Utility Vehicles', kw: 'utility vehicle', slug: 'utility-vehicles-for-sale' },
       { label: 'Harrows', kw: 'harrow', slug: 'harrows' },
       { label: 'Disks', kw: 'disk', slug: 'disks' }
     ],

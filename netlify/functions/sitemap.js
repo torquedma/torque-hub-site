@@ -102,6 +102,7 @@ const CATEGORY_URLS = [
   { loc: '/boom-mowers-for-sale',           changefreq: 'daily', priority: '0.8' },
   { loc: '/drum-mowers-for-sale',           changefreq: 'daily', priority: '0.8' },
   { loc: '/hay-rakes-for-sale',             changefreq: 'daily', priority: '0.8' },
+  { loc: '/utility-vehicles-for-sale',      changefreq: 'daily', priority: '0.8' },
   // Landscape leaves
   { loc: '/zero-turn-mowers-for-sale',      changefreq: 'daily', priority: '0.8' },
   { loc: '/lawn-tractors-for-sale',         changefreq: 'daily', priority: '0.8' },
@@ -112,6 +113,7 @@ const CATEGORY_URLS = [
   { loc: '/mini-skid-steers-for-sale',      changefreq: 'daily', priority: '0.8' },
   { loc: '/loaders-for-sale',               changefreq: 'daily', priority: '0.8' },
   { loc: '/crane-trucks-for-sale',          changefreq: 'daily', priority: '0.8' },
+  { loc: '/forklifts-for-sale',             changefreq: 'daily', priority: '0.8' },
 ];
 
 exports.handler = async () => {

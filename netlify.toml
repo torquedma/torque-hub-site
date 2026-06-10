@@ -147,7 +147,7 @@
   path = "/gooseneck-trailers-for-sale"
   function = "category"
 
-# Farm subcategories (5)
+# Farm subcategories (6)
 [[edge_functions]]
   path = "/tractors-for-sale"
   function = "category"
@@ -168,6 +168,10 @@
   path = "/hay-rakes-for-sale"
   function = "category"
 
+[[edge_functions]]
+  path = "/utility-vehicles-for-sale"
+  function = "category"
+
 # Landscape subcategories (2)
 [[edge_functions]]
   path = "/zero-turn-mowers-for-sale"
@@ -177,7 +181,7 @@
   path = "/lawn-tractors-for-sale"
   function = "category"
 
-# Construction subcategories (5)
+# Construction subcategories (7)
 [[edge_functions]]
   path = "/excavators-for-sale"
   function = "category"
@@ -200,6 +204,10 @@
 
 [[edge_functions]]
   path = "/crane-trucks-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/forklifts-for-sale"
   function = "category"
 
 [[redirects]]
