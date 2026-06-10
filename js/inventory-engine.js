@@ -199,7 +199,7 @@ window.InventoryEngine = (function () {
       { label: 'Rotary Cutters', kw: 'rotary', subs: ['Rotary Cutter'], slug: 'rotary-cutters-for-sale', ssr: true },
       { label: 'Boom Mowers', kw: 'boom mower', subs: ['Boom Mower'], slug: 'boom-mowers-for-sale', ssr: true },
       { label: 'Drum Mowers', kw: 'drum mower', subs: ['Drum Mower'], slug: 'drum-mowers-for-sale', ssr: true },
-      { label: 'Hay Rakes', kw: 'hay rake', slug: 'hay-rakes' },
+      { label: 'Hay Rakes', kw: 'hay rake', slug: 'hay-rakes-for-sale' },
       { label: 'Balers', kw: 'baler', slug: 'balers' },
       { label: 'Field Mowers', kw: 'field mower', slug: 'field-mowers' },
       { label: 'Utility Vehicles', kw: 'utility vehicle', slug: 'utility-vehicles' },

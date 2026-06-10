@@ -101,6 +101,7 @@ const CATEGORY_URLS = [
   { loc: '/rotary-cutters-for-sale',        changefreq: 'daily', priority: '0.8' },
   { loc: '/boom-mowers-for-sale',           changefreq: 'daily', priority: '0.8' },
   { loc: '/drum-mowers-for-sale',           changefreq: 'daily', priority: '0.8' },
+  { loc: '/hay-rakes-for-sale',             changefreq: 'daily', priority: '0.8' },
   // Landscape leaves
   { loc: '/zero-turn-mowers-for-sale',      changefreq: 'daily', priority: '0.8' },
   { loc: '/lawn-tractors-for-sale',         changefreq: 'daily', priority: '0.8' },

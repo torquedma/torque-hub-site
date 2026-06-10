@@ -147,7 +147,7 @@
   path = "/gooseneck-trailers-for-sale"
   function = "category"
 
-# Farm subcategories (4)
+# Farm subcategories (5)
 [[edge_functions]]
   path = "/tractors-for-sale"
   function = "category"
@@ -162,6 +162,10 @@
 
 [[edge_functions]]
   path = "/drum-mowers-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/hay-rakes-for-sale"
   function = "category"
 
 # Landscape subcategories (2)

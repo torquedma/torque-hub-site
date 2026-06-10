@@ -52,7 +52,7 @@ const TAXONOMY_DATA = [
   { category: 'Trailers', slug: 'utility-trailers-for-sale',         label: 'Utility Trailers',         kw: 'utility',         subs: ['Utility Trailer'],         ssr: true },
 
   // ── Construction (6 SSR + 2 kw-only) ──
-  { category: 'Construction', slug: 'skid-steers-for-sale',      label: 'Skid Steers',      kw: 'skid',            subs: ['Skid Steer', 'Compact Track Loader', 'Mini Skid Steer', 'Track Skid Steer', 'Wheel Skid Steer'], ssr: true },
+  { category: 'Construction', slug: 'skid-steers-for-sale',      label: 'Skid Steers',      kw: 'skid',            subs: ['Skid Steer', 'Compact Track Loader', 'Mini Skid Steer'],                                         ssr: true },
   { category: 'Construction', slug: 'mini-skid-steers-for-sale', label: 'Mini Skid Steers', kw: 'mini skid steer', subs: ['Mini Skid Steer'],                       ssr: true },
   { category: 'Construction', slug: 'excavators-for-sale',       label: 'Excavators',       kw: 'excavator',       subs: ['Excavator', 'Crawler Excavator', 'Mini Excavator'], ssr: true },
   { category: 'Construction', slug: 'mini-excavators-for-sale',  label: 'Mini Excavators',  kw: 'mini excavator',  subs: ['Mini Excavator'],                        ssr: true },
@@ -66,7 +66,7 @@ const TAXONOMY_DATA = [
   { category: 'Farm', slug: 'rotary-cutters-for-sale', label: 'Rotary Cutters',   kw: 'rotary',         subs: ['Rotary Cutter'], ssr: true },
   { category: 'Farm', slug: 'boom-mowers-for-sale',    label: 'Boom Mowers',      kw: 'boom mower',     subs: ['Boom Mower'],    ssr: true },
   { category: 'Farm', slug: 'drum-mowers-for-sale',    label: 'Drum Mowers',      kw: 'drum mower',     subs: ['Drum Mower'],    ssr: true },
-  { category: 'Farm', slug: 'hay-rakes',               label: 'Hay Rakes',        kw: 'hay rake',       subs: [],                ssr: false },
+  { category: 'Farm', slug: 'hay-rakes-for-sale',       label: 'Hay Rakes',        kw: 'hay rake',       subs: ['Hay Rake'],      ssr: true },
   { category: 'Farm', slug: 'balers',                  label: 'Balers',           kw: 'baler',          subs: [],                ssr: false },
   { category: 'Farm', slug: 'field-mowers',            label: 'Field Mowers',     kw: 'field mower',    subs: [],                ssr: false },
   { category: 'Farm', slug: 'utility-vehicles',        label: 'Utility Vehicles', kw: 'utility vehicle',subs: [],                ssr: false },
