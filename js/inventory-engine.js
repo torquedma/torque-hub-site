@@ -183,7 +183,9 @@ window.InventoryEngine = (function () {
       { label: 'Race Trailers', kw: 'race trailer', subs: ['Race Trailer'], slug: 'race-trailers-for-sale', ssr: true },
       { label: 'Living Quarters Trailers', kw: 'living quarters', subs: ['Living Quarters Trailer'], slug: 'living-quarters-trailers-for-sale', ssr: true },
       { label: 'Gooseneck Trailers', kw: 'gooseneck', subs: ['Gooseneck Trailer'], slug: 'gooseneck-trailers-for-sale', ssr: true },
-      { label: 'Utility Trailers', kw: 'utility', subs: ['Utility Trailer'], slug: 'utility-trailers-for-sale', ssr: true }
+      { label: 'Utility Trailers', kw: 'utility', subs: ['Utility Trailer'], slug: 'utility-trailers-for-sale', ssr: true },
+      { label: 'Deckover Trailers', kw: 'deckover', slug: 'deckover-trailers-for-sale' },
+      { label: 'Concession Trailers', kw: 'concession', slug: 'concession-trailers-for-sale' }
     ],
     'Construction': [
       { label: 'Skid Steers', kw: 'skid', subs: ['Skid Steer', 'Compact Track Loader', 'Mini Skid Steer', 'Track Skid Steer', 'Wheel Skid Steer'], slug: 'skid-steers-for-sale', ssr: true },

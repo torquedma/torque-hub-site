@@ -97,6 +97,8 @@ const CATEGORY_URLS = [
   { loc: '/gooseneck-trailers-for-sale',           changefreq: 'daily', priority: '0.8' },
   { loc: '/race-trailers-for-sale',                changefreq: 'daily', priority: '0.8' },
   { loc: '/living-quarters-trailers-for-sale',     changefreq: 'daily', priority: '0.8' },
+  { loc: '/deckover-trailers-for-sale',             changefreq: 'daily', priority: '0.8' },
+  { loc: '/concession-trailers-for-sale',           changefreq: 'daily', priority: '0.8' },
   // Farm leaves
   { loc: '/tractors-for-sale',              changefreq: 'daily', priority: '0.8' },
   { loc: '/rotary-cutters-for-sale',        changefreq: 'daily', priority: '0.8' },

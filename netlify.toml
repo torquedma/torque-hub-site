@@ -102,7 +102,7 @@
   path = "/pickup-trucks-for-sale"
   function = "category"
 
-# Trailer subcategories (12)
+# Trailer subcategories (14)
 [[edge_functions]]
   path = "/reefer-trailers-for-sale"
   function = "category"
@@ -149,6 +149,14 @@
 
 [[edge_functions]]
   path = "/gooseneck-trailers-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/deckover-trailers-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/concession-trailers-for-sale"
   function = "category"
 
 # Farm subcategories (6)

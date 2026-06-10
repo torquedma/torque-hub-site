@@ -59,7 +59,6 @@ const CANONICAL_SUBCATEGORIES = new Set([
   'Curtain-Side Trailer',
   'Lowboy Trailer',
   'Flatbed Trailer',
-  'Vending / Concession Trailer',
   'Skid Steer',
   'Mini Skid Steer',
   'Compact Track Loader',
@@ -116,6 +115,7 @@ const CANONICAL_SUBCATEGORIES = new Set([
 ]);
 
 const SUBCATEGORY_ALIASES = {
+  'Vending / Concession Trailer': 'Concession Trailer',
   'Cargo / Enclosed Trailer': 'Enclosed Trailer',
   'Cargo Trailer': 'Enclosed Trailer',
   'Refrigerated Trailer': 'Reefer Trailer',
