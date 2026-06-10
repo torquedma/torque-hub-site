@@ -5,7 +5,7 @@ const fs   = require('fs');
 const path = require('path');
 
 const ROOT       = path.join(__dirname, '..');
-const ADMIN_ROOT = path.join(process.env.HOME, 'Downloads/torquehub-admin');
+const ADMIN_ROOT = path.join(process.env.HOME, 'torquedma/torque-hub-admin');
 const TAX_JSON   = path.join(ROOT, 'netlify/functions/lib/taxonomy.json');
 
 // Re-run generation into strings (same logic as generate-taxonomy.js)
@@ -38,6 +38,7 @@ const expected = {
   [path.join(ADMIN_ROOT, 'js/taxonomy.browser.js')]:                       buildBrowser(),
 };
 
+let failed = false;
 let drifted = false;
 for (const [filePath, expectedContent] of Object.entries(expected)) {
   if (!fs.existsSync(filePath)) {
@@ -67,10 +68,10 @@ for (const [filePath, expectedContent] of Object.entries(expected)) {
 
 if (drifted) {
   console.error('\nverify-taxonomy: FAILED — generated files are out of sync with taxonomy.json');
-  process.exit(1);
 } else {
   console.log('\nverify-taxonomy: OK — all generated files match taxonomy.json');
 }
+failed = failed || drifted;
 
 // ---------------------------------------------------------------------------
 // ORPHAN_SUB pass — catch subcategories wired into buyer-facing layers that
@@ -129,8 +130,167 @@ for (const { sub, file } of allRefs) {
 
 if (orphaned) {
   console.error('\nverify-taxonomy: FAILED — orphaned subcategories found (run npm run gen-taxonomy if taxonomy.json was just updated)');
-  process.exit(1);
 } else {
   console.log(`ORPHAN_SUB OK: checked ${uniqueSubs.size} unique subcategories across CAT_SUBS and SUBCATEGORY_LEAVES`);
-  process.exit(0);
 }
+failed = failed || orphaned;
+
+// ---------------------------------------------------------------------------
+// LEAF_ROUTING pass — cross-check every ssr:true taxonomy-data entry against
+// netlify.toml category routes, sitemap.js leaf entries, and
+// inventory-engine.js tile slugs. All parsed as text — no require().
+// ---------------------------------------------------------------------------
+
+const TAX_DATA_FILE = path.join(ROOT, 'js/taxonomy-data.js');
+const NETLIFY_TOML  = path.join(ROOT, 'netlify.toml');
+const SITEMAP_FILE  = path.join(ROOT, 'netlify/functions/sitemap.js');
+// CAT_SUBS_FILE already defined above
+
+// ── parsers ──────────────────────────────────────────────────────────────────
+
+function parseTaxonomyEntries(src) {
+  const entries = [];
+  const objRe = /\{[^}]+\}/g;
+  let m;
+  while ((m = objRe.exec(src)) !== null) {
+    const obj = m[0];
+    const category = (obj.match(/category:\s*'([^']+)'/) || [])[1];
+    const slug     = (obj.match(/slug:\s*'([^']+)'/)     || [])[1];
+    const label    = (obj.match(/label:\s*'([^']+)'/)    || [])[1];
+    if (!category || !slug || !label) continue;
+    const ssrMatch  = obj.match(/\bssr:\s*(true|false)\b/);
+    const ssr       = ssrMatch ? ssrMatch[1] === 'true' : false;
+    const subsBlock = (obj.match(/subs:\s*\[([^\]]*)\]/) || [])[1] || '';
+    const subs = [];
+    const subStrRe = /'([^']+)'/g;
+    let sm;
+    while ((sm = subStrRe.exec(subsBlock)) !== null) subs.push(sm[1]);
+    entries.push({ category, slug, label, subs, ssr });
+  }
+  return entries;
+}
+
+function parseCategoryHubSlugs(src) {
+  const hubSlugs = new Set();
+  const blockM = src.match(/const CATEGORY_HUB\s*=\s*\{([^}]+)\}/);
+  if (!blockM) return hubSlugs;
+  const valRe = /:\s*'([^']+)'/g;
+  let m;
+  while ((m = valRe.exec(blockM[1])) !== null) hubSlugs.add(m[1]);
+  return hubSlugs;
+}
+
+function parseTomlCategoryRoutes(src) {
+  src = src.split('\n').filter(l => !/^\s*\/\//.test(l)).join('\n');
+  const slugs = new Set();
+  const blocks = src.split(/\[\[edge_functions\]\]/);
+  for (const block of blocks) {
+    if (/function\s*=\s*"category"/.test(block)) {
+      const pm = block.match(/path\s*=\s*"\/([^"]+)"/);
+      if (pm) slugs.add(pm[1]);
+    }
+  }
+  return slugs;
+}
+
+function parseSitemapLeafSlugs(src) {
+  src = src.split('\n').filter(l => !/^\s*\/\//.test(l)).join('\n');
+  const slugs = new Set();
+  const re = /\{\s*loc:\s*'\/([\w-]+)'/g;
+  let m;
+  while ((m = re.exec(src)) !== null) slugs.add(m[1]);
+  return slugs;
+}
+
+function parseTileMap(src) {
+  src = src.split('\n').filter(l => !/^\s*\/\//.test(l)).join('\n');
+  const map = new Map();
+  const cats = ['Trucks', 'Trailers', 'Construction', 'Farm', 'Landscape'];
+  for (const cat of cats) {
+    const catRe = new RegExp(`['"]${cat}['"]\\s*:\\s*\\[`, 'g');
+    const cm = catRe.exec(src);
+    if (!cm) continue;
+    let depth = 1, i = cm.index + cm[0].length;
+    const start = i;
+    while (i < src.length && depth > 0) {
+      if (src[i] === '[') depth++;
+      else if (src[i] === ']') depth--;
+      i++;
+    }
+    const block = src.slice(start, i - 1);
+    const entryRe = /label\s*:\s*'([^']+)'[^{}]*?slug\s*:\s*'([^']+)'/g;
+    let em;
+    while ((em = entryRe.exec(block)) !== null) map.set(`${cat}:${em[1]}`, em[2]);
+  }
+  return map;
+}
+
+// ── load & parse ─────────────────────────────────────────────────────────────
+
+const taxSrc       = fs.readFileSync(TAX_DATA_FILE, 'utf8');
+const taxEntries   = parseTaxonomyEntries(taxSrc);
+const hubSlugs     = parseCategoryHubSlugs(taxSrc);
+const tomlRoutes   = parseTomlCategoryRoutes(fs.readFileSync(NETLIFY_TOML, 'utf8'));
+const sitemapSlugs = parseSitemapLeafSlugs(fs.readFileSync(SITEMAP_FILE, 'utf8'));
+const tileMap      = parseTileMap(fs.readFileSync(CAT_SUBS_FILE, 'utf8'));
+
+const ssrLeaves = taxEntries.filter(e => e.ssr);
+const ssrSlugs  = new Set(ssrLeaves.map(e => e.slug));
+
+let leafFailed = false;
+
+// ── FORWARD checks ───────────────────────────────────────────────────────────
+
+for (const e of ssrLeaves) {
+  if (!e.slug.endsWith('-for-sale')) {
+    console.error(`LEAF_ROUTING (a) ssr:true slug missing '-for-sale' suffix: '${e.slug}' [${e.category}]`);
+    leafFailed = true;
+  }
+  if (e.subs.length === 0) {
+    console.error(`LEAF_ROUTING (b) ssr:true entry has empty subs[]: '${e.slug}' [${e.category}]`);
+    leafFailed = true;
+  }
+  if (!tomlRoutes.has(e.slug)) {
+    console.error(`LEAF_ROUTING (c) missing netlify.toml category route: '${e.slug}' [${e.category}]`);
+    leafFailed = true;
+  }
+  if (!sitemapSlugs.has(e.slug)) {
+    console.error(`LEAF_ROUTING (d) missing sitemap.js entry: '${e.slug}' [${e.category}]`);
+    leafFailed = true;
+  }
+  const tileSlug = tileMap.get(`${e.category}:${e.label}`);
+  if (tileSlug !== undefined && tileSlug !== e.slug) {
+    console.error(`LEAF_ROUTING (e) tile slug mismatch for '${e.category}:${e.label}': tile='${tileSlug}' taxonomy='${e.slug}'`);
+    leafFailed = true;
+  }
+}
+
+// ── REVERSE checks ───────────────────────────────────────────────────────────
+
+for (const slug of tomlRoutes) {
+  if (!ssrSlugs.has(slug) && !hubSlugs.has(slug)) {
+    console.error(`LEAF_ROUTING (f) orphan netlify.toml route '/${slug}' has no ssr:true taxonomy entry`);
+    leafFailed = true;
+  }
+}
+
+for (const slug of sitemapSlugs) {
+  if (slug.endsWith('-for-sale') && !ssrSlugs.has(slug) && !hubSlugs.has(slug)) {
+    console.error(`LEAF_ROUTING (g) orphan sitemap entry '/${slug}' has no ssr:true taxonomy entry`);
+    leafFailed = true;
+  }
+}
+
+for (const e of taxEntries) {
+  if (!e.ssr && e.slug.endsWith('-for-sale')) {
+    console.error(`LEAF_ROUTING (h) kw-only (ssr:false) entry uses '-for-sale' slug: '${e.slug}' [${e.category}]`);
+    leafFailed = true;
+  }
+}
+
+if (!leafFailed) {
+  console.log(`LEAF_ROUTING OK: ${ssrLeaves.length} SSR leaves validated across 4 surfaces`);
+}
+failed = failed || leafFailed;
+
+process.exit(failed ? 1 : 0);

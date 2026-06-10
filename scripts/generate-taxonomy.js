@@ -5,7 +5,7 @@ const fs   = require('fs');
 const path = require('path');
 
 const ROOT       = path.join(__dirname, '..');
-const ADMIN_ROOT = path.join(process.env.HOME, 'Downloads/torquehub-admin');
+const ADMIN_ROOT = path.join(process.env.HOME, 'torquedma/torque-hub-admin');
 const TAX_JSON   = path.join(ROOT, 'netlify/functions/lib/taxonomy.json');
 
 const { canonical_subcategories: canonical, subcategory_aliases: aliases } =
