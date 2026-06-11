@@ -325,7 +325,7 @@ window.InventoryEngine = (function () {
       // We re-wrap it back to a one-element array in .then() so the consumer code at line ~333
       // (u.photos && u.photos.length ? u.photos[0].url : '...) keeps working identically for
       // both Supabase-direct dealers (now thin) and push-dealer feeds (still full arrays).
-      var cols = 'id,stock,year,make,model,trim,subcategory,category,dealer,price,mileage,engine,horsepower,hours,fuel,condition,photos->0,created_at';
+      var cols = 'id,stock,vin,year,make,model,trim,subcategory,category,dealer,price,mileage,engine,horsepower,hours,fuel,condition,photos->0,created_at,updated_at';
       return fetch(
         SB_URL + '/rest/v1/inventory_cards?select=' + cols + '&dealer=eq.' + encodeURIComponent(d.key) + '&sold=eq.false&limit=1000',
         { headers: SB_HDRS }
@@ -666,6 +666,77 @@ window.InventoryEngine = (function () {
     _scrollToTarget();
   }
 
+  function buildSuggestions(raw) {
+    if (!raw) return [];
+    var q = raw.toLowerCase().trim();
+    if (!q) return [];
+    var groups = [];
+
+    function _unitItem(u, score) {
+      var d = u._dealer || DEALERS.find(function(x){return x.key===u.dealer;})||{};
+      var pRaw = String(u.price||'').replace(/[^0-9.]/g,'');
+      var priceStr = u.price && !isNaN(parseFloat(pRaw))
+        ? '$'+Number(pRaw).toLocaleString()
+        : (u.price && u.price!=='0' ? u.price : 'Call');
+      return { unit:u, matchScore:score, title:buildVehicleTitle(u), priceStr:priceStr, dealerName:d.name||u.dealer||'' };
+    }
+
+    // Group 1: Matching Vehicles — same haystack as applyFilters, scored
+    var uHits=[];
+    for (var _i=0;_i<ALL_INV.length;_i++) {
+      var _u=ALL_INV[_i];
+      var _h=(String(_u.year||'')+' '+String(_u.make||'')+' '+String(_u.model||'')+' '+
+              String(_u.stock||'')+' '+String(_u.dealer||'')+' '+String(_u.trim||'')+' '+
+              String(_u.subcategory||'')).toLowerCase();
+      var _s=_h.includes(q)?2:((QUERY_SYNONYMS[q]||[]).some(function(t){return _h.includes(t);})?1:0);
+      if (_s) uHits.push(_unitItem(_u,_s));
+    }
+    uHits.sort(function(a,b){return b.matchScore-a.matchScore;});
+    if (uHits.length) groups.push({type:'units',label:'Matching Vehicles',items:uHits.slice(0,5)});
+
+    // Group 2: Stock # / VIN — prefix match
+    var sHits=[];
+    for (var _j=0;_j<ALL_INV.length&&sHits.length<5;_j++) {
+      var _su=ALL_INV[_j];
+      var _st=String(_su.stock||'').toLowerCase();
+      var _vi=String(_su.vin||'').toLowerCase();
+      if ((_st&&_st.startsWith(q))||(_vi&&_vi.startsWith(q))) sHits.push(_unitItem(_su,3));
+    }
+    if (sHits.length) groups.push({type:'stock',label:'Stock # / VIN',items:sHits});
+
+    // Group 3: Makes — distinct makes containing q
+    var mSeen={},mHits=[];
+    for (var _k=0;_k<ALL_INV.length&&mHits.length<5;_k++) {
+      var _mk=String(ALL_INV[_k].make||'');
+      if (!_mk||mSeen[_mk]) continue;
+      if (_mk.toLowerCase().includes(q)) { mSeen[_mk]=true; mHits.push({make:_mk,matchScore:1}); }
+    }
+    if (mHits.length) groups.push({type:'make',label:'Makes',items:mHits});
+
+    // Group 4: Category tiles (label or kw contains q)
+    var cHits=[],_catKeys=['Trucks','Trailers','Construction','Farm','Landscape'];
+    for (var _ci=0;_ci<_catKeys.length&&cHits.length<5;_ci++) {
+      var _tiles=CAT_SUBS[_catKeys[_ci]]||[];
+      for (var _ti=0;_ti<_tiles.length&&cHits.length<5;_ti++) {
+        var _t=_tiles[_ti];
+        if ((_t.label||'').toLowerCase().includes(q)||(_t.kw||'').toLowerCase().includes(q))
+          cHits.push({tile:_t,cat:_catKeys[_ci],matchScore:1});
+      }
+    }
+    if (cHits.length) groups.push({type:'category',label:'Categories',items:cHits});
+
+    // Group 5: Dealers — name or location contains q
+    var dHits=[];
+    for (var _di=0;_di<DEALERS.length&&dHits.length<5;_di++) {
+      var _d=DEALERS[_di];
+      if (_d.name.toLowerCase().includes(q)||(_d.location||'').toLowerCase().includes(q))
+        dHits.push({dealer:_d,matchScore:1});
+    }
+    if (dHits.length) groups.push({type:'dealer',label:'Dealers',items:dHits});
+
+    return groups;
+  }
+
   // ── Public API ─────────────────────────────────────────────────────────────
   return {
     init: function(cfg) {
@@ -680,6 +751,7 @@ window.InventoryEngine = (function () {
     setCat:         setCat,
     filterByMainCat: filterByMainCat,
     filterByCatSub: filterByCatSub,
+    buildSuggestions:    buildSuggestions,
     heroSearch:     heroSearch,
     financeUrl:     financeUrl,
 

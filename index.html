@@ -769,6 +769,14 @@
     @media (max-width: 900px) { .cat-discovery-grid { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 500px) { .hero-search-bar .btn { width: 100%; } .hero-btn-group { flex-direction: column; } .cat-discovery-grid { grid-template-columns: 1fr; } }
 
+    .search-suggestions-wrap { position: relative; }
+    .search-suggestions { position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 9000; background: #111827; border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; box-shadow: 0 20px 48px rgba(0,0,0,0.55); max-height: 400px; overflow-y: auto; }
+    .sg-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #475569; padding: 10px 14px 4px; }
+    .sg-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; cursor: pointer; border-top: 1px solid rgba(255,255,255,0.05); gap: 10px; }
+    .sg-item:hover, .sg-item.sg-item--active { background: rgba(255,255,255,0.07); }
+    .sg-item-main { font-size: 14px; font-weight: 600; color: #f1f5f9; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sg-item-meta { font-size: 12px; color: #64748b; white-space: nowrap; flex-shrink: 0; }
+
     /* ── COLOR HIERARCHY ──────────────────────────────────────── */
 
     /* H1 — centered green rule beneath */
@@ -953,7 +961,10 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
           </p>
         </div>
         <div class="hero-search-bar">
-          <input type="text" id="hero-kw" placeholder="Search trucks, trailers, equipment, stock #..." autocomplete="off" onkeydown="if(event.key==='Enter')heroSearch()">
+          <div class="search-suggestions-wrap" style="flex:1;min-width:200px;">
+            <input type="text" id="hero-kw" placeholder="Search trucks, trailers, equipment, stock #..." autocomplete="off" style="width:100%;min-width:0;">
+            <div id="hero-suggestions" class="search-suggestions" hidden></div>
+          </div>
           <select id="hero-cat">
             <option value="">All Categories</option>
             <option value="Trucks">Trucks</option>
@@ -1098,7 +1109,10 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
         <p id="inv-blurb" style="margin-bottom:16px;color:#64748b;font-size:14px;line-height:1.65;">Browse work trucks, trailers, construction equipment, and farm equipment from real dealers across the Southeast.</p>
 
         <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
-          <input type="text" id="inv-search" placeholder="Search year, make, model, stock..." oninput="applyFilters()" style="flex:1;min-width:200px;padding:10px 14px;background:rgba(255,255,255,0.05);border:1.5px solid rgba(255,255,255,0.18);border-radius:12px;color:#f8fafc;font-size:14px;font-family:inherit;outline:none">
+          <div class="search-suggestions-wrap" style="flex:1;min-width:200px;">
+            <input type="text" id="inv-search" placeholder="Search year, make, model, stock..." oninput="applyFilters()" style="width:100%;min-width:0;padding:10px 14px;background:rgba(255,255,255,0.05);border:1.5px solid rgba(255,255,255,0.18);border-radius:12px;color:#f8fafc;font-size:14px;font-family:inherit;outline:none">
+            <div id="inv-suggestions" class="search-suggestions" hidden></div>
+          </div>
           <select id="dealer-filter" onchange="applyFilters()" style="padding:10px 14px;background:rgba(17,24,39,0.9);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#f8fafc;font-size:14px;font-family:inherit;outline:none;cursor:pointer">
             <option value="">All Dealers</option>
           </select>
@@ -1460,6 +1474,96 @@ InventoryEngine.init({
 
 initDealerFilter();
 InventoryEngine.loadAll();
+
+function _initTypeahead(inputId, dropdownId, onSelect, onEnterFallback) {
+  var input = document.getElementById(inputId);
+  var drop  = document.getElementById(dropdownId);
+  if (!input || !drop) return;
+  var _timer=null, _active=-1, _flat=[];
+  function _items() { return Array.prototype.slice.call(drop.querySelectorAll('.sg-item')); }
+  function _setActive(idx) {
+    _items().forEach(function(el,i){
+      if (i===idx) { el.classList.add('sg-item--active'); el.scrollIntoView({block:'nearest'}); }
+      else           el.classList.remove('sg-item--active');
+    });
+    _active=idx;
+  }
+  function _close() { drop.hidden=true; _active=-1; }
+  function _render(groups) {
+    if (!groups||!groups.length) { _close(); return; }
+    var html=''; _flat=[];
+    groups.forEach(function(g) {
+      html+='<div class="sg-label">'+g.label+'</div>';
+      g.items.forEach(function(item) {
+        var main='', meta='', t=g.type;
+        if (t==='units'||t==='stock') {
+          main=item.title;
+          meta=[item.priceStr, item.dealerName].filter(Boolean).join(' · ');
+        } else if (t==='make') {
+          main=item.make; meta='Make';
+        } else if (t==='category') {
+          main=item.tile.label; meta=item.cat;
+        } else if (t==='dealer') {
+          main=item.dealer.name; meta=item.dealer.location;
+        }
+        var idx=_flat.length; _flat.push({type:t,item:item});
+        html+='<div class="sg-item" data-idx="'+idx+'">' +
+          '<span class="sg-item-main">'+main+'</span>' +
+          (meta?'<span class="sg-item-meta">'+meta+'</span>':'')+
+        '</div>';
+      });
+    });
+    drop.innerHTML=html;
+    _items().forEach(function(el) {
+      el.addEventListener('mousedown',function(e){
+        e.preventDefault();
+        var i=parseInt(el.getAttribute('data-idx'),10);
+        if (!isNaN(i)&&_flat[i]) { _close(); onSelect(_flat[i].type,_flat[i].item); }
+      });
+    });
+    drop.hidden=false;
+  }
+  input.addEventListener('input',function(){
+    clearTimeout(_timer);
+    _timer=setTimeout(function(){
+      var q=input.value.trim();
+      if (!q) { _close(); return; }
+      _render(InventoryEngine.buildSuggestions(q));
+    },150);
+  });
+  input.addEventListener('keydown',function(e){
+    var its=_items();
+    if (!drop.hidden&&its.length) {
+      if (e.key==='ArrowDown') { e.preventDefault(); _setActive(Math.min(_active+1,its.length-1)); return; }
+      if (e.key==='ArrowUp')   { e.preventDefault(); _setActive(Math.max(_active-1,0)); return; }
+      if (e.key==='Escape')    { _close(); return; }
+      if (e.key==='Enter') {
+        if (_active>=0&&_flat[_active]) {
+          e.preventDefault(); e.stopPropagation();
+          _close(); onSelect(_flat[_active].type,_flat[_active].item);
+        } else {
+          _close(); if (typeof onEnterFallback==='function') onEnterFallback();
+        }
+        return;
+      }
+    } else if (e.key==='Enter'&&typeof onEnterFallback==='function') { onEnterFallback(); }
+  });
+  input.addEventListener('blur',function(){ setTimeout(_close,150); });
+}
+
+_initTypeahead('hero-kw','hero-suggestions',function(type,item){
+  if (type==='units'||type==='stock') window.location.href='vehicle.html?stock='+encodeURIComponent(item.unit.stock);
+  else if (type==='make') { document.getElementById('hero-kw').value=item.make; heroSearch(); }
+  else if (type==='category') window.location.href=(item.tile.ssr?'/'+item.tile.slug:'/inventory.html?type='+item.tile.slug);
+  else if (type==='dealer')   window.location.href='/inventory.html?dealer='+encodeURIComponent(item.dealer.key);
+},function(){ heroSearch(); });
+
+_initTypeahead('inv-search','inv-suggestions',function(type,item){
+  if (type==='units'||type==='stock') window.location.href='vehicle.html?stock='+encodeURIComponent(item.unit.stock);
+  else if (type==='make') { document.getElementById('inv-search').value=item.make; applyFilters(); }
+  else if (type==='category') window.location.href=(item.tile.ssr?'/'+item.tile.slug:'/inventory.html?type='+item.tile.slug);
+  else if (type==='dealer')   window.location.href='/inventory.html?dealer='+encodeURIComponent(item.dealer.key);
+});
 
 </script>
 
