@@ -692,11 +692,11 @@ window.InventoryEngine = (function () {
       if (_s) uHits.push(_unitItem(_u,_s));
     }
     uHits.sort(function(a,b){return b.matchScore-a.matchScore;});
-    if (uHits.length) groups.push({type:'units',label:'Matching Vehicles',items:uHits.slice(0,5)});
+    if (uHits.length) groups.push({type:'units',label:'Matching Vehicles',items:uHits.slice(0,3)});
 
     // Group 2: Stock # / VIN — prefix match
     var sHits=[];
-    for (var _j=0;_j<ALL_INV.length&&sHits.length<5;_j++) {
+    for (var _j=0;_j<ALL_INV.length&&sHits.length<3;_j++) {
       var _su=ALL_INV[_j];
       var _st=String(_su.stock||'').toLowerCase();
       var _vi=String(_su.vin||'').toLowerCase();
@@ -706,7 +706,7 @@ window.InventoryEngine = (function () {
 
     // Group 3: Makes — distinct makes containing q
     var mSeen={},mHits=[];
-    for (var _k=0;_k<ALL_INV.length&&mHits.length<5;_k++) {
+    for (var _k=0;_k<ALL_INV.length&&mHits.length<3;_k++) {
       var _mk=String(ALL_INV[_k].make||'');
       if (!_mk||mSeen[_mk]) continue;
       if (_mk.toLowerCase().includes(q)) { mSeen[_mk]=true; mHits.push({make:_mk,matchScore:1}); }
@@ -715,9 +715,9 @@ window.InventoryEngine = (function () {
 
     // Group 4: Category tiles (label or kw contains q)
     var cHits=[],_catKeys=['Trucks','Trailers','Construction','Farm','Landscape'];
-    for (var _ci=0;_ci<_catKeys.length&&cHits.length<5;_ci++) {
+    for (var _ci=0;_ci<_catKeys.length&&cHits.length<3;_ci++) {
       var _tiles=CAT_SUBS[_catKeys[_ci]]||[];
-      for (var _ti=0;_ti<_tiles.length&&cHits.length<5;_ti++) {
+      for (var _ti=0;_ti<_tiles.length&&cHits.length<3;_ti++) {
         var _t=_tiles[_ti];
         if ((_t.label||'').toLowerCase().includes(q)||(_t.kw||'').toLowerCase().includes(q))
           cHits.push({tile:_t,cat:_catKeys[_ci],matchScore:1});
@@ -727,7 +727,7 @@ window.InventoryEngine = (function () {
 
     // Group 5: Dealers — name or location contains q
     var dHits=[];
-    for (var _di=0;_di<DEALERS.length&&dHits.length<5;_di++) {
+    for (var _di=0;_di<DEALERS.length&&dHits.length<3;_di++) {
       var _d=DEALERS[_di];
       if (_d.name.toLowerCase().includes(q)||(_d.location||'').toLowerCase().includes(q))
         dHits.push({dealer:_d,matchScore:1});
