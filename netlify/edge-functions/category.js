@@ -66,6 +66,12 @@ const SHELL = `<!DOCTYPE html>
     .nav-back { color: var(--muted); font-size: 14px; font-weight: 600; padding: 8px 14px; border-radius: 9px; border: 1px solid var(--line); transition: 0.2s; }
     .nav-back:hover { color: var(--text); background: rgba(255,255,255,0.05); }
     .nav-cta { background: linear-gradient(135deg, #365943, #294434); color: #fff; font-size: 13px; font-weight: 700; padding: 9px 16px; border-radius: 9px; text-transform: uppercase; letter-spacing: 0.06em; box-shadow: 0 4px 14px rgba(22,163,74,0.3); }
+    .nav-search { display: flex; align-items: center; gap: 4px; }
+    .nav-search-input { background: rgba(255,255,255,0.05); border: 1px solid var(--line); border-radius: 9px; color: var(--text); font-family: inherit; font-size: 13px; padding: 7px 12px; width: 180px; outline: none; transition: border-color 0.2s, background 0.2s; }
+    .nav-search-input::placeholder { color: var(--soft); }
+    .nav-search-input:focus { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); }
+    .nav-search-btn { background: rgba(255,255,255,0.06); border: 1px solid var(--line); border-radius: 9px; color: var(--muted); cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600; padding: 7px 12px; transition: 0.2s; white-space: nowrap; }
+    .nav-search-btn:hover { background: rgba(255,255,255,0.12); color: var(--text); }
 
     /* BREADCRUMB */
     .breadcrumb { padding: 14px 0; font-size: 13px; color: var(--soft); }
@@ -130,6 +136,8 @@ const SHELL = `<!DOCTYPE html>
 
     /* RESPONSIVE */
     @media (max-width: 640px) {
+      .nav-right { flex-wrap: wrap; justify-content: flex-end; }
+      .nav-search-input { width: 120px; }
       .cat-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
       .cat-card-title { font-size: 13px; }
       .cat-card-price { font-size: 18px; }
@@ -176,6 +184,10 @@ const SHELL = `<!DOCTYPE html>
         </div>
       </a>
       <div class="nav-right">
+        <form class="nav-search" onsubmit="var q=this.q.value.trim();window.location.href=q?'/inventory.html?q='+encodeURIComponent(q):'/inventory.html';return false;">
+          <input class="nav-search-input" name="q" type="search" placeholder="Search all inventory" autocomplete="off">
+          <button class="nav-search-btn" type="submit">Search</button>
+        </form>
         <a href="/inventory.html" class="nav-back">← All Inventory</a>
         <a href="/finance.html?src=cat_nav" class="nav-cta">Get Financing</a>
       </div>
