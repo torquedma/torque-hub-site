@@ -1134,6 +1134,7 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
           <div class="chip" onclick="setCat('Landscape',this)" style="cursor:pointer">Landscape</div>
           <div class="chip" onclick="setCat('Other',this)" style="cursor:pointer">Other</div>
         </div>
+        <a id="cat-hub-link" href="#" style="display:none; font-size:13px; font-weight:600; color:#4ade80; letter-spacing:0.04em; margin:0 0 14px; text-decoration:none;"></a>
         <div id="inventory-grid" class="inventory-grid">
           <div style="grid-column:1/-1;text-align:center;padding:60px 20px">
             <div style="width:36px;height:36px;border:3px solid rgba(255,255,255,0.08);border-top-color:#64748b;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto"></div>
@@ -1276,7 +1277,26 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
 <script>
 // Shims so existing HTML onclick attributes work unchanged
 function applyFilters()           { InventoryEngine.applyFilters(); }
-function setCat(cat, el)          { InventoryEngine.setCat(cat, el); }
+var CATEGORY_HUB = {
+  'Trucks':       { slug: '/trucks-for-sale',                 label: 'Trucks' },
+  'Trailers':     { slug: '/trailers-for-sale',               label: 'Trailers' },
+  'Construction': { slug: '/construction-equipment-for-sale', label: 'Construction Equipment' },
+  'Farm':         { slug: '/farm-equipment-for-sale',         label: 'Farm Equipment' },
+  'Landscape':    { slug: '/landscape-equipment-for-sale',    label: 'Landscape Equipment' }
+};
+function updateCatHubLink(cat) {
+  var el = document.getElementById('cat-hub-link');
+  if (!el) return;
+  var entry = CATEGORY_HUB[cat];
+  if (entry) {
+    el.href = entry.slug;
+    el.textContent = 'View all ' + entry.label + ' →';
+    el.style.display = 'inline';
+  } else {
+    el.style.display = 'none';
+  }
+}
+function setCat(cat, el)          { InventoryEngine.setCat(cat, el); updateCatHubLink(cat); }
 function filterByCatSub(cat, sub) { InventoryEngine.filterByCatSub(cat, sub); }
 function filterByMainCat(cat)     { InventoryEngine.filterByMainCat(cat); }
 function heroSearch()             { InventoryEngine.heroSearch(); }
