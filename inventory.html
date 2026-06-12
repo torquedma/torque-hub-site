@@ -294,9 +294,12 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
           <div class="chip" onclick="setCat('Trailers', this)">Trailers</div>
           <div class="chip" onclick="setCat('Construction', this)">Construction</div>
           <div class="chip" onclick="setCat('Farm', this)">Farm</div>
+          <div class="chip" onclick="setCat('Landscape', this)">Landscape</div>
           <div class="chip" onclick="setCat('Other', this)">Other</div>
           <div class="chip chip-clear" onclick="clearFilters()">× Clear</div>
         </div>
+
+        <a id="cat-hub-link" href="#" style="display:none; font-size:13px; font-weight:600; color:#4ade80; letter-spacing:0.04em; margin:0 0 14px; text-decoration:none;"></a>
 
         <div class="inventory-grid" id="inventory-grid"></div>
         <div id="inv-sentinel" aria-hidden="true" style="height:1px;width:100%;"></div>
@@ -442,7 +445,26 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
       } catch (e) {}
     });
 
-    window.setCat         = function(cat, el) { InventoryEngine.setCat(cat, el); };
+    var CATEGORY_HUB = {
+      'Trucks':       { slug: '/trucks-for-sale',                 label: 'Trucks' },
+      'Trailers':     { slug: '/trailers-for-sale',               label: 'Trailers' },
+      'Construction': { slug: '/construction-equipment-for-sale', label: 'Construction Equipment' },
+      'Farm':         { slug: '/farm-equipment-for-sale',         label: 'Farm Equipment' },
+      'Landscape':    { slug: '/landscape-equipment-for-sale',    label: 'Landscape Equipment' }
+    };
+    function updateCatHubLink(cat) {
+      var el = document.getElementById('cat-hub-link');
+      if (!el) return;
+      var entry = CATEGORY_HUB[cat];
+      if (entry) {
+        el.href = entry.slug;
+        el.textContent = 'View all ' + entry.label + ' →';
+        el.style.display = 'inline';
+      } else {
+        el.style.display = 'none';
+      }
+    }
+    window.setCat         = function(cat, el) { InventoryEngine.setCat(cat, el); updateCatHubLink(cat); };
     window.filterByCatSub = function(cat, sub) { InventoryEngine.filterByCatSub(cat, sub); };
     window.applyFilters   = function() { InventoryEngine.applyFilters(); };
     window.goToPage       = function(n) { InventoryEngine.goToPage(n); };
