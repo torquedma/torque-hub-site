@@ -429,14 +429,15 @@ export default async function handler(request) {
     const h1Text = label + ' for Sale';
     const count = units.length;
     const descText = count
-      ? ('Browse ' + count + ' ' + label.toLowerCase() + ' for sale at Torque Hub. Commercial ' + label.toLowerCase() + ' from trusted dealers — financing available. Tell \'em Torque sent ya.')
+      ? ('Browse ' + count + ' ' + label.toLowerCase() + ' for sale at Torque Hub. Commercial ' + label.toLowerCase() + ' from trusted dealers — financing available.')
       : ('Shop ' + label.toLowerCase() + ' for sale at Torque Hub. New inventory added regularly — financing available.');
+    const taglineText = "Tell 'em Torque sent ya.";
     const canonical = BASE + '/' + slug;
 
     const cardGrid = buildCardGrid(units);
     const { hubLinksHtml, siblingHtml } = buildCrossLinks(slug, isHub, isHub ? null : leaf.hub);
     const childLinks = isHub ? buildHubChildLinks(slug) : '';
-    const introHtml = '<p class="cat-intro">' + esc(descText) + '</p>';
+    const introHtml = '<p class="cat-intro">' + esc(descText) + '<br>' + esc(taglineText) + '</p>';
     const gridBlockHtml = count
       ? ('<div class="cat-grid">' + cardGrid + '</div>')
       : ('<div class="cat-empty"><p>No ' + esc(label.toLowerCase()) + ' in stock right now — new inventory is added regularly. Browse related categories below or <a href="/inventory.html">view all inventory</a>.</p></div>');
