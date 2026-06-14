@@ -23,6 +23,7 @@ function cleanEngine(v) {
 }
 
 const MAKE_ACRONYMS = new Set(['GMC', 'RAM', 'JCB', 'BMW', 'KTM', 'ASV', 'CAT', 'JLG', 'GM', 'PJ']);
+const BODY_MAKERS = new Set(['lift bodies inc','a.m. haire','custom built','johnson','marion','morgan','supreme','kidron']);
 
 function normalizeMake(rawMake) {
   if (!rawMake) return null;
@@ -518,7 +519,12 @@ exports.handler = async (event) => {
         const rawDescription = item.description || item.title || '';
         const dealerInfo = DEALER_INFO_MAP[dealer] || { name: dealer };
 
-        const sub = deriveSubcategory(item);
+        let sub = deriveSubcategory(item);
+        const _mk = (make || '').toLowerCase().trim();
+        const _md = (model || '').toLowerCase().trim();
+        if ((BODY_MAKERS.has(_mk) && /^[0-9]+\.?[0-9]* ?ft\b/i.test(_md)) || /\bbody\b/i.test(_md)) {
+          sub = 'Truck Body';
+        }
         const subLower = (sub || '').toLowerCase();
         const CONSTRUCTION_SUBS = ['skid steer','excavator','wheel loader','crawler dozer','forklift','scissor lift','boom lift','air compressor','mini dumper','crane','backhoe','telehandler','grader','asphalt'];
         const FARM_SUBS = ['utility vehicle','tractor','mower','hay','baler','tedder','rake','planter','combine','sprayer','tillage'];
@@ -530,6 +536,7 @@ exports.handler = async (event) => {
         else if (subLower.includes('crane')) derivedCategory = 'Trucks';
         else if (CONSTRUCTION_SUBS.some(function(k){ return subLower.includes(k); })) derivedCategory = 'Construction';
         else if (FARM_SUBS.some(function(k){ return subLower.includes(k); })) derivedCategory = 'Farm';
+        else if (subLower === 'truck body') derivedCategory = 'Other';
         else if (item.category) derivedCategory = item.category;
         else derivedCategory = 'Trucks';
         const unit = {
