@@ -207,7 +207,10 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
           <option>$50,000+</option>
           <option>Prefer not to say</option>
         </select>
-        <input type="text" id="f-unit-display" placeholder="Unit you are interested in">
+        <input type="text" id="f-unit-display" placeholder="Unit / Stock # you're interested in (optional)">
+        <select id="f-dealer-select" required>
+          <option value="" disabled selected>Dealer Selling Vehicle</option>
+        </select>
         <input type="hidden" id="f-stock">
         <input type="hidden" id="f-unit">
         <input type="hidden" id="f-price">
@@ -418,6 +421,37 @@ document.getElementById("f-lender").value = lender;
 document.getElementById("f-rep").value = rep;
 document.getElementById("f-dealer").value = dealer;
 
+// ⚠️ HARDCODED dealer list — these strings MUST match finance_routes.dealer_name
+//    and inventory.dealer EXACTLY. If a dealer is added/renamed/removed, update
+//    this array or finance routing will silently break for that dealer.
+//    (Future: replace with a dynamic fetch from Supabase.)
+const DEALERS = [
+  "A F Sales & Service", "Allied Truck & Trailer Sales", "Auto Connection 210 LLC",
+  "Davenport Motors", "DeBary Truck Sales", "Dick Smith Equipment",
+  "Fat Daddy's Truck Sales", "HGR's Truck and Trailer", "Impex Heavy Metal",
+  "Joe's Tractor Sales", "Mid-Atlantic Power & Equipment", "Suttontown Repair Service",
+  "The Trailer Source", "Wilson Trailer Sales & Service"
+];
+const SRC_TO_DEALER = {
+  "autoconnection210": "Auto Connection 210 LLC"
+};
+(function() {
+  var sel = document.getElementById("f-dealer-select");
+  DEALERS.forEach(function(d) {
+    var opt = document.createElement("option");
+    opt.value = d; opt.textContent = d;
+    sel.appendChild(opt);
+  });
+  if (dealer && DEALERS.indexOf(dealer) !== -1) {
+    sel.value = dealer;
+  } else if (SRC_TO_DEALER[src]) {
+    sel.value = SRC_TO_DEALER[src];
+  } else {
+    var ctxDealer = document.getElementById("f-dealer").value;
+    if (ctxDealer && DEALERS.indexOf(ctxDealer) !== -1) sel.value = ctxDealer;
+  }
+})();
+
 // Source label intentionally hidden from buyers — attribution flows via #f-source and payload.
 
 function submitFinance() {
@@ -430,6 +464,9 @@ function submitFinance() {
   const unitDisplay = document.getElementById("f-unit-display").value.trim();
 
   if (!name || !phone) { alert("Please enter your name and phone number."); return; }
+
+  const selectedDealer = document.getElementById("f-dealer-select").value;
+  if (!selectedDealer) { alert("Please select the dealer selling the vehicle."); return; }
 
   const btn = document.getElementById("submit-btn");
   btn.disabled = true;
@@ -454,7 +491,7 @@ function submitFinance() {
     referrer: document.getElementById("f-referrer").value,
     source: document.getElementById("f-source").value,
     status: "new",
-    dealer_name: dealer || "Torque Hub Finance Lead",
+    dealer_name: selectedDealer || dealer || "Torque Hub Finance Lead",
     lender: lender || null,
     rep: rep || null,
     credit_score: credit || null

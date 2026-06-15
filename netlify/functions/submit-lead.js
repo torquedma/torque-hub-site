@@ -58,6 +58,7 @@ exports.handler = async (event) => {
   let resolvedLender = payload.lender || null;
   let dealerEmail = null;
   let lenderEmail = null;
+  let stockRouteResolved = false;
   if (payload.stock_number) {
     try {
       const { data: inv } = await supabase
@@ -73,6 +74,7 @@ exports.handler = async (event) => {
           .eq('status', 'active')
           .single();
         if (route) {
+          stockRouteResolved = true;
           if (route.lender_name) resolvedLender = route.lender_name;
           dealerEmail = route.dealer_notification_email || null;
           lenderEmail = route.lender_notification_email || null;
@@ -81,6 +83,23 @@ exports.handler = async (event) => {
     } catch (e) {
       // attribution is best-effort; never block a lead from saving
       console.error('finance_routes attribution lookup failed:', e);
+    }
+  }
+  if (!stockRouteResolved && payload.dealer_name && payload.dealer_name !== 'Torque Hub Finance Lead') {
+    try {
+      const { data: routeByDealer } = await supabase
+        .from('finance_routes')
+        .select('lender_name, dealer_notification_email, lender_notification_email')
+        .eq('dealer_name', payload.dealer_name)
+        .eq('status', 'active')
+        .single();
+      if (routeByDealer) {
+        if (routeByDealer.lender_name) resolvedLender = routeByDealer.lender_name;
+        dealerEmail = routeByDealer.dealer_notification_email || null;
+        lenderEmail = routeByDealer.lender_notification_email || null;
+      }
+    } catch (e) {
+      console.error('dealer-name route attribution failed:', e);
     }
   }
 
