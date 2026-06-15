@@ -198,7 +198,15 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
           <option>Not sure</option>
         </select>
         <input type="text" id="f-business" placeholder="Business Name (optional)">
-        <input type="number" id="f-revenue" placeholder="Monthly Revenue (optional)" min="0">
+        <select id="f-revenue">
+          <option value="" disabled selected>Estimated Monthly Business Revenue</option>
+          <option>Under $5,000</option>
+          <option>$5,000 – $10,000</option>
+          <option>$10,000 – $25,000</option>
+          <option>$25,000 – $50,000</option>
+          <option>$50,000+</option>
+          <option>Prefer not to say</option>
+        </select>
         <input type="text" id="f-unit-display" placeholder="Unit you are interested in">
         <input type="hidden" id="f-stock">
         <input type="hidden" id="f-unit">
