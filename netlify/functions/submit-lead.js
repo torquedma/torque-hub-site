@@ -139,7 +139,7 @@ exports.handler = async (event) => {
       ].filter(line => line !== null);
 
       const sendOpts = {
-        from:    'Torque Hub <noreply@torquedma.com>',
+        from:    'Torque Hub <leads@torquedma.com>',
         to:      'leads@torquedma.com',
         subject,
         text:    lines.join('\n'),
@@ -178,7 +178,7 @@ exports.handler = async (event) => {
           payload.referrer      ? `Referrer: ${payload.referrer}`       : null,
         ].filter(line => line !== null);
         const lenderOpts = {
-          from:    'Torque Hub <noreply@torquedma.com>',
+          from:    'Torque Hub <finance@torquedma.com>',
           to:      lenderEmail,
           subject: `Finance Lead — ${customerName}`,
           text:    lenderLines.join('\n'),
@@ -216,7 +216,7 @@ exports.handler = async (event) => {
           dealerSubject = `New Finance Lead — ${customerName}`;
         }
         const dealerOpts = {
-          from:    'Torque Hub <noreply@torquedma.com>',
+          from:    'Torque Hub <leads@torquedma.com>',
           to:      dealerEmail,
           subject: dealerSubject,
           text:    dealerLines.join('\n'),
