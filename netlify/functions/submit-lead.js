@@ -56,6 +56,8 @@ exports.handler = async (event) => {
   const property = payload.property || 'Torque Hub';
 
   let resolvedLender = payload.lender || null;
+  let dealerEmail = null;
+  let lenderEmail = null;
   if (payload.stock_number) {
     try {
       const { data: inv } = await supabase
@@ -66,12 +68,14 @@ exports.handler = async (event) => {
       if (inv && inv.dealer) {
         const { data: route } = await supabase
           .from('finance_routes')
-          .select('lender_name')
+          .select('lender_name, dealer_notification_email, lender_notification_email')
           .eq('dealer_name', inv.dealer)
           .eq('status', 'active')
           .single();
-        if (route && route.lender_name) {
-          resolvedLender = route.lender_name;
+        if (route) {
+          if (route.lender_name) resolvedLender = route.lender_name;
+          dealerEmail = route.dealer_notification_email || null;
+          lenderEmail = route.lender_notification_email || null;
         }
       }
     } catch (e) {
@@ -80,7 +84,7 @@ exports.handler = async (event) => {
     }
   }
 
-  const { error } = await supabase.from('leads').insert([{
+  const { data: inserted, error } = await supabase.from('leads').insert([{
     customer_name:  customer_name.trim(),
     customer_phone: customer_phone.trim(),
     customer_email: payload.customer_email || null,
@@ -95,23 +99,26 @@ exports.handler = async (event) => {
     referrer:       payload.referrer       || null,
     source,
     status:         'new'
-  }]);
+  }]).select('id').single();
 
   if (error) {
     console.error('submit-lead error:', error.message);
     return { statusCode: 500, headers, body: JSON.stringify({ error: 'Failed to save lead' }) };
   }
 
+  const leadId = inserted ? inserted.id : null;
+
   const resendKey = process.env.RESEND_API_KEY;
   if (!resendKey) {
     console.error('RESEND_API_KEY not set — skipping email notification');
   } else {
-    try {
-      const resend       = new Resend(resendKey);
-      const formLabel    = getSourceLabel(source);
-      const customerName = customer_name.trim();
-      const subject      = `[${property}] ${formLabel} from ${customerName}`;
+    const resend       = new Resend(resendKey);
+    const formLabel    = getSourceLabel(source);
+    const customerName = customer_name.trim();
+    const subject      = `[${property}] ${formLabel} from ${customerName}`;
 
+    // ── internal notification (safety net — always fires) ──────────────────
+    try {
       const lines = [
         `New Lead — ${property}`,
         '',
@@ -142,6 +149,103 @@ exports.handler = async (event) => {
       await resend.emails.send(sendOpts);
     } catch (emailErr) {
       console.error('Resend notification failed:', emailErr.message);
+    }
+
+    // ── external forwards (dealer + lender, best-effort) ───────────────────
+    let lenderAttempted = false, lenderOk = false;
+    let dealerAttempted = false, dealerOk = false;
+    const notifErrors = [];
+
+    if (lenderEmail) {
+      lenderAttempted = true;
+      try {
+        const lenderLines = [
+          `Finance Lead — ${property}`,
+          '',
+          `Name: ${customerName}`,
+          `Phone: ${customer_phone.trim()}`,
+          payload.customer_email ? `Email: ${payload.customer_email}`   : null,
+          `Source: ${formLabel}`,
+          `Source detail: ${source}`,
+          payload.dealer_name   ? `Dealer: ${payload.dealer_name}`      : null,
+          payload.listing_title ? `Unit: ${payload.listing_title}`      : null,
+          payload.stock_number  ? `Stock: ${payload.stock_number}`      : null,
+          payload.credit_score  ? `Credit: ${payload.credit_score}`     : null,
+          resolvedLender        ? `Lender: ${resolvedLender}`           : null,
+          payload.rep           ? `Rep: ${payload.rep}`                 : null,
+          payload.message       ? `Message: ${payload.message}`         : null,
+          payload.source_url    ? `Source URL: ${payload.source_url}`   : null,
+          payload.referrer      ? `Referrer: ${payload.referrer}`       : null,
+        ].filter(line => line !== null);
+        const lenderOpts = {
+          from:    'Torque Hub <noreply@torquedma.com>',
+          to:      lenderEmail,
+          subject: `[${property}] Finance Lead — ${customerName}`,
+          text:    lenderLines.join('\n'),
+        };
+        if (payload.customer_email) lenderOpts.replyTo = payload.customer_email;
+        await resend.emails.send(lenderOpts);
+        lenderOk = true;
+      } catch (e) {
+        console.error('Lender notification failed:', e.message);
+        notifErrors.push('lender: ' + e.message);
+      }
+    }
+
+    if (dealerEmail) {
+      dealerAttempted = true;
+      try {
+        const dealerLines = [
+          `New Lead — ${property}`,
+          '',
+          `Name: ${customerName}`,
+          `Phone: ${customer_phone.trim()}`,
+          payload.customer_email ? `Email: ${payload.customer_email}`   : null,
+          payload.dealer_name   ? `Dealer: ${payload.dealer_name}`      : null,
+          payload.listing_title ? `Unit: ${payload.listing_title}`      : null,
+          payload.stock_number  ? `Stock: ${payload.stock_number}`      : null,
+          payload.message       ? `Message: ${payload.message}`         : null,
+          payload.source_url    ? `Source URL: ${payload.source_url}`   : null,
+        ].filter(line => line !== null);
+        const dealerOpts = {
+          from:    'Torque Hub <noreply@torquedma.com>',
+          to:      dealerEmail,
+          subject: `[${property}] New Lead — ${customerName}`,
+          text:    dealerLines.join('\n'),
+        };
+        if (payload.customer_email) dealerOpts.replyTo = payload.customer_email;
+        await resend.emails.send(dealerOpts);
+        dealerOk = true;
+      } catch (e) {
+        console.error('Dealer notification failed:', e.message);
+        notifErrors.push('dealer: ' + e.message);
+      }
+    }
+
+    // ── notification_status ─────────────────────────────────────────────────
+    let notifStatus;
+    if (!lenderAttempted && !dealerAttempted) {
+      notifStatus = 'not_configured';
+    } else if (lenderAttempted && lenderOk && dealerAttempted && dealerOk) {
+      notifStatus = 'sent';
+    } else if ((lenderAttempted && lenderOk) || (dealerAttempted && dealerOk)) {
+      notifStatus = 'partial';
+    } else {
+      notifStatus = 'failed';
+    }
+    const notifError = notifErrors.length ? notifErrors.join('; ') : null;
+
+    // ── audit update (best-effort, non-blocking) ────────────────────────────
+    if (leadId) {
+      try {
+        await supabase.from('leads').update({
+          notification_status: notifStatus,
+          notification_error:  notifError,
+          notified_at:         new Date().toISOString(),
+        }).eq('id', leadId);
+      } catch (e) {
+        console.error('notification status update failed:', e.message);
+      }
     }
   }
 
