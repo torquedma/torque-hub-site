@@ -435,15 +435,10 @@ function submitFinance() {
     customer_phone: phone,
     customer_email: email || null,
     message: [
-      "Credit: " + (credit || "Not provided"),
       downPayment ? "Down Payment: " + downPayment : null,
       timeframe ? "Timeframe: " + timeframe : null,
       business ? "Business: " + business : null,
       revenue ? "Monthly Revenue: " + revenue : null,
-      unitDisplay ? "Unit: " + unitDisplay : null,
-      lender ? "Lender: " + lender : null,
-      rep ? "Rep: " + rep : null,
-      dealer ? "Dealer: " + dealer : null
     ].filter(Boolean).join("\n"),
     stock_number: stock || null,
     listing_title: unitDisplay || unit || null,
