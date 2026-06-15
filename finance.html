@@ -211,6 +211,7 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
         <select id="f-dealer-select" required>
           <option value="" disabled selected>Dealer Selling Vehicle</option>
         </select>
+        <div id="f-dealer-display" style="display:none; width:100%; padding:14px 16px; border-radius:10px; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.04); color:#94a3b8; font-size:16px; font-family:inherit; box-sizing:border-box;"></div>
         <input type="hidden" id="f-stock">
         <input type="hidden" id="f-unit">
         <input type="hidden" id="f-price">
@@ -437,18 +438,28 @@ const SRC_TO_DEALER = {
 };
 (function() {
   var sel = document.getElementById("f-dealer-select");
+  var display = document.getElementById("f-dealer-display");
   DEALERS.forEach(function(d) {
     var opt = document.createElement("option");
     opt.value = d; opt.textContent = d;
     sel.appendChild(opt);
   });
+  var resolved = null;
   if (dealer && DEALERS.indexOf(dealer) !== -1) {
-    sel.value = dealer;
+    resolved = dealer;
   } else if (SRC_TO_DEALER[src]) {
-    sel.value = SRC_TO_DEALER[src];
+    resolved = SRC_TO_DEALER[src];
   } else {
     var ctxDealer = document.getElementById("f-dealer").value;
-    if (ctxDealer && DEALERS.indexOf(ctxDealer) !== -1) sel.value = ctxDealer;
+    if (ctxDealer && DEALERS.indexOf(ctxDealer) !== -1) resolved = ctxDealer;
+  }
+  if (resolved) {
+    document.getElementById("f-dealer").value = resolved;
+    sel.value = resolved;
+    sel.style.display = "none";
+    sel.removeAttribute("required");
+    display.textContent = "Dealer: " + resolved;
+    display.style.display = "block";
   }
 })();
 
@@ -465,8 +476,12 @@ function submitFinance() {
 
   if (!name || !phone) { alert("Please enter your name and phone number."); return; }
 
-  const selectedDealer = document.getElementById("f-dealer-select").value;
-  if (!selectedDealer) { alert("Please select the dealer selling the vehicle."); return; }
+  const dealerSelEl = document.getElementById("f-dealer-select");
+  const dealerLocked = dealerSelEl.style.display === "none";
+  const selectedDealer = dealerLocked
+    ? document.getElementById("f-dealer").value
+    : dealerSelEl.value;
+  if (!dealerLocked && !selectedDealer) { alert("Please select the dealer selling the vehicle."); return; }
 
   const btn = document.getElementById("submit-btn");
   btn.disabled = true;
@@ -491,7 +506,7 @@ function submitFinance() {
     referrer: document.getElementById("f-referrer").value,
     source: document.getElementById("f-source").value,
     status: "new",
-    dealer_name: selectedDealer || dealer || "Torque Hub Finance Lead",
+    dealer_name: selectedDealer || "Torque Hub Finance Lead",
     lender: lender || null,
     rep: rep || null,
     credit_score: credit || null
