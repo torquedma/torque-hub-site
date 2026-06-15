@@ -115,7 +115,7 @@ exports.handler = async (event) => {
     const resend       = new Resend(resendKey);
     const formLabel    = getSourceLabel(source);
     const customerName = customer_name.trim();
-    const subject      = `[${property}] ${formLabel} from ${customerName}`;
+    const subject      = `${formLabel} — ${customerName}`;
 
     // ── internal notification (safety net — always fires) ──────────────────
     try {
@@ -180,7 +180,7 @@ exports.handler = async (event) => {
         const lenderOpts = {
           from:    'Torque Hub <noreply@torquedma.com>',
           to:      lenderEmail,
-          subject: `[${property}] Finance Lead — ${customerName}`,
+          subject: `Finance Lead — ${customerName}`,
           text:    lenderLines.join('\n'),
         };
         if (payload.customer_email) lenderOpts.replyTo = payload.customer_email;
