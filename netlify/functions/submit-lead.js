@@ -207,10 +207,18 @@ exports.handler = async (event) => {
           payload.message       ? `Message: ${payload.message}`         : null,
           payload.source_url    ? `Source URL: ${payload.source_url}`   : null,
         ].filter(line => line !== null);
+        let dealerSubject;
+        if (payload.listing_title && payload.stock_number) {
+          dealerSubject = `New Finance Lead — ${payload.listing_title} (${payload.stock_number})`;
+        } else if (payload.listing_title) {
+          dealerSubject = `New Finance Lead — ${payload.listing_title}`;
+        } else {
+          dealerSubject = `New Finance Lead — ${customerName}`;
+        }
         const dealerOpts = {
           from:    'Torque Hub <noreply@torquedma.com>',
           to:      dealerEmail,
-          subject: `[${property}] New Lead — ${customerName}`,
+          subject: dealerSubject,
           text:    dealerLines.join('\n'),
         };
         if (payload.customer_email) dealerOpts.replyTo = payload.customer_email;
