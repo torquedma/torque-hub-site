@@ -84,6 +84,7 @@ const CATEGORY_URLS = [
   { loc: '/landscape-trucks-for-sale',      changefreq: 'daily', priority: '0.8' },
   { loc: '/car-carrier-trucks-for-sale',    changefreq: 'daily', priority: '0.8' },
   { loc: '/pickup-trucks-for-sale',         changefreq: 'daily', priority: '0.8' },
+  { loc: '/bucket-trucks-for-sale',         changefreq: 'daily', priority: '0.8' },
   // Trailer leaves
   { loc: '/reefer-trailers-for-sale',              changefreq: 'daily', priority: '0.8' },
   { loc: '/dry-van-trailers-for-sale',             changefreq: 'daily', priority: '0.8' },
