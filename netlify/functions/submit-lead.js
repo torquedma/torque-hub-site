@@ -58,6 +58,7 @@ exports.handler = async (event) => {
   let resolvedLender = payload.lender || null;
   let dealerEmail = null;
   let lenderEmail = null;
+  let dealerCode = null;
   let stockRouteResolved = false;
   if (payload.stock_number) {
     try {
@@ -69,7 +70,7 @@ exports.handler = async (event) => {
       if (inv && inv.dealer) {
         const { data: route } = await supabase
           .from('finance_routes')
-          .select('lender_name, dealer_notification_email, lender_notification_email')
+          .select('lender_name, dealer_notification_email, lender_notification_email, dealer_code')
           .eq('dealer_name', inv.dealer)
           .eq('status', 'active')
           .single();
@@ -78,6 +79,7 @@ exports.handler = async (event) => {
           if (route.lender_name) resolvedLender = route.lender_name;
           dealerEmail = route.dealer_notification_email || null;
           lenderEmail = route.lender_notification_email || null;
+          dealerCode = route.dealer_code || null;
         }
       }
     } catch (e) {
@@ -89,7 +91,7 @@ exports.handler = async (event) => {
     try {
       const { data: routeByDealer } = await supabase
         .from('finance_routes')
-        .select('lender_name, dealer_notification_email, lender_notification_email')
+        .select('lender_name, dealer_notification_email, lender_notification_email, dealer_code')
         .eq('dealer_name', payload.dealer_name)
         .eq('status', 'active')
         .single();
@@ -97,6 +99,7 @@ exports.handler = async (event) => {
         if (routeByDealer.lender_name) resolvedLender = routeByDealer.lender_name;
         dealerEmail = routeByDealer.dealer_notification_email || null;
         lenderEmail = routeByDealer.lender_notification_email || null;
+        dealerCode = routeByDealer.dealer_code || null;
       }
     } catch (e) {
       console.error('dealer-name route attribution failed:', e);
@@ -116,6 +119,7 @@ exports.handler = async (event) => {
     lender:         resolvedLender,
     rep:            payload.rep            || null,
     referrer:       payload.referrer       || null,
+    dealer_code:    dealerCode,
     source,
     status:         'new'
   }]).select('id').single();
