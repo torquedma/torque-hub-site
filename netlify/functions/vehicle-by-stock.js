@@ -58,6 +58,15 @@ exports.handler = async (event) => {
       return { statusCode: 404, headers, body: JSON.stringify({ error: 'not found', stock: stockRaw, dealer: dealerRaw, variants }) };
     }
 
+    try {
+      const { data: dealerRow } = await supabase
+        .from('dealers')
+        .select('name, phone, address')
+        .eq('name', unit.dealer)
+        .maybeSingle();
+      if (dealerRow) unit._dealer = { phone: dealerRow.phone, address: dealerRow.address };
+    } catch (_) {}
+
     return { statusCode: 200, headers, body: JSON.stringify(unit) };
   } catch (e) {
     console.error('vehicle-by-stock error:', e.message);

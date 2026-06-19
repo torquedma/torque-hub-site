@@ -738,7 +738,12 @@ function galleryNav(dir) { showPhoto(photoIdx + dir); }
 function el(id) { return document.getElementById(id); }
 
 function render(unit, dealerKey) {
-  const d = DEALERS[dealerKey] || DEALERS[unit.dealer] || {};
+  const _live = unit._dealer || {};
+  const d = {
+    ...(DEALERS[dealerKey] || DEALERS[unit.dealer] || {}),
+    ...(_live.phone   && { phone: _live.phone, tel: _live.phone.replace(/\D/g, '') }),
+    ...(_live.address && { address: _live.address }),
+  };
   const title = [unit.year, unit.make, unit.model].filter(Boolean).join(' ') || 'Unit Available';
   const price = formatPrice(unit.price);
   const isSold = unit.sold === true;

@@ -311,6 +311,11 @@ window.InventoryEngine = (function () {
 
   // ── Data loading ───────────────────────────────────────────────────────────
   async function loadAll() {
+    var dealersP = fetch(
+      SB_URL + '/rest/v1/dealers?select=name,phone,location',
+      { headers: SB_HDRS }
+    ).then(function(r) { return r.json(); }).catch(function() { return []; });
+
     var feedPromises = DEALERS.filter(function(d) { return d.feedUrl; }).map(function(d) {
       return fetch(d.feedUrl).then(function(r) { return r.json(); }).then(function(items) {
         return items.filter(function(u) { return !u.sold; }).map(function(u) {
@@ -341,6 +346,18 @@ window.InventoryEngine = (function () {
     });
 
     var results = await Promise.allSettled([].concat(feedPromises, sbPromises));
+    try {
+      var dealerRows = await dealersP;
+      if (Array.isArray(dealerRows)) {
+        dealerRows.forEach(function(row) {
+          var entry = DEALERS.find(function(x) { return x.key === row.name; });
+          if (entry) {
+            if (row.phone) entry.phone = row.phone;
+            if (row.location) entry.location = row.location;
+          }
+        });
+      }
+    } catch (_) {}
     ALL_INV = results.flatMap(function(r) { return r.status === 'fulfilled' ? r.value : []; });
 
     if (typeof _cfg.onLoad === 'function') _cfg.onLoad(ALL_INV);

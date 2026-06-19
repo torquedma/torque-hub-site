@@ -444,7 +444,21 @@ export default async function handler(request, context) {
     }
 
     const { unit, dealerKey } = result;
-    const d = DEALERS[dealerKey] || {};
+    let d = { ...(DEALERS[dealerKey] || {}) };
+    try {
+      const _dr = await fetch(
+        `${SUPABASE_URL}/rest/v1/dealers?select=name,phone,address&name=eq.${encodeURIComponent(dealerKey)}&limit=1`,
+        { headers: SB_HEADERS }
+      );
+      if (_dr.ok) {
+        const _rows = await _dr.json();
+        const _row = _rows && _rows[0];
+        if (_row) {
+          if (_row.phone) d.phone = _row.phone;
+          if (_row.address) d.address = _row.address;
+        }
+      }
+    } catch (_) {}
 
     console.log(`[vehicle edge] photos raw — type:${typeof unit.photos} isArray:${Array.isArray(unit.photos)} sample:${JSON.stringify(unit.photos)?.slice(0, 150)}`);
 
