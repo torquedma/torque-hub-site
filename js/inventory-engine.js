@@ -169,7 +169,9 @@ window.InventoryEngine = (function () {
       { label: 'Yard Spotters', kw: 'spotter', subs: ['Yard Spotter'], slug: 'yard-spotters-for-sale', ssr: true },
       { label: 'Car Carrier Trucks', kw: 'car carrier', subs: ['Car Carrier Truck'], slug: 'car-carrier-trucks-for-sale', ssr: true },
       { label: 'Cargo Vans', kw: 'cargo van', subs: ['Cargo Van'], slug: 'cargo-vans-for-sale', ssr: true },
-      { label: 'Pickup Trucks', kw: 'pickup', slug: 'pickup-trucks-for-sale' }
+      { label: 'Pickup Trucks',   kw: 'pickup',       slug: 'pickup-trucks-for-sale' },
+      { label: 'Bucket Trucks',   kw: 'bucket truck', subs: ['Bucket Truck'], slug: 'bucket-trucks-for-sale',   ssr: true },
+      { label: 'Roll-Off Trucks', kw: 'roll off',     subs: ['Roll-Off'],     slug: 'roll-off-trucks-for-sale', ssr: true }
     ],
     'Trailers': [
       { label: 'Reefer Trailers', kw: 'reefer', subs: ['Reefer Trailer'], slug: 'reefer-trailers-for-sale', ssr: true },

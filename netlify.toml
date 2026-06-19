@@ -41,7 +41,7 @@
   path = "/landscape-equipment-for-sale"
   function = "category"
 
-# Truck subcategories (16)
+# Truck subcategories (17)
 [[edge_functions]]
   path = "/box-trucks-for-sale"
   function = "category"
@@ -104,6 +104,10 @@
 
 [[edge_functions]]
   path = "/bucket-trucks-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/roll-off-trucks-for-sale"
   function = "category"
 
 # Trailer subcategories (14)

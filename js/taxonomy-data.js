@@ -21,7 +21,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 const TAXONOMY_DATA = [
-  // ── Trucks (16 SSR) ──
+  // ── Trucks (17 SSR) ──
   { category: 'Trucks', slug: 'box-trucks-for-sale',            label: 'Box Trucks',           kw: 'box',             subs: ['Box Truck'],                          ssr: true },
   { category: 'Trucks', slug: 'refrigerated-trucks-for-sale',   label: 'Refrigerated Trucks',  kw: 'refrigerated',    subs: ['Refrigerated Truck'],                 ssr: true },
   { category: 'Trucks', slug: 'semi-trucks-for-sale',           label: 'Semi Trucks',          kw: 'tractor',         subs: ['Day Cab Tractor', 'Sleeper Tractor'], ssr: true },
@@ -38,6 +38,7 @@ const TAXONOMY_DATA = [
   { category: 'Trucks', slug: 'cargo-vans-for-sale',            label: 'Cargo Vans',           kw: 'cargo van',       subs: ['Cargo Van'],                          ssr: true },
   { category: 'Trucks', slug: 'pickup-trucks-for-sale',         label: 'Pickup Trucks',         kw: 'pickup',          subs: ['Pickup Truck'],                       ssr: true },
   { category: 'Trucks', slug: 'bucket-trucks-for-sale',         label: 'Bucket Trucks',         kw: 'bucket truck',    subs: ['Bucket Truck'],                       ssr: true },
+  { category: 'Trucks', slug: 'roll-off-trucks-for-sale',       label: 'Roll-Off Trucks',       kw: 'roll off',        subs: ['Roll-Off'],                           ssr: true },
 
   // ── Trailers (14 SSR) ──
   { category: 'Trailers', slug: 'reefer-trailers-for-sale',          label: 'Reefer Trailers',          kw: 'reefer',          subs: ['Reefer Trailer'],          ssr: true },
