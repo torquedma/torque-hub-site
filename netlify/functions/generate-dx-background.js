@@ -2,24 +2,6 @@ const { createClient } = require('@supabase/supabase-js');
 const { generateDescription } = require('./lib/generate-description');
 const { decodeVin } = require('./lib/vin-decode');
 
-const DEALER_CONTACT = {
-  'Davenport Motors':              { name: 'Davenport Motors',              phone: '252-809-2172', location: 'Plymouth, NC' },
-  "Fat Daddy's Truck Sales":       { name: "Fat Daddy's Truck Sales",       phone: '919-759-5434', location: 'Goldsboro, NC' },
-  'Wilson Trailer Sales & Service':{ name: 'Wilson Trailer Sales & Service',phone: '252-429-8805', location: 'Wilson, NC' },
-  "HGR's Truck and Trailer":       { name: "HGR's Truck & Trailer Sales",   phone: '910-661-0868', location: 'Hope Mills, NC' },
-  'Impex Heavy Metal':             { name: 'Impex Heavy Metal',             phone: '336-715-8704', location: 'Greensboro, NC' },
-  "Joe's Tractor Sales":           { name: "Joe's Tractor Sales",           phone: '336-850-8271', location: 'Thomasville, NC' },
-  'Auto Connection 210 LLC':       { name: 'Auto Connection 210 LLC',       phone: '910-490-2596', location: 'Angier, NC' },
-  'Dick Smith Equipment':          { name: 'Dick Smith Equipment',          phone: '919-734-1191', location: 'Goldsboro, NC' },
-  'Suttontown Repair Service':     { name: 'Suttontown Repair Service',     phone: '910-530-1732', location: 'Faison, NC' },
-  'Fannon Land & Auction Co.':     { name: 'Fannon Land & Auction Co.',     phone: '276-821-1194', location: 'Pennington Gap, VA' },
-  'Mid-Atlantic Power & Equipment':{ name: 'Mid-Atlantic Power & Equipment',phone: '910-889-9201', location: 'Dunn, NC' },
-  'DeBary Truck Sales':            { name: 'DeBary Truck Sales',            phone: '(407) 993-2364', location: 'Sanford, FL' },
-  'A F Sales & Service':           { name: 'A F Sales & Service',           phone: '(317) 449-8903', location: 'Indianapolis, IN' },
-  'The Trailer Source':            { name: 'The Trailer Source',            phone: '336-850-8176',   location: 'Winston Salem, NC' },
-  'Allied Truck & Trailer Sales':  { name: 'Allied Truck & Trailer Sales',  phone: '336-388-6882',   location: 'Madison, NC' },
-};
-
 exports.handler = async (event) => {
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
   if (!anthropicKey) {
@@ -27,6 +9,20 @@ exports.handler = async (event) => {
   }
 
   const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+
+  // ── (a) Fetch dealer contact info from Supabase at handler start ─────────
+  const { data: dealerRows, error: dealerFetchError } = await supabase
+    .from('dealers')
+    .select('name, phone, city, state, website, site_url, address');
+  if (dealerFetchError) {
+    console.error('Failed to fetch dealers table:', dealerFetchError.message);
+    return { statusCode: 500, body: JSON.stringify({ error: 'dealers fetch failed: ' + dealerFetchError.message }) };
+  }
+  const dealerMap = {};
+  for (const d of (dealerRows || [])) {
+    const location = [d.city, d.state].filter(Boolean).join(', ') || d.address || '';
+    dealerMap[d.name] = { name: d.name, phone: d.phone || '', location };
+  }
 
   // Parse limit: default 5 (safe test batch), 0 or 'all' = no limit, null qs = scheduled = unlimited
   const qs = event.queryStringParameters;
@@ -65,9 +61,10 @@ exports.handler = async (event) => {
   let processed = 0, skipped_no_contact = 0, skipped_error = 0;
 
   for (const unit of candidates) {
-    const dealerContact = DEALER_CONTACT[unit.dealer];
-    if (!dealerContact) {
-      console.warn(`[SKIP-NO-CONTACT] "${unit.dealer}" not in DEALER_CONTACT — ${unit.stock}`);
+    // ── (b) dealerMap replaces DEALER_CONTACT lookup ─────────────────────
+    const dealerContact = dealerMap[unit.dealer];
+    if (!dealerContact || !dealerContact.phone) {
+      console.warn(`[SKIP-NO-CONTACT] "${unit.dealer}" missing from dealers table or has no phone — ${unit.stock}`);
       skipped_no_contact++;
       continue;
     }
