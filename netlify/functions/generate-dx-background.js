@@ -33,13 +33,23 @@ exports.handler = async (event) => {
   const stockParam = qs?.stock || null;
   const force = qs?.force === '1';
 
-  // Fetch non-sold, non-locked units; optionally narrow to a single stock number
+  // ?stocks=A,B,C — split on comma only; trim each value but preserve internal spaces
+  // (e.g. "DBT-7800 P" must survive intact). Netlify decodes %20 → space before we see it.
+  const stocksRaw = qs?.stocks || null;
+  const stocksList = stocksRaw
+    ? stocksRaw.split(',').map(s => s.trim()).filter(Boolean)
+    : null;
+
+  // Fetch non-sold, non-locked units.
+  // ?stocks → PostgREST .in() filter; ?stock → single .eq(); otherwise fetch all.
+  // dx_locked=false guard is always applied — locked units are excluded even if listed in ?stocks.
   let query = supabase
     .from('inventory')
     .select('stock, dealer, year, make, model, price, mileage, engine, transmission, drivetrain, fuel, vin, raw_description, description')
     .eq('sold', false)
     .eq('dx_locked', false);
-  if (stockParam) query = query.eq('stock', stockParam);
+  if (stocksList)      query = query.in('stock', stocksList);
+  else if (stockParam) query = query.eq('stock', stockParam);
   const { data: rows, error: fetchError } = await query;
 
   if (fetchError) {
@@ -47,16 +57,26 @@ exports.handler = async (event) => {
     return { statusCode: 500, body: JSON.stringify({ error: fetchError.message }) };
   }
 
-  // Filter in JS: skip already-clean units unless ?force=1
-  let candidates = force
+  // ?stocks implies force for the listed stocks — regenerate regardless of existing description.
+  // Otherwise honour ?force=1 or the "no Key Details yet" heuristic.
+  const forceAll = force || !!stocksList;
+  let candidates = forceAll
     ? (rows || [])
     : (rows || []).filter(u => !(u.description || '').includes('Key Details'));
   const total_candidates = candidates.length;
 
-  // Apply limit
-  if (limit !== null) candidates = candidates.slice(0, limit);
+  // Report how many of the requested stocks were actually found (post dx_locked filter).
+  if (stocksList) {
+    const foundStocks = new Set((rows || []).map(u => u.stock));
+    const notFound = stocksList.filter(s => !foundStocks.has(s));
+    console.log(`generate-dx-background [stocks mode]: requested=${stocksList.length}, found/unlocked=${foundStocks.size}, not_found_or_locked=${notFound.length}`);
+    if (notFound.length) console.log(`  not found/locked: ${notFound.join(', ')}`);
+  }
 
-  console.log(`generate-dx-background: ${(rows || []).length} total non-locked fetched, ${total_candidates} need regen, processing ${candidates.length} (limit=${limit ?? 'none'})`);
+  // Apply limit (ignored in ?stocks mode — listed stocks are always processed in full).
+  if (!stocksList && limit !== null) candidates = candidates.slice(0, limit);
+
+  console.log(`generate-dx-background: ${(rows || []).length} total fetched, ${total_candidates} candidates, processing ${candidates.length} (limit=${stocksList ? 'n/a (stocks mode)' : (limit ?? 'none')})`);
 
   let processed = 0, skipped_no_contact = 0, skipped_error = 0;
 
@@ -124,7 +144,7 @@ exports.handler = async (event) => {
     }
   }
 
-  const summary = { total_candidates, processed, skipped_no_contact, skipped_error, limit_applied: limit ?? 'none', stock_filter: stockParam, force };
+  const summary = { total_candidates, processed, skipped_no_contact, skipped_error, limit_applied: stocksList ? 'n/a (stocks mode)' : (limit ?? 'none'), stocks_requested: stocksList ? stocksList.length : null, stock_filter: stocksList ? stocksList : stockParam, force: forceAll };
   console.log('generate-dx-background complete:', JSON.stringify(summary));
   return { statusCode: 200, body: JSON.stringify(summary) };
 };
