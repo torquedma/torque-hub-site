@@ -370,15 +370,6 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
           <div class="gallery-thumbs" id="gallery-thumbs"></div>
         </div>
 
-        <!-- Mobile price strip: price + CTAs above specs on mobile only -->
-        <div class="mobile-price-strip" id="mobile-price-strip">
-          <div id="mps-price" class="mps-price"></div>
-          <div class="mps-actions">
-            <a class="btn btn-finance" id="mps-finance" href="/finance.html">Get Pre-Approved</a>
-            <a class="btn btn-call" id="mps-call" href="#">📞 Call Now</a>
-          </div>
-        </div>
-
         <!-- Buyer Intelligence cards (client-rendered; parent is the left-column <div>,
              which is never innerHTML'd, so cards are wipe-safe. Empty when bi is null. -->
         <div id="bi-cards"></div>
@@ -805,7 +796,7 @@ function buildBuyerIntelligenceCards(bi) {
   if (yes.length || walk.length) {
     parts.push(
       '<div class="desc-card bi-card" id="bi-decision">' +
-        '<div class="card-head">Would I Buy It?</div>' +
+        '<div class="card-head">Should You Buy It?</div>' +
         '<div class="desc-body">' +
           (yes.length
             ? '<div class="bi-yes-group">' +
@@ -1046,11 +1037,6 @@ function render(unit, dealerKey) {
   const priceNum = parseFloat(String(unit.price || '').replace(/[^0-9.]/g, '')) || '';
   const financeUrl = `/finance.html?stock=${encodeURIComponent(unit.stock || '')}&unit=${encodeURIComponent(unitSlug)}&price=${priceNum}&src=listing`;
   const mobileFinance = el('mobile-finance');if (mobileFinance) mobileFinance.href = financeUrl;
-
-  // Mobile price strip
-  const mpsPriceEl = el('mps-price'); if (mpsPriceEl) mpsPriceEl.textContent = price;
-  const mpscall = el('mps-call');     if (mpscall)    mpscall.href = callHref;
-  const mpsfinance = el('mps-finance');if (mpsfinance) mpsfinance.href = financeUrl;
 
   // Dealer card
   const dName = el('d-name'); if (dName) dName.textContent = dealerKey || unit.dealer;
