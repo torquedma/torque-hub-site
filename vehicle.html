@@ -139,6 +139,26 @@
     .bi-card .desc-heading { margin: 10px 0 6px; }
     .bi-card .desc-body > .desc-heading:first-child { margin-top: 0; }
 
+    /* JUDGMENT HEROES — Torque Take + Would I Buy It? share the green left accent
+       (same token as Before You Buy) so they read as a grouped lead. */
+    #bi-torque-take, #bi-decision { border-left: 3px solid var(--green); }
+    #bi-torque-take > .card-head, #bi-decision > .card-head { font-size: 13px; letter-spacing: 0.12em; color: var(--text); padding: 16px 18px; }
+
+    /* TORQUE TAKE — hero card: brighter panel + larger/lighter lead body text */
+    #bi-torque-take { background: var(--panel-2); }
+    #bi-torque-take .desc-body { padding: 16px 18px; }
+    #bi-torque-take .desc-para { font-size: 14px; line-height: 1.65; color: var(--text); }
+
+    /* WOULD I BUY IT? — two-sided scan: green "yes" / amber "walk" group treatments.
+       Uses only existing tokens: var(--green) and #ca8a04 (same amber as LIKELY badge). */
+    #bi-decision .bi-yes-group, #bi-decision .bi-walk-group { padding-left: 10px; margin-bottom: 12px; }
+    #bi-decision .bi-yes-group:last-child, #bi-decision .bi-walk-group:last-child { margin-bottom: 0; }
+    #bi-decision .bi-yes-group  { border-left: 2px solid var(--green); }
+    #bi-decision .bi-walk-group { border-left: 2px solid #ca8a04; }
+    #bi-decision .bi-yes-head, #bi-decision .bi-walk-head { font-size: 12px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text); margin: 0 0 6px; }
+    #bi-decision .bi-yes-list li::before  { content: '✓'; color: var(--green); font-weight: 800; }
+    #bi-decision .bi-walk-list li::before { content: '–'; color: #ca8a04;     font-weight: 800; }
+
     /* "Before You Buy" — collapsed depth card, subtle green accent.
        Single affordance: native disclosure marker is suppressed (all three
        rules below) and we render only the custom .bi-depth-chevron ▾.
@@ -809,21 +829,32 @@ function buildBuyerIntelligenceCards(bi) {
   }
 
   // 2. "Would I Buy It?" (default visible, directly under Torque Take)
+  //    Group labels are data-driven (df.yes_label / df.walk_label) with fallbacks.
   const df   = bi.decision_factors || {};
   const yes  = Array.isArray(df.makes_it_a_yes)  ? df.makes_it_a_yes.filter(Boolean)  : [];
   const walk = Array.isArray(df.makes_it_a_walk) ? df.makes_it_a_walk.filter(Boolean) : [];
+  const yesLabel  = (typeof df.yes_label  === 'string' && df.yes_label.trim())  ? df.yes_label.trim()  : 'Buy signals';
+  const walkLabel = (typeof df.walk_label === 'string' && df.walk_label.trim()) ? df.walk_label.trim() : 'Walk away if';
   if (yes.length || walk.length) {
     parts.push(
       '<div class="desc-card bi-card" id="bi-decision">' +
         '<div class="card-head">Would I Buy It?</div>' +
         '<div class="desc-body">' +
           (yes.length
-            ? '<div class="desc-heading">Makes it a yes</div><ul class="desc-list">' +
-              yes.map(v => '<li>' + escBI(v) + '</li>').join('') + '</ul>'
+            ? '<div class="bi-yes-group">' +
+                '<div class="bi-yes-head">' + escBI(yesLabel) + '</div>' +
+                '<ul class="desc-list bi-yes-list">' +
+                  yes.map(v => '<li>' + escBI(v) + '</li>').join('') +
+                '</ul>' +
+              '</div>'
             : '') +
           (walk.length
-            ? '<div class="desc-heading">Makes it a walk</div><ul class="desc-list">' +
-              walk.map(v => '<li>' + escBI(v) + '</li>').join('') + '</ul>'
+            ? '<div class="bi-walk-group">' +
+                '<div class="bi-walk-head">' + escBI(walkLabel) + '</div>' +
+                '<ul class="desc-list bi-walk-list">' +
+                  walk.map(v => '<li>' + escBI(v) + '</li>').join('') +
+                '</ul>' +
+              '</div>'
             : '') +
         '</div>' +
       '</div>'
