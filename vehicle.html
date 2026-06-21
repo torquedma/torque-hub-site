@@ -359,6 +359,10 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
           </div>
         </div>
 
+        <!-- Buyer Intelligence cards (client-rendered; parent is the left-column <div>,
+             which is never innerHTML'd, so cards are wipe-safe. Empty when bi is null. -->
+        <div id="bi-cards"></div>
+
         <!-- Specs -->
         <div class="specs-card">
           <div class="card-head">Unit Details</div>
@@ -375,9 +379,6 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
           </ul>
           <a class="btn btn-finance" id="finance-block-btn" href="/finance.html">Get Pre-Approved for This Truck →</a>
         </div>
-
-        <!-- Buyer Intelligence cards (client-rendered, sibling of desc-card so never wiped by descBody.innerHTML) -->
-        <div id="bi-cards"></div>
 
         <!-- Description -->
         <div class="desc-card" id="desc-card" style="display:none">
