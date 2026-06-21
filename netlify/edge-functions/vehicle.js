@@ -264,7 +264,7 @@ function injectMeta(html, { pageTitle, pageDesc, pageUrl, firstPhoto, schema }) 
   return html;
 }
 
-function injectBody(html, { unit, dealerKey, title, price, subcat, loc, cityState, specsHtml, descHtml, firstPhoto }) {
+function injectBody(html, { unit, dealerKey, title, price, subcat, loc, cityState, descHtml, firstPhoto }) {
   // Breadcrumb
   html = html.replace(
     '<span id="bc-title">Listing Details</span>',
@@ -307,9 +307,6 @@ function injectBody(html, { unit, dealerKey, title, price, subcat, loc, cityStat
     html = html.replace('id="hl-loc-sep" style="display:none">&bull;', 'id="hl-loc-sep">&bull;');
     html = html.replace('id="hl-location"></span>', `id="hl-location">${esc(loc)}</span>`);
   }
-
-  // Specs grid
-  html = html.replace('id="specs-grid"></div>', `id="specs-grid">${specsHtml}</div>`);
 
   // Description
   if (descHtml) {
@@ -481,7 +478,6 @@ export default async function handler(request, context) {
     const pageTitle = `${[unit.year, unit.make, unit.model, subcat].filter(Boolean).join(' ')} for Sale in ${cityState} | Torque Hub`;
     const pageDesc  = `${title}${subcat ? ' ' + subcat : ''} for sale in ${cityState}. ${price}. Call ${d.phone || 'the dealer'} or apply for financing online. Torque Hub.`;
 
-    const specsHtml = buildSpecsHtml(unit);
     const descHtml  = buildDescHtml(unit.description);
     const schema    = buildSchema(unit, d, pageUrl, dealerKey);
 
@@ -492,7 +488,7 @@ export default async function handler(request, context) {
     let html = baseHtml;
     html = injectMeta(html, { pageTitle, pageDesc, pageUrl, firstPhoto, schema });
     html = html.replace('</head>', dataScript + '\n</head>');
-    html = injectBody(html, { unit, dealerKey, title, price, subcat, loc, cityState, specsHtml, descHtml, firstPhoto });
+    html = injectBody(html, { unit, dealerKey, title, price, subcat, loc, cityState, descHtml, firstPhoto });
 
     if (unit.sold) {
       const soldTpl = '<template id="sold-banner-tpl">'

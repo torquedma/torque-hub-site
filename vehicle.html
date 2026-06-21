@@ -383,12 +383,6 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
              which is never innerHTML'd, so cards are wipe-safe. Empty when bi is null. -->
         <div id="bi-cards"></div>
 
-        <!-- Specs -->
-        <div class="specs-card">
-          <div class="card-head">Unit Details</div>
-          <div class="specs-grid" id="specs-grid"></div>
-        </div>
-
         <!-- Finance Block -->
         <div class="finance-block" id="finance-block">
           <h3>Financing Available</h3>
@@ -1101,26 +1095,6 @@ function render(unit, dealerKey) {
   const dAddr = el('d-addr'); if (dAddr) dAddr.textContent = `${d.address || ''}\nCall: ${d.phone || ''}`;
   const dCall = el('d-call'); if (dCall) { dCall.href = callHref; dCall.textContent = d.phone ? `Call ${d.phone}` : 'Call'; }
   const dDir  = el('d-directions'); if (dDir) dDir.href = d.mapsUrl || '#';
-
-  // Specs grid
-  const specs = [
-    unit.year         ? ['Year',         unit.year]                  : null,
-    unit.make         ? ['Make',         unit.make]                  : null,
-    unit.model        ? ['Model',        unit.model]                 : null,
-    unit.condition    ? ['Condition',    unit.condition]             : null,
-    unit.fuel         ? ['Fuel',         unit.fuel]                  : null,
-    unit.mileage      ? ['Mileage',      formatMileage(unit.mileage)]: null,
-    unit.engine       ? ['Engine',       trimSpec(unit.engine)]       : null,
-    unit.transmission ? ['Transmission', trimSpec(unit.transmission)] : null,
-    unit.drivetrain   ? ['Drivetrain',   unit.drivetrain]            : null,
-    unit.vin          ? ['VIN',          unit.vin]                   : null,
-    unit.stock        ? ['Stock #',      unit.stock]                 : null,
-    unit.subcategory  ? ['Type',         unit.subcategory]           : null,
-  ].filter(Boolean);
-  const specsGrid = el('specs-grid');
-  if (specsGrid) specsGrid.innerHTML = specs.map(([l, v]) =>
-    `<div class="spec-row"><div class="spec-label">${l}</div><div class="spec-val">${v}</div></div>`
-  ).join('');
 
   // Description
   if (unit.description) {
