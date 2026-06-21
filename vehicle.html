@@ -129,6 +129,42 @@
     .desc-list li { font-size: 14px; color: var(--muted); padding-left: 16px; position: relative; line-height: 1.6; }
     .desc-list li::before { content: '•'; position: absolute; left: 0; color: var(--soft); }
 
+    /* BUYER INTELLIGENCE */
+    .bi-card { margin-top: 16px; }
+    .bi-card .desc-body { padding: 14px 18px; }
+    .bi-card .desc-para { font-size: 13px; line-height: 1.55; margin-bottom: 4px; }
+    .bi-card .desc-para:last-child { margin-bottom: 0; }
+    .bi-card .desc-list { gap: 2px; margin-bottom: 4px; }
+    .bi-card .desc-list li { font-size: 13px; line-height: 1.5; }
+    .bi-card .desc-heading { margin: 10px 0 6px; }
+    .bi-card .desc-body > .desc-heading:first-child { margin-top: 0; }
+
+    /* "Before You Buy" — collapsed depth card, subtle green accent.
+       Single affordance: native disclosure marker is suppressed (all three
+       rules below) and we render only the custom .bi-depth-chevron ▾.
+       Do not remove any of the three suppressions — each covers a browser. */
+    .bi-depth { border-left: 3px solid var(--green); }
+    .bi-depth > summary { list-style: none; cursor: pointer; padding: 14px 18px; display: flex; align-items: center; gap: 12px; }
+    .bi-depth > summary::-webkit-details-marker { display: none; } /* Safari / legacy webkit */
+    .bi-depth > summary::marker { content: ''; }                    /* modern Chrome / Firefox */
+    .bi-depth-text { flex: 1; min-width: 0; }
+    .bi-depth-title { font-size: 15px; font-weight: 800; color: var(--text); letter-spacing: 0.01em; }
+    .bi-depth-preview { font-size: 12px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+    .bi-depth-chevron { font-size: 14px; color: var(--soft); transition: transform 0.2s ease; flex-shrink: 0; }
+    .bi-depth[open] .bi-depth-chevron { transform: rotate(180deg); }
+    .bi-depth[open] > summary { border-bottom: 1px solid var(--line); }
+
+    /* Per-question expanders inside "What I'd Check".
+       Single affordance: native disclosure triangle (no custom chevron added). */
+    .bi-q { border-top: 1px solid var(--line); padding: 10px 18px; }
+    .bi-q-list > .bi-q:first-child { border-top: none; }
+    .bi-q > summary { cursor: pointer; font-weight: 700; color: var(--text); font-size: 13px; line-height: 1.5; }
+    .bi-q-body { margin-top: 8px; }
+
+    /* Verified Specs confidence badge + footer */
+    .bi-conf { display: inline-block; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 6px; border-radius: 4px; color: #fff; margin-left: 8px; vertical-align: middle; }
+    .bi-specs-footer { padding: 10px 18px; font-size: 11px; color: var(--muted); border-top: 1px solid var(--line); }
+
     /* SIMILAR */
     .similar-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin-top: 20px; }
     .similar-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 14px; }
@@ -758,11 +794,11 @@ function parseBuyerIntelligence(raw) {
 function buildBuyerIntelligenceCards(bi) {
   const parts = [];
 
-  // 1. Torque Take
+  // 1. Torque Take (default visible, leads)
   const tt = Array.isArray(bi.torque_take) ? bi.torque_take.filter(Boolean) : [];
   if (tt.length) {
     parts.push(
-      '<div class="desc-card" id="bi-torque-take">' +
+      '<div class="desc-card bi-card" id="bi-torque-take">' +
         '<div class="card-head">' + escBI(bi.title || 'Torque Take') + '</div>' +
         '<div class="desc-body">' +
           tt.map(t => '<p class="desc-para">' + escBI(t) + '</p>').join('') +
@@ -771,65 +807,14 @@ function buildBuyerIntelligenceCards(bi) {
     );
   }
 
-  // 2. Who This Fits / May Not Fit
-  const fits   = Array.isArray(bi.who_fits)        ? bi.who_fits.filter(Boolean)        : [];
-  const noFits = Array.isArray(bi.who_may_not_fit) ? bi.who_may_not_fit.filter(Boolean) : [];
-  if (fits.length || noFits.length) {
-    parts.push(
-      '<div class="desc-card" id="bi-fit">' +
-        '<div class="card-head">Who This Fits</div>' +
-        '<div class="desc-body">' +
-          (fits.length
-            ? '<div class="desc-heading">Good fit</div><ul class="desc-list">' +
-              fits.map(f => '<li>✓ ' + escBI(f) + '</li>').join('') + '</ul>'
-            : '') +
-          (noFits.length
-            ? '<div class="desc-heading">May not fit</div><ul class="desc-list">' +
-              noFits.map(f => '<li>✗ ' + escBI(f) + '</li>').join('') + '</ul>'
-            : '') +
-        '</div>' +
-      '</div>'
-    );
-  }
-
-  // 3. Questions Buyers Ask (collapsed by default; tap to expand)
-  const qs = Array.isArray(bi.questions) ? bi.questions.filter(q => q && q.question) : [];
-  if (qs.length) {
-    const items = qs.map(q => {
-      const cf = Array.isArray(q.check_first) ? q.check_first.filter(Boolean) : [];
-      return (
-        '<details style="border-top:1px solid var(--line);padding:12px 18px;">' +
-          '<summary style="cursor:pointer;font-weight:700;color:var(--text);font-size:14px;line-height:1.5;">' +
-            escBI(q.question) +
-          '</summary>' +
-          '<div style="margin-top:10px;">' +
-            (q.short_answer ? '<p class="desc-para"><strong>' + escBI(q.short_answer) + '</strong></p>' : '') +
-            (q.why          ? '<p class="desc-para">' + escBI(q.why) + '</p>' : '') +
-            (cf.length
-              ? '<div class="desc-heading">Check first</div><ul class="desc-list">' +
-                cf.map(c => '<li>' + escBI(c) + '</li>').join('') + '</ul>'
-              : '') +
-            (q.take ? '<p class="desc-para" style="font-style:italic;">' + escBI(q.take) + '</p>' : '') +
-          '</div>' +
-        '</details>'
-      );
-    }).join('');
-    parts.push(
-      '<div class="desc-card" id="bi-questions">' +
-        '<div class="card-head">Questions Buyers Ask</div>' +
-        '<div>' + items + '</div>' +
-      '</div>'
-    );
-  }
-
-  // 4. Makes It A Yes / Makes It A Walk (always visible, not collapsed)
+  // 2. "Would I Buy It?" (default visible, directly under Torque Take)
   const df   = bi.decision_factors || {};
   const yes  = Array.isArray(df.makes_it_a_yes)  ? df.makes_it_a_yes.filter(Boolean)  : [];
   const walk = Array.isArray(df.makes_it_a_walk) ? df.makes_it_a_walk.filter(Boolean) : [];
   if (yes.length || walk.length) {
     parts.push(
-      '<div class="desc-card" id="bi-decision">' +
-        '<div class="card-head">Decision Factors</div>' +
+      '<div class="desc-card bi-card" id="bi-decision">' +
+        '<div class="card-head">Would I Buy It?</div>' +
         '<div class="desc-body">' +
           (yes.length
             ? '<div class="desc-heading">Makes it a yes</div><ul class="desc-list">' +
@@ -844,38 +829,98 @@ function buildBuyerIntelligenceCards(bi) {
     );
   }
 
-  // 5. Verified Specs (rows with confidence badge; specs_footer as muted note)
-  const vs = Array.isArray(bi.verified_specs)
-    ? bi.verified_specs.filter(r => r && (r.label || r.value))
-    : [];
-  if (vs.length) {
-    const badgeBg = (c) =>
-      c === 'verified'    ? '#16a34a' :
-      c === 'likely'      ? '#ca8a04' :
-      c === 'unconfirmed' ? '#64748b' : '#475569';
-    const rows = vs.map(r => {
-      const conf = String(r.confidence || '').toLowerCase();
-      const badge = conf
-        ? '<span style="display:inline-block;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;padding:2px 6px;border-radius:4px;color:#fff;background:' +
-          badgeBg(conf) + ';margin-left:8px;vertical-align:middle;">' + escBI(conf) + '</span>'
-        : '';
-      return (
-        '<div class="spec-row">' +
-          '<div class="spec-label">' + escBI(r.label || '') + '</div>' +
-          '<div class="spec-val">' + escBI(r.value || '') + badge + '</div>' +
+  // 3. "Before You Buy" — collapsed depth card containing fit, questions, verified specs.
+  //    Available depth, not buried: subtle accent + preview line signals there's more here.
+  const fits   = Array.isArray(bi.who_fits)        ? bi.who_fits.filter(Boolean)        : [];
+  const noFits = Array.isArray(bi.who_may_not_fit) ? bi.who_may_not_fit.filter(Boolean) : [];
+  const qs     = Array.isArray(bi.questions)       ? bi.questions.filter(q => q && q.question) : [];
+  const vs     = Array.isArray(bi.verified_specs)
+    ? bi.verified_specs.filter(r => r && (r.label || r.value)) : [];
+
+  if (fits.length || noFits.length || qs.length || vs.length) {
+    const sections = [];
+
+    // 3a. Who It's For
+    if (fits.length || noFits.length) {
+      sections.push(
+        '<div class="card-head">Who It’s For</div>' +
+        '<div class="desc-body">' +
+          (fits.length
+            ? '<div class="desc-heading">Good fit</div><ul class="desc-list">' +
+              fits.map(f => '<li>✓ ' + escBI(f) + '</li>').join('') + '</ul>'
+            : '') +
+          (noFits.length
+            ? '<div class="desc-heading">May not fit</div><ul class="desc-list">' +
+              noFits.map(f => '<li>✗ ' + escBI(f) + '</li>').join('') + '</ul>'
+            : '') +
         '</div>'
       );
-    }).join('');
-    const footer = bi.specs_footer
-      ? '<div style="padding:10px 18px;font-size:11px;color:var(--muted);border-top:1px solid var(--line);">' +
-        escBI(bi.specs_footer) + '</div>'
-      : '';
-    parts.push(
-      '<div class="desc-card" id="bi-specs">' +
+    }
+
+    // 3b. What I'd Check (per-question expanders preserved)
+    if (qs.length) {
+      const items = qs.map(q => {
+        const cf = Array.isArray(q.check_first) ? q.check_first.filter(Boolean) : [];
+        return (
+          '<details class="bi-q">' +
+            '<summary>' + escBI(q.question) + '</summary>' +
+            '<div class="bi-q-body">' +
+              (q.short_answer ? '<p class="desc-para"><strong>' + escBI(q.short_answer) + '</strong></p>' : '') +
+              (q.why          ? '<p class="desc-para">' + escBI(q.why) + '</p>' : '') +
+              (cf.length
+                ? '<div class="desc-heading">Check first</div><ul class="desc-list">' +
+                  cf.map(c => '<li>' + escBI(c) + '</li>').join('') + '</ul>'
+                : '') +
+              (q.take ? '<p class="desc-para" style="font-style:italic;">' + escBI(q.take) + '</p>' : '') +
+            '</div>' +
+          '</details>'
+        );
+      }).join('');
+      sections.push(
+        '<div class="card-head">What I’d Check</div>' +
+        '<div class="bi-q-list">' + items + '</div>'
+      );
+    }
+
+    // 3c. Verified Specs
+    if (vs.length) {
+      const badgeBg = (c) =>
+        c === 'verified'    ? '#16a34a' :
+        c === 'likely'      ? '#ca8a04' :
+        c === 'unconfirmed' ? '#64748b' : '#475569';
+      const rows = vs.map(r => {
+        const conf = String(r.confidence || '').toLowerCase();
+        const badge = conf
+          ? '<span class="bi-conf" style="background:' + badgeBg(conf) + ';">' + escBI(conf) + '</span>'
+          : '';
+        return (
+          '<div class="spec-row">' +
+            '<div class="spec-label">' + escBI(r.label || '') + '</div>' +
+            '<div class="spec-val">' + escBI(r.value || '') + badge + '</div>' +
+          '</div>'
+        );
+      }).join('');
+      const footer = bi.specs_footer
+        ? '<div class="bi-specs-footer">' + escBI(bi.specs_footer) + '</div>'
+        : '';
+      sections.push(
         '<div class="card-head">Verified Specs</div>' +
         '<div class="specs-grid">' + rows + '</div>' +
-        footer +
-      '</div>'
+        footer
+      );
+    }
+
+    parts.push(
+      '<details class="desc-card bi-card bi-depth" id="bi-depth">' +
+        '<summary>' +
+          '<div class="bi-depth-text">' +
+            '<div class="bi-depth-title">Before You Buy</div>' +
+            '<div class="bi-depth-preview">Hauling, inspection notes, fit, and verified specs.</div>' +
+          '</div>' +
+          '<span class="bi-depth-chevron" aria-hidden="true">▾</span>' +
+        '</summary>' +
+        '<div class="bi-depth-inner">' + sections.join('') + '</div>' +
+      '</details>'
     );
   }
 
