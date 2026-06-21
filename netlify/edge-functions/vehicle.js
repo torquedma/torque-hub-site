@@ -314,20 +314,6 @@ function injectBody(html, { unit, dealerKey, title, price, subcat, loc, cityStat
     html = html.replace('id="desc-body"></div>', `id="desc-body">${descHtml}</div>`);
   }
 
-  // Sidebar price card
-  html = html.replace(
-    '<div class="price-title" id="s-title">Loading...</div>',
-    `<div class="price-title" id="s-title">${esc(title)}</div>`
-  );
-  html = html.replace(
-    'class="price-stock" id="s-stock"></div>',
-    `class="price-stock" id="s-stock">${unit.stock ? esc('Stock # ' + unit.stock) : ''}</div>`
-  );
-  html = html.replace(
-    `class="price-amount" id="s-price"></div>`,
-    `class="price-amount${price === 'Call for Price' ? ' call' : ''}" id="s-price">${esc(price)}</div>`
-  );
-
   // Scrub fallback message text from JS source — listing is found so these
   // functions never execute; crawlers must not see the strings in source.
   html = html.replace("h2.textContent = 'Listing Not Available';", "h2.textContent = '';");

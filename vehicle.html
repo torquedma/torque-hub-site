@@ -383,17 +383,6 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
              which is never innerHTML'd, so cards are wipe-safe. Empty when bi is null. -->
         <div id="bi-cards"></div>
 
-        <!-- Finance Block -->
-        <div class="finance-block" id="finance-block">
-          <h3>Financing Available</h3>
-          <ul>
-            <li>Fast approvals</li>
-            <li>Work trucks &amp; equipment</li>
-            <li>All credit situations considered</li>
-          </ul>
-          <a class="btn btn-finance" id="finance-block-btn" href="/finance.html">Get Pre-Approved for This Truck →</a>
-        </div>
-
         <!-- Description -->
         <div class="desc-card" id="desc-card" style="display:none">
           <div class="card-head">Description</div>
@@ -409,22 +398,6 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
 
       <!-- RIGHT SIDEBAR -->
       <div class="sidebar">
-        <!-- Price + CTA -->
-        <div class="price-card">
-          <div class="price-kicker">Available Now</div>
-          <div class="price-title" id="s-title">Loading...</div>
-          <div class="price-stock" id="s-stock"></div>
-          <div class="price-amount" id="s-price"></div>
-          
-          <hr class="price-divider">
-          <div class="finance-note" id="finance-note">Financing available for this unit — get approved before it's gone.</div>
-          <div style="font-size:12px;color:var(--soft);text-align:center;margin-bottom:8px;font-weight:600;">Secure application &bull; Fast approvals &bull; Business-use financing</div>
-          <div class="cta-stack">
-            <a class="btn btn-finance" id="cta-finance" href="/finance.html">Get Pre-Approved</a>
-            <a class="btn btn-call" id="cta-call" href="#">📞 Call Dealer Now</a>
-          </div>
-        </div>
-
         <!-- Dealer -->
         <div class="dealer-card">
           <div class="dealer-body">
@@ -1062,28 +1035,17 @@ function render(unit, dealerKey) {
   console.log('[render] calling initGallery — unit.photos type:', typeof unit.photos, '| isArray:', Array.isArray(unit.photos), '| length:', Array.isArray(unit.photos) ? unit.photos.length : 'n/a', '| first:', unit.photos?.[0] ?? 'none');
   initGallery(unit.photos);
 
-  // Sidebar price card
-  const sTitleEl = el('s-title'); if (sTitleEl) sTitleEl.textContent = title;
-  const sStockEl = el('s-stock'); if (sStockEl) sStockEl.textContent = unit.stock ? `Stock # ${unit.stock}` : '';
-  const priceEl  = el('s-price');
-  if (priceEl) { priceEl.textContent = price; if (price === 'Call for Price') priceEl.classList.add('call'); }
-  const urgencyEl = el('price-urgency'); if (urgencyEl && !isSold) urgencyEl.style.display = 'block';
-
-  // CTAs
+  // CTAs (sticky mobile bar only — in-scroll price card + finance card removed)
   const callHref = `tel:${d.tel || ''}`;
-  const ctaCall = el('cta-call');
-  if (ctaCall) { ctaCall.href = callHref; ctaCall.textContent = `📞 Call ${d.phone || 'Dealer'}`; }
   const mobileCall = el('mobile-call');
   if (mobileCall) { mobileCall.href = callHref; mobileCall.textContent = `📞 Call ${d.phone || 'Now'}`; }
   const mobileBar = el('mobile-bar'); if (mobileBar) mobileBar.style.display = 'flex';
 
-  // Finance URLs
+  // Finance URL (used by sticky mobile bar + mobile price strip)
   const unitSlug = title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
   const priceNum = parseFloat(String(unit.price || '').replace(/[^0-9.]/g, '')) || '';
   const financeUrl = `/finance.html?stock=${encodeURIComponent(unit.stock || '')}&unit=${encodeURIComponent(unitSlug)}&price=${priceNum}&src=listing`;
-  const ctaFinance = el('cta-finance');     if (ctaFinance)    ctaFinance.href    = financeUrl;
   const mobileFinance = el('mobile-finance');if (mobileFinance) mobileFinance.href = financeUrl;
-  const financeBlockBtn = el('finance-block-btn'); if (financeBlockBtn) financeBlockBtn.href = financeUrl;
 
   // Mobile price strip
   const mpsPriceEl = el('mps-price'); if (mpsPriceEl) mpsPriceEl.textContent = price;
