@@ -340,6 +340,9 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
           <a class="btn btn-finance" id="finance-block-btn" href="/finance.html">Get Pre-Approved for This Truck →</a>
         </div>
 
+        <!-- Buyer Intelligence cards (client-rendered, sibling of desc-card so never wiped by descBody.innerHTML) -->
+        <div id="bi-cards"></div>
+
         <!-- Description -->
         <div class="desc-card" id="desc-card" style="display:none">
           <div class="card-head">Description</div>
@@ -734,6 +737,151 @@ function showPhoto(i) {
 
 function galleryNav(dir) { showPhoto(photoIdx + dir); }
 
+// ─── BUYER INTELLIGENCE (client-only render) ────────────────────────────────
+function escBI(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function parseBuyerIntelligence(raw) {
+  if (raw == null) return null;
+  try {
+    const v = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    return (v && typeof v === 'object' && !Array.isArray(v)) ? v : null;
+  } catch (e) {
+    console.warn('[bi] failed to parse buyer_intelligence', e);
+    return null;
+  }
+}
+
+function buildBuyerIntelligenceCards(bi) {
+  const parts = [];
+
+  // 1. Torque Take
+  const tt = Array.isArray(bi.torque_take) ? bi.torque_take.filter(Boolean) : [];
+  if (tt.length) {
+    parts.push(
+      '<div class="desc-card" id="bi-torque-take">' +
+        '<div class="card-head">' + escBI(bi.title || 'Torque Take') + '</div>' +
+        '<div class="desc-body">' +
+          tt.map(t => '<p class="desc-para">' + escBI(t) + '</p>').join('') +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  // 2. Who This Fits / May Not Fit
+  const fits   = Array.isArray(bi.who_fits)        ? bi.who_fits.filter(Boolean)        : [];
+  const noFits = Array.isArray(bi.who_may_not_fit) ? bi.who_may_not_fit.filter(Boolean) : [];
+  if (fits.length || noFits.length) {
+    parts.push(
+      '<div class="desc-card" id="bi-fit">' +
+        '<div class="card-head">Who This Fits</div>' +
+        '<div class="desc-body">' +
+          (fits.length
+            ? '<div class="desc-heading">Good fit</div><ul class="desc-list">' +
+              fits.map(f => '<li>✓ ' + escBI(f) + '</li>').join('') + '</ul>'
+            : '') +
+          (noFits.length
+            ? '<div class="desc-heading">May not fit</div><ul class="desc-list">' +
+              noFits.map(f => '<li>✗ ' + escBI(f) + '</li>').join('') + '</ul>'
+            : '') +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  // 3. Questions Buyers Ask (collapsed by default; tap to expand)
+  const qs = Array.isArray(bi.questions) ? bi.questions.filter(q => q && q.question) : [];
+  if (qs.length) {
+    const items = qs.map(q => {
+      const cf = Array.isArray(q.check_first) ? q.check_first.filter(Boolean) : [];
+      return (
+        '<details style="border-top:1px solid var(--line);padding:12px 18px;">' +
+          '<summary style="cursor:pointer;font-weight:700;color:var(--text);font-size:14px;line-height:1.5;">' +
+            escBI(q.question) +
+          '</summary>' +
+          '<div style="margin-top:10px;">' +
+            (q.short_answer ? '<p class="desc-para"><strong>' + escBI(q.short_answer) + '</strong></p>' : '') +
+            (q.why          ? '<p class="desc-para">' + escBI(q.why) + '</p>' : '') +
+            (cf.length
+              ? '<div class="desc-heading">Check first</div><ul class="desc-list">' +
+                cf.map(c => '<li>' + escBI(c) + '</li>').join('') + '</ul>'
+              : '') +
+            (q.take ? '<p class="desc-para" style="font-style:italic;">' + escBI(q.take) + '</p>' : '') +
+          '</div>' +
+        '</details>'
+      );
+    }).join('');
+    parts.push(
+      '<div class="desc-card" id="bi-questions">' +
+        '<div class="card-head">Questions Buyers Ask</div>' +
+        '<div>' + items + '</div>' +
+      '</div>'
+    );
+  }
+
+  // 4. Makes It A Yes / Makes It A Walk (always visible, not collapsed)
+  const df   = bi.decision_factors || {};
+  const yes  = Array.isArray(df.makes_it_a_yes)  ? df.makes_it_a_yes.filter(Boolean)  : [];
+  const walk = Array.isArray(df.makes_it_a_walk) ? df.makes_it_a_walk.filter(Boolean) : [];
+  if (yes.length || walk.length) {
+    parts.push(
+      '<div class="desc-card" id="bi-decision">' +
+        '<div class="card-head">Decision Factors</div>' +
+        '<div class="desc-body">' +
+          (yes.length
+            ? '<div class="desc-heading">Makes it a yes</div><ul class="desc-list">' +
+              yes.map(v => '<li>' + escBI(v) + '</li>').join('') + '</ul>'
+            : '') +
+          (walk.length
+            ? '<div class="desc-heading">Makes it a walk</div><ul class="desc-list">' +
+              walk.map(v => '<li>' + escBI(v) + '</li>').join('') + '</ul>'
+            : '') +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  // 5. Verified Specs (rows with confidence badge; specs_footer as muted note)
+  const vs = Array.isArray(bi.verified_specs)
+    ? bi.verified_specs.filter(r => r && (r.label || r.value))
+    : [];
+  if (vs.length) {
+    const badgeBg = (c) =>
+      c === 'verified'    ? '#16a34a' :
+      c === 'likely'      ? '#ca8a04' :
+      c === 'unconfirmed' ? '#64748b' : '#475569';
+    const rows = vs.map(r => {
+      const conf = String(r.confidence || '').toLowerCase();
+      const badge = conf
+        ? '<span style="display:inline-block;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;padding:2px 6px;border-radius:4px;color:#fff;background:' +
+          badgeBg(conf) + ';margin-left:8px;vertical-align:middle;">' + escBI(conf) + '</span>'
+        : '';
+      return (
+        '<div class="spec-row">' +
+          '<div class="spec-label">' + escBI(r.label || '') + '</div>' +
+          '<div class="spec-val">' + escBI(r.value || '') + badge + '</div>' +
+        '</div>'
+      );
+    }).join('');
+    const footer = bi.specs_footer
+      ? '<div style="padding:10px 18px;font-size:11px;color:var(--muted);border-top:1px solid var(--line);">' +
+        escBI(bi.specs_footer) + '</div>'
+      : '';
+    parts.push(
+      '<div class="desc-card" id="bi-specs">' +
+        '<div class="card-head">Verified Specs</div>' +
+        '<div class="specs-grid">' + rows + '</div>' +
+        footer +
+      '</div>'
+    );
+  }
+
+  return parts.join('');
+}
+
 // ─── RENDER VDP ─────────────────────────────────────────────────────────────
 function el(id) { return document.getElementById(id); }
 
@@ -901,6 +1049,14 @@ function render(unit, dealerKey) {
   if (unit.description) {
     const descCard = el('desc-card'); if (descCard) descCard.style.display = 'block';
     const descBody = el('desc-body'); if (descBody) descBody.innerHTML = formatDescription(unit.description);
+  }
+
+  // Buyer Intelligence cards — sibling of #desc-card, rendered above it.
+  // Null/absent → render nothing (zero footprint on units without bi data).
+  const biSlot = el('bi-cards');
+  if (biSlot) {
+    const bi = parseBuyerIntelligence(unit.buyer_intelligence);
+    biSlot.innerHTML = bi ? buildBuyerIntelligenceCards(bi) : '';
   }
 
   // Lead form hidden fields
