@@ -178,9 +178,12 @@ function buildSixCards(units) {
 
     const fp = i === 0 ? ' fetchpriority="high"' : '';
 
-    // Title: mirrors engine line 375.
-    const title = [u.year, u.make, u.model, u.trim || u.subcategory]
+    // Title: year + make + model only — matches canonical browse grid card
+    // (category.js:356). Subcategory is rendered as a separate .inv-sub label
+    // below; trim is excluded from the title.
+    const title = [u.year, u.make, u.model]
       .filter(Boolean).join(' ') || 'Unit Available';
+    const subLabel = (u.subcategory || '').trim();
 
     const vdpUrl = '/vehicle.html?stock=' + encodeURIComponent(u.stock || '');
 
@@ -210,6 +213,7 @@ function buildSixCards(units) {
           `<div class="inv-photo">${imgHtml}</div>` +
           `<div class="inv-body">` +
             `<h3 class="inv-title">${esc(title)}</h3>` +
+            (subLabel ? `<div class="inv-sub">${esc(subLabel)}</div>` : '') +
             `<div class="inv-price">${priceStr}</div>` +
             `<div class="inv-dealer">${dealerLine}</div>` +
             chipsHtml +

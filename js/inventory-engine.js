@@ -482,7 +482,13 @@ window.InventoryEngine = (function () {
         var eager      = _i < 6;
         var loadAttr   = eager ? 'eager' : 'lazy';
         var fpAttr     = eager ? ' fetchpriority="high"' : '';
-        var title      = buildVehicleTitle(u);
+        // Title: year + make + model only — matches canonical browse grid card
+        // (category.js:356). Bypasses buildVehicleTitle (which appends trim +
+        // subcategory) so trim is excluded from the title and subcategory
+        // renders below as a separate .inv-sub label. buildVehicleTitle is
+        // left untouched — still used by finance URL slug + search autocomplete.
+        var title      = [u.year, u.make, u.model].filter(Boolean).join(' ') || 'Unit Available';
+        var subLabel   = (u.subcategory || '').toString().trim();
         var vdpUrl     = 'vehicle.html?stock=' + encodeURIComponent(u.stock || '');
         var priceStr   = u.price && !isNaN(parseFloat(String(u.price).replace(/[^0-9.]/g, '')))
                            ? '$' + Number(String(u.price).replace(/[^0-9.]/g, '')).toLocaleString()
@@ -497,6 +503,7 @@ window.InventoryEngine = (function () {
             '</div>' +
             '<div class="inv-body">' +
               '<h3 class="inv-title">' + title + '</h3>' +
+              (subLabel ? '<div class="inv-sub">' + subLabel + '</div>' : '') +
               '<div class="inv-price">' + priceStr + '</div>' +
               '<div class="inv-dealer">' + dealerLine + '</div>' +
               (chips.length ? '<div class="inv-specs">' + chips.map(function(c) { return '<span class="inv-spec">' + c + '</span>'; }).join('') + '</div>' : '') +
