@@ -3,6 +3,8 @@
 // and injects real title, meta, schema, and body content so crawlers see actual
 // listing data instead of the client-side loading state.
 
+import { buildDisplayTitle, buildSeoTitle } from './lib/title-helpers.js';
+
 const SUPABASE_URL = 'https://bxsikkmqasydosmblzov.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4c2lra21xYXN5ZG9zbWJsem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTc1OTksImV4cCI6MjA5MDQ3MzU5OX0.JMEI7cx2tddmbvfqm_qxiIWp7f5Phuk5l0Y487DUSZg';
 const SB_HEADERS = { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON };
@@ -121,7 +123,7 @@ function buildDescHtml(text) {
 }
 
 function buildSchema(unit, d, pageUrl, dealerKey) {
-  const title = [unit.year, unit.make, unit.model].filter(Boolean).join(' ') || 'Unit Available';
+  const title = buildDisplayTitle(unit);
   const isVehicle = !unit.category || unit.category.toLowerCase().includes('truck');
   const photos = getPhotos(unit);
   const firstPhoto = photos[0]?.url || photos[0]?.dataUrl || '';
@@ -264,7 +266,7 @@ function injectMeta(html, { pageTitle, pageDesc, pageUrl, firstPhoto, schema }) 
   return html;
 }
 
-function injectBody(html, { unit, dealerKey, title, price, subcat, loc, cityState, descHtml, firstPhoto }) {
+function injectBody(html, { unit, dealerKey, title, price, subcat, seoLine, loc, cityState, descHtml, firstPhoto }) {
   // Breadcrumb
   html = html.replace(
     '<span id="bc-title">Listing Details</span>',
@@ -295,8 +297,8 @@ function injectBody(html, { unit, dealerKey, title, price, subcat, loc, cityStat
     html = html.replace('id="hl-subcat"></span>', `id="hl-subcat">${esc(subcat)}</span>`);
   }
 
-  // SEO h2 — always shown; includes subcategory when present
-  const seoLine = `${title}${subcat ? ' ' + subcat : ''} for Sale${cityState ? ' in ' + cityState : ''}`;
+  // SEO h2 — single-descriptor rule (seoLine is pre-built by the handler from
+  // buildSeoTitle's core, so it matches the client #vdp-seo-h2 byte-for-byte).
   html = html.replace('id="vdp-seo-h2">', `id="vdp-seo-h2">${esc(seoLine)}`);
 
   if (price && dealerKey) {
@@ -445,7 +447,7 @@ export default async function handler(request, context) {
 
     console.log(`[vehicle edge] photos raw — type:${typeof unit.photos} isArray:${Array.isArray(unit.photos)} sample:${JSON.stringify(unit.photos)?.slice(0, 150)}`);
 
-    const title      = [unit.year, unit.make, unit.model].filter(Boolean).join(' ') || 'Unit Available';
+    const title      = buildDisplayTitle(unit);
     const price      = formatPrice(unit.price);
     const subcat     = unit.subcategory || '';
     const photos     = getPhotos(unit);
@@ -461,8 +463,13 @@ export default async function handler(request, context) {
     const loc       = addrLines.length > 1 ? addrLines[1] : addrLines[0] || '';
 
     const pageUrl   = `${SITE}/vehicle.html?stock=${encodeURIComponent(unit.stock)}`;
-    const pageTitle = `${[unit.year, unit.make, unit.model, subcat].filter(Boolean).join(' ')} for Sale in ${cityState} | Torque Hub`;
-    const pageDesc  = `${title}${subcat ? ' ' + subcat : ''} for sale in ${cityState}. ${price}. Call ${d.phone || 'the dealer'} or apply for financing online. Torque Hub.`;
+    // SEO/social — single descriptor (clean trim if present, else canonical subcat).
+    const pageTitle = buildSeoTitle(unit, cityState);
+    // SEO core (ymm + descriptor, without the ' for Sale ... | Torque Hub' suffix)
+    // — feeds the SEO H2 and meta description so they match client byte-for-byte.
+    const seoCore   = pageTitle.replace(/\s+for Sale.*$/, '');
+    const seoLine   = seoCore + ' for Sale' + (cityState ? ' in ' + cityState : '');
+    const pageDesc  = `${seoCore} for sale${cityState ? ' in ' + cityState : ''}. ${price}. Call ${d.phone || 'the dealer'} or apply for financing online. Torque Hub.`;
 
     const descHtml  = buildDescHtml(unit.description);
     const schema    = buildSchema(unit, d, pageUrl, dealerKey);
@@ -474,7 +481,7 @@ export default async function handler(request, context) {
     let html = baseHtml;
     html = injectMeta(html, { pageTitle, pageDesc, pageUrl, firstPhoto, schema });
     html = html.replace('</head>', dataScript + '\n</head>');
-    html = injectBody(html, { unit, dealerKey, title, price, subcat, loc, cityState, descHtml, firstPhoto });
+    html = injectBody(html, { unit, dealerKey, title, price, subcat, seoLine, loc, cityState, descHtml, firstPhoto });
 
     if (unit.sold) {
       const soldTpl = '<template id="sold-banner-tpl">'

@@ -447,6 +447,13 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
   <a class="btn btn-call" id="mobile-call" href="#">📞 Call Now</a>
 </div>
 
+<!-- Taxonomy + title helpers MUST load before the inline render() script below.
+     Non-defer so they're available synchronously when the inline script runs.
+     Order matters: taxonomy.browser.js sets window.TAXONOMY, then
+     title-helpers.js reads it to expose window.TITLE_HELPERS. -->
+<script src="/js/taxonomy.browser.js"></script>
+<script src="/js/title-helpers.js"></script>
+
 <script>
 // ─── SUPABASE ───────────────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://bxsikkmqasydosmblzov.supabase.co';
@@ -927,7 +934,7 @@ function render(unit, dealerKey) {
     ...(_live.phone   && { phone: _live.phone, tel: _live.phone.replace(/\D/g, '') }),
     ...(_live.address && { address: _live.address }),
   };
-  const title = [unit.year, unit.make, unit.model].filter(Boolean).join(' ') || 'Unit Available';
+  const title = window.TITLE_HELPERS.buildDisplayTitle(unit);
   const price = formatPrice(unit.price);
   const isSold = unit.sold === true;
   const subcat = unit.subcategory || '';
@@ -954,9 +961,14 @@ function render(unit, dealerKey) {
 
   // Page meta — all guarded; edge function may have already set these
   const pageUrl = `https://hub.torquedma.com/vehicle.html?stock=${encodeURIComponent(unit.stock)}`;
-  const titleTag = [unit.year, unit.make, unit.model, subcat].filter(Boolean).join(' ');
-  document.title = `${titleTag} for Sale in ${cityState} | Torque Hub`;
-  const descContent = `${title}${subcat ? ' ' + subcat : ''} for sale in ${cityState}. ${price}. Call ${d.phone || 'the dealer'} or apply for financing online. Torque Hub.`;
+  // SEO title (single descriptor: clean trim if present, else canonical subcat).
+  document.title = window.TITLE_HELPERS.buildSeoTitle(unit, cityState);
+  // Meta description: rebuild from the SEO "core" (ymm + descriptor) + existing
+  // price/call sentence shape. buildSeoTitle returns the full SEO title; we
+  // recover the core by stripping the ' for Sale ... ' suffix it added.
+  const seoTitle = document.title;
+  const seoCore = seoTitle.replace(/\s+for Sale.*$/, '');
+  const descContent = `${seoCore} for sale${cityState ? ' in ' + cityState : ''}. ${price}. Call ${d.phone || 'the dealer'} or apply for financing online. Torque Hub.`;
 
   const pageTitleEl = el('page-title');   if (pageTitleEl) pageTitleEl.textContent = document.title;
   const pageDescEl  = el('page-desc');    if (pageDescEl)  pageDescEl.content      = descContent;
@@ -1014,7 +1026,7 @@ function render(unit, dealerKey) {
     const hlBadge  = el('hl-badge');  if (hlBadge)  hlBadge.style.display = 'block';
   }
   const seoH2 = el('vdp-seo-h2');
-  if (seoH2) seoH2.textContent = `${title}${subcat ? ' ' + subcat : ''} for Sale${cityState ? ' in ' + cityState : ''}`;
+  if (seoH2) seoH2.textContent = seoCore + ' for Sale' + (cityState ? ' in ' + cityState : '');
   const hlPrice  = el('hl-price');   if (hlPrice)  hlPrice.textContent  = price;
   const hlDealer = el('hl-dealer');  if (hlDealer) hlDealer.textContent = dealerKey || unit.dealer || '';
   const loc = d.address ? d.address.split('\n')[1] || '' : '';
@@ -1118,7 +1130,7 @@ async function loadSimilar(currentUnit, dealerKey) {
     document.getElementById('similar-card').style.display = 'block';
     document.getElementById('similar-grid').innerHTML = items.map(u => {
       const photo = u.photos && u.photos.length ? (u.photos[0].url || u.photos[0].dataUrl || '') : '';
-      const title = [u.year, u.make, u.model, u.trim].filter(Boolean).join(' ');
+      const title = window.TITLE_HELPERS.buildDisplayTitle(u);
       const href = `vehicle.html?stock=${encodeURIComponent(u.stock)}`;
       return `<a class="sim-item" href="${href}">
         <div class="sim-img">${photo ? `<img src="${photo}" alt="${title}" loading="lazy">` : `<img src="/photos-coming-soon.png" alt="Photos coming soon" loading="lazy" style="width:100%;height:100%;object-fit:cover;">`}</div>

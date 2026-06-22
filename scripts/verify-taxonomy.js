@@ -31,8 +31,17 @@ function buildBrowser() {
   return `${HEADER}(function (root) {\n  var canonical = ${canonicalJSON};\n  var aliases = {\n${aliasLines}\n  };\n  function canonicalize(value) {\n    if (!value) return '';\n    var v = value.toString().trim();\n    var mapped = Object.prototype.hasOwnProperty.call(aliases, v) ? aliases[v] : v;\n    return canonical.indexOf(mapped) !== -1 ? mapped : '';\n  }\n  root.TAXONOMY = { canonical: canonical, aliases: aliases, canonicalize: canonicalize };\n}(typeof window !== 'undefined' ? window : this));\n`;
 }
 
+function buildESM() {
+  const canonicalLines = canonical.map(s => `  '${s.replace(/'/g, "\\'")}'`).join(',\n');
+  const aliasLines = Object.entries(aliases)
+    .map(([k, v]) => `  '${k.replace(/'/g, "\\'")}': '${v.replace(/'/g, "\\'")}'`)
+    .join(',\n');
+  return `${HEADER}// ESM variant for Netlify edge functions (Deno). Logic must match\n// taxonomy.generated.js byte-for-byte to keep SSR/client parity.\n\nexport const CANONICAL_SUBCATEGORIES = new Set([\n${canonicalLines}\n]);\n\nexport const SUBCATEGORY_ALIASES = {\n${aliasLines}\n};\n\nexport function canonicalize(value) {\n  if (!value) return '';\n  const v = value.toString().trim();\n  const mapped = Object.prototype.hasOwnProperty.call(SUBCATEGORY_ALIASES, v) ? SUBCATEGORY_ALIASES[v] : v;\n  return CANONICAL_SUBCATEGORIES.has(mapped) ? mapped : '';\n}\n`;
+}
+
 const expected = {
   [path.join(ROOT, 'netlify/functions/lib/taxonomy.generated.js')]:       buildCJS(),
+  [path.join(ROOT, 'netlify/edge-functions/lib/taxonomy.esm.js')]:        buildESM(),
   [path.join(ROOT, 'js/taxonomy.browser.js')]:                             buildBrowser(),
   [path.join(ADMIN_ROOT, 'netlify/functions/lib/taxonomy.generated.js')]: buildCJS(),
   [path.join(ADMIN_ROOT, 'js/taxonomy.browser.js')]:                       buildBrowser(),

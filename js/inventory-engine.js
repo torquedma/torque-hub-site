@@ -482,12 +482,10 @@ window.InventoryEngine = (function () {
         var eager      = _i < 6;
         var loadAttr   = eager ? 'eager' : 'lazy';
         var fpAttr     = eager ? ' fetchpriority="high"' : '';
-        // Title: year + make + model only — matches canonical browse grid card
-        // (category.js:356). Bypasses buildVehicleTitle (which appends trim +
-        // subcategory) so trim is excluded from the title and subcategory
-        // renders below as a separate .inv-sub label. buildVehicleTitle is
-        // left untouched — still used by finance URL slug + search autocomplete.
-        var title      = [u.year, u.make, u.model].filter(Boolean).join(' ') || 'Unit Available';
+        // Uniform display title (year + make + model + clean trim, taxonomy-
+        // firewalled, no subcategory). Subcategory renders below as .inv-sub.
+        // buildVehicleTitle is now used ONLY by financeUrl() (URL slug, line 303).
+        var title      = window.TITLE_HELPERS.buildDisplayTitle(u);
         var subLabel   = (u.subcategory || '').toString().trim();
         var vdpUrl     = 'vehicle.html?stock=' + encodeURIComponent(u.stock || '');
         var priceStr   = u.price && !isNaN(parseFloat(String(u.price).replace(/[^0-9.]/g, '')))
@@ -704,7 +702,9 @@ window.InventoryEngine = (function () {
       var priceStr = u.price && !isNaN(parseFloat(pRaw))
         ? '$'+Number(pRaw).toLocaleString()
         : (u.price && u.price!=='0' ? u.price : 'Call');
-      return { unit:u, matchScore:score, title:buildVehicleTitle(u), priceStr:priceStr, dealerName:d.name||u.dealer||'' };
+      // Search autocomplete row uses the uniform display title — drops the
+      // previously-concatenated trim/subcategory that buildVehicleTitle adds.
+      return { unit:u, matchScore:score, title:window.TITLE_HELPERS.buildDisplayTitle(u), priceStr:priceStr, dealerName:d.name||u.dealer||'' };
     }
 
     // Group 1: Matching Vehicles — same haystack as applyFilters, scored

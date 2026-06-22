@@ -7,6 +7,8 @@
 // in the try block) we return the unmodified static response. Worst case = no SSR
 // benefit, never a broken page.
 
+import { buildDisplayTitle } from './lib/title-helpers.js';
+
 const SUPABASE_URL = 'https://bxsikkmqasydosmblzov.supabase.co';
 // Non-sensitive public anon key — same value used in category.js and inventory-engine.js.
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4c2lra21xYXN5ZG9zbWJsem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTc1OTksImV4cCI6MjA5MDQ3MzU5OX0.JMEI7cx2tddmbvfqm_qxiIWp7f5Phuk5l0Y487DUSZg';
@@ -178,11 +180,9 @@ function buildSixCards(units) {
 
     const fp = i === 0 ? ' fetchpriority="high"' : '';
 
-    // Title: year + make + model only — matches canonical browse grid card
-    // (category.js:356). Subcategory is rendered as a separate .inv-sub label
-    // below; trim is excluded from the title.
-    const title = [u.year, u.make, u.model]
-      .filter(Boolean).join(' ') || 'Unit Available';
+    // Uniform display title via shared helper (year + make + model + clean
+    // trim, taxonomy-firewalled). Subcategory renders below as .inv-sub.
+    const title = buildDisplayTitle(u);
     const subLabel = (u.subcategory || '').trim();
 
     const vdpUrl = '/vehicle.html?stock=' + encodeURIComponent(u.stock || '');

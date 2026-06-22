@@ -1,7 +1,8 @@
 // GENERATED FROM taxonomy.json — DO NOT EDIT. Run npm run gen-taxonomy.
-'use strict';
+// ESM variant for Netlify edge functions (Deno). Logic must match
+// taxonomy.generated.js byte-for-byte to keep SSR/client parity.
 
-const CANONICAL_SUBCATEGORIES = new Set([
+export const CANONICAL_SUBCATEGORIES = new Set([
   'Box Truck',
   'Day Cab Tractor',
   'Sleeper Tractor',
@@ -114,7 +115,7 @@ const CANONICAL_SUBCATEGORIES = new Set([
   'Truck Body'
 ]);
 
-const SUBCATEGORY_ALIASES = {
+export const SUBCATEGORY_ALIASES = {
   'Vending / Concession Trailer': 'Concession Trailer',
   'Cargo / Enclosed Trailer': 'Enclosed Trailer',
   'Cargo Trailer': 'Enclosed Trailer',
@@ -151,11 +152,9 @@ const SUBCATEGORY_ALIASES = {
   'Lawn & Garden': ''
 };
 
-function canonicalize(value) {
+export function canonicalize(value) {
   if (!value) return '';
   const v = value.toString().trim();
-  const mapped = SUBCATEGORY_ALIASES.hasOwnProperty(v) ? SUBCATEGORY_ALIASES[v] : v;
+  const mapped = Object.prototype.hasOwnProperty.call(SUBCATEGORY_ALIASES, v) ? SUBCATEGORY_ALIASES[v] : v;
   return CANONICAL_SUBCATEGORIES.has(mapped) ? mapped : '';
 }
-
-module.exports = { CANONICAL_SUBCATEGORIES, SUBCATEGORY_ALIASES, canonicalize };

@@ -41,6 +41,33 @@ module.exports = { CANONICAL_SUBCATEGORIES, SUBCATEGORY_ALIASES, canonicalize };
 `;
 }
 
+// ── (c) ES module for edge functions (Deno) ──────────────────────────────────
+function buildESM() {
+  const canonicalLines = canonical.map(s => `  '${s.replace(/'/g, "\\'")}'`).join(',\n');
+  const aliasLines = Object.entries(aliases)
+    .map(([k, v]) => `  '${k.replace(/'/g, "\\'")}': '${v.replace(/'/g, "\\'")}'`)
+    .join(',\n');
+
+  return `${HEADER}// ESM variant for Netlify edge functions (Deno). Logic must match
+// taxonomy.generated.js byte-for-byte to keep SSR/client parity.
+
+export const CANONICAL_SUBCATEGORIES = new Set([
+${canonicalLines}
+]);
+
+export const SUBCATEGORY_ALIASES = {
+${aliasLines}
+};
+
+export function canonicalize(value) {
+  if (!value) return '';
+  const v = value.toString().trim();
+  const mapped = Object.prototype.hasOwnProperty.call(SUBCATEGORY_ALIASES, v) ? SUBCATEGORY_ALIASES[v] : v;
+  return CANONICAL_SUBCATEGORIES.has(mapped) ? mapped : '';
+}
+`;
+}
+
 // ── (b) Browser global for inventory-engine.js / admin ───────────────────────
 function buildBrowser() {
   const canonicalJSON = JSON.stringify(canonical, null, 2)
@@ -67,12 +94,18 @@ ${aliasLines}
 
 const cjsContent     = buildCJS();
 const browserContent = buildBrowser();
+const esmContent     = buildESM();
 
 const TARGETS = [
   {
     path: path.join(ROOT, 'netlify/functions/lib/taxonomy.generated.js'),
     content: cjsContent,
     label: 'hub CJS',
+  },
+  {
+    path: path.join(ROOT, 'netlify/edge-functions/lib/taxonomy.esm.js'),
+    content: esmContent,
+    label: 'hub ESM (edge)',
   },
   {
     path: path.join(ROOT, 'js/taxonomy.browser.js'),

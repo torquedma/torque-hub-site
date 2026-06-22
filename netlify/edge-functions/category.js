@@ -1,4 +1,5 @@
 import { TAXONOMY_DATA, CATEGORY_HUB } from '../../js/taxonomy-data.js';
+import { buildDisplayTitle } from './lib/title-helpers.js';
 const SUPABASE_URL = 'https://bxsikkmqasydosmblzov.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4c2lra21xYXN5ZG9zbWJsem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTc1OTksImV4cCI6MjA5MDQ3MzU5OX0.JMEI7cx2tddmbvfqm_qxiIWp7f5Phuk5l0Y487DUSZg';
 const SB_HEADERS = { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON };
@@ -353,7 +354,7 @@ function buildCardGrid(units) {
   return units.map(u => {
     const photos = getPhotos(u);
     const img = (photos[0] && (photos[0].url || photos[0].dataUrl)) || '/torque-logo.png';
-    const title = [u.year, u.make, u.model].filter(Boolean).join(' ') || (u.subcategory || 'Unit');
+    const title = buildDisplayTitle(u);
     const price = formatPrice(u.price);
     const href = '/vehicle.html?stock=' + encodeURIComponent(u.stock);
     const chips = buildCardChips(u);
@@ -450,7 +451,7 @@ export default async function handler(request) {
         'itemListElement': units.slice(0, 250).map((u, i) => ({
           '@type': 'ListItem', 'position': i + 1,
           'url': BASE + '/vehicle.html?stock=' + encodeURIComponent(u.stock),
-          'name': [u.year, u.make, u.model].filter(Boolean).join(' ') || (u.subcategory || 'Unit'),
+          'name': buildDisplayTitle(u),
         })),
       },
     };
