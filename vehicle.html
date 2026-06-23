@@ -845,16 +845,20 @@ function buildBuyerIntelligenceCards(bi) {
     );
   }
 
-  // Card 3 — Should You Buy It? (makes_it_a_yes only)
+  // Card 3 — Should You Buy It? (makes_it_a_yes only; optional footer line)
   if (yes.length) {
+    const yesFooter = (typeof df.makes_it_a_yes_footer === 'string')
+      ? df.makes_it_a_yes_footer.trim()
+      : '';
     cards.push(
       '<article class="wa-card" data-wa-idx="' + cards.length + '">' +
         '<div class="card-head">Should You Buy It?</div>' +
         '<div class="desc-body">' +
-          '<p class="desc-para">' + escBI("Here's what I'd want to see before feeling good about this one:") + '</p>' +
+          '<p class="desc-para">' + escBI('What a good one should show:') + '</p>' +
           '<ul class="desc-list">' +
             yes.map(v => '<li>' + escBI(v) + '</li>').join('') +
           '</ul>' +
+          (yesFooter ? '<p class="desc-para">' + escBI(yesFooter) + '</p>' : '') +
         '</div>' +
       '</article>'
     );
