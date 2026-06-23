@@ -818,11 +818,12 @@ function buildBuyerIntelligenceCards(bi) {
 
   const cards = [];
 
-  // Card 1 — Meet the Machine
+  // Card 1 — Meet the Machine (heading data-driven via bi.meet_title)
   if (meet) {
+    const meetTitle = bi.meet_title || 'Meet the Machine';
     cards.push(
       '<article class="wa-card" data-wa-idx="' + cards.length + '">' +
-        '<div class="card-head">Meet the Machine</div>' +
+        '<div class="card-head">' + escBI(meetTitle) + '</div>' +
         '<div class="desc-body">' +
           '<p class="desc-para">' + escBI(meet) + '</p>' +
         '</div>' +
