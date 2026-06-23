@@ -6,6 +6,9 @@ function trimSpec(val) {
 function buildPrompt(unit, dealer) {
   const d = dealer || {};
   const price = unit.price ? '$' + Number(unit.price).toLocaleString() : 'Call for Price';
+  // Equipment runs on an hour meter, not an odometer. Label the runtime field
+  // by category: trucks → Mileage (miles), Construction/Farm → Hours, else default to Mileage.
+  const runtimeLabel = (unit.category === 'Construction' || unit.category === 'Farm') ? 'Hours' : 'Mileage';
 
   // Build UNIT INFO from non-empty fields only — sparse units get no blank labels
   const lines = [];
@@ -13,7 +16,7 @@ function buildPrompt(unit, dealer) {
   if (unit.make)  lines.push('Make: ' + unit.make);
   if (unit.model) lines.push('Model: ' + unit.model);
   lines.push('Price: ' + price);
-  if (unit.mileage)                    lines.push('Mileage: ' + unit.mileage);
+  if (unit.mileage)                    lines.push(runtimeLabel + ': ' + unit.mileage);
   if (trimSpec(unit.engine))           lines.push('Engine: ' + trimSpec(unit.engine));
   if (trimSpec(unit.transmission))     lines.push('Transmission: ' + trimSpec(unit.transmission));
   if (unit.drivetrain)                 lines.push('Drivetrain: ' + unit.drivetrain);
@@ -46,11 +49,14 @@ Do NOT write a "Key Details" section, bullet list, contact section, prices, or s
 }
 
 async function generateDescription(unit, dealer, apiKey) {
+  // Equipment runs on an hour meter, not an odometer. Label the runtime field
+  // by category: trucks → Mileage (miles), Construction/Farm → Hours, else default to Mileage.
+  const runtimeLabel = (unit.category === 'Construction' || unit.category === 'Farm') ? 'Hours' : 'Mileage';
   const detailLines = [];
   if (unit.year)                   detailLines.push('- Year: ' + unit.year);
   if (unit.make)                   detailLines.push('- Make: ' + unit.make);
   if (unit.model)                  detailLines.push('- Model: ' + unit.model);
-  if (unit.mileage)                detailLines.push('- Mileage: ' + unit.mileage);
+  if (unit.mileage)                detailLines.push('- ' + runtimeLabel + ': ' + unit.mileage);
   if (trimSpec(unit.engine))       detailLines.push('- Engine: ' + trimSpec(unit.engine));
   if (trimSpec(unit.transmission)) detailLines.push('- Transmission: ' + trimSpec(unit.transmission));
   if (unit.drivetrain)             detailLines.push('- Drivetrain: ' + unit.drivetrain);
