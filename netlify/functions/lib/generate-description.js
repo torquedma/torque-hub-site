@@ -8,7 +8,7 @@ function buildPrompt(unit, dealer) {
   const price = unit.price ? '$' + Number(unit.price).toLocaleString() : 'Call for Price';
   // Equipment runs on an hour meter, not an odometer. Label the runtime field
   // by category: trucks → Mileage (miles), Construction/Farm → Hours, else default to Mileage.
-  const runtimeLabel = (unit.category === 'Construction' || unit.category === 'Farm') ? 'Hours' : 'Mileage';
+  const runtimeLabel = (unit.category === 'Construction' || unit.category === 'Farm') ? 'Hours Shown' : 'Mileage';
 
   // Build UNIT INFO from non-empty fields only — sparse units get no blank labels
   const lines = [];
@@ -51,7 +51,7 @@ Do NOT write a "Key Details" section, bullet list, contact section, prices, or s
 async function generateDescription(unit, dealer, apiKey) {
   // Equipment runs on an hour meter, not an odometer. Label the runtime field
   // by category: trucks → Mileage (miles), Construction/Farm → Hours, else default to Mileage.
-  const runtimeLabel = (unit.category === 'Construction' || unit.category === 'Farm') ? 'Hours' : 'Mileage';
+  const runtimeLabel = (unit.category === 'Construction' || unit.category === 'Farm') ? 'Hours Shown' : 'Mileage';
   const detailLines = [];
   if (unit.year)                   detailLines.push('- Year: ' + unit.year);
   if (unit.make)                   detailLines.push('- Make: ' + unit.make);
