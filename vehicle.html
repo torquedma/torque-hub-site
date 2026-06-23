@@ -185,6 +185,27 @@
     .bi-conf { display: inline-block; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 6px; border-radius: 4px; color: #fff; margin-left: 8px; vertical-align: middle; }
     .bi-specs-footer { padding: 10px 18px; font-size: 11px; color: var(--muted); border-top: 1px solid var(--line); }
 
+    /* THE WALKAROUND — 3-card horizontal swipe carousel.
+       Scroll-snap track modeled on the photo gallery: one card per viewport
+       width, scrollbar hidden, dots driven by a scroll listener (see
+       initWalkaround). Cards reuse .card-head / .desc-body / .desc-para /
+       .desc-list so internal styling inherits from the existing system. */
+    .wa-section { margin-top: 16px; }
+    .wa-header { padding: 14px 18px 12px; }
+    .wa-title { font-size: 14px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text); }
+    .wa-sub { font-size: 12px; line-height: 1.4; color: var(--muted); margin-top: 4px; }
+    .wa-track { display: flex; gap: 12px; padding: 0 18px 4px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-left: 18px; scrollbar-width: none; scroll-behavior: smooth; }
+    .wa-track::-webkit-scrollbar { display: none; }
+    .wa-card { flex: 0 0 calc(100% - 36px); scroll-snap-align: start; scroll-snap-stop: always; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+    .wa-card .desc-body { padding: 14px 18px; }
+    .wa-card .desc-para { font-size: 13px; line-height: 1.55; margin-bottom: 6px; }
+    .wa-card .desc-para:last-child { margin-bottom: 0; }
+    .wa-card .desc-list { gap: 2px; margin-bottom: 0; }
+    .wa-card .desc-list li { font-size: 13px; line-height: 1.5; }
+    .wa-dots { display: flex; justify-content: center; gap: 6px; padding: 12px 0 4px; }
+    .wa-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--line); border: none; padding: 0; cursor: pointer; transition: background 0.2s; }
+    .wa-dot.active { background: var(--text); }
+
     /* SIMILAR */
     .similar-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin-top: 20px; }
     .similar-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 14px; }
@@ -777,151 +798,136 @@ function parseBuyerIntelligence(raw) {
   }
 }
 
+// buildBuyerIntelligenceCards — renders THE WALKAROUND, a 3-card horizontal
+// swipe carousel. Each card is conditionally included; if none survive, the
+// section is omitted entirely (zero footprint for units without bi data).
+//
+// Card 1 "Meet the Machine":     bi.meet (string)
+// Card 2 "Torque Take":          bi.torque_take[1..]   (drop [0], lives in Meet)
+// Card 3 "Should You Buy It?":   bi.decision_factors.makes_it_a_yes only
+//                                (makes_it_a_walk stays dormant in the data)
 function buildBuyerIntelligenceCards(bi) {
-  const parts = [];
+  const meet = (typeof bi.meet === 'string') ? bi.meet.trim() : '';
+  const ttRest = Array.isArray(bi.torque_take)
+    ? bi.torque_take.slice(1).map(s => (s == null ? '' : String(s).trim())).filter(Boolean)
+    : [];
+  const df = bi.decision_factors || {};
+  const yes = Array.isArray(df.makes_it_a_yes)
+    ? df.makes_it_a_yes.map(s => (s == null ? '' : String(s).trim())).filter(Boolean)
+    : [];
 
-  // 1. Torque Take (default visible, leads)
-  const tt = Array.isArray(bi.torque_take) ? bi.torque_take.filter(Boolean) : [];
-  if (tt.length) {
-    parts.push(
-      '<div class="desc-card bi-card" id="bi-torque-take">' +
-        '<div class="card-head">' + escBI(bi.title || 'Torque Take') + '</div>' +
+  const cards = [];
+
+  // Card 1 — Meet the Machine
+  if (meet) {
+    cards.push(
+      '<article class="wa-card" data-wa-idx="' + cards.length + '">' +
+        '<div class="card-head">Meet the Machine</div>' +
         '<div class="desc-body">' +
-          tt.map(t => '<p class="desc-para">' + escBI(t) + '</p>').join('') +
+          '<p class="desc-para">' + escBI(meet) + '</p>' +
         '</div>' +
-      '</div>'
+      '</article>'
     );
   }
 
-  // 2. "Would I Buy It?" (default visible, directly under Torque Take)
-  //    Group labels are data-driven (df.yes_label / df.walk_label) with fallbacks.
-  const df   = bi.decision_factors || {};
-  const yes  = Array.isArray(df.makes_it_a_yes)  ? df.makes_it_a_yes.filter(Boolean)  : [];
-  const walk = Array.isArray(df.makes_it_a_walk) ? df.makes_it_a_walk.filter(Boolean) : [];
-  const yesLabel  = (typeof df.yes_label  === 'string' && df.yes_label.trim())  ? df.yes_label.trim()  : 'Buy signals';
-  const walkLabel = (typeof df.walk_label === 'string' && df.walk_label.trim()) ? df.walk_label.trim() : 'Walk away if';
-  if (yes.length || walk.length) {
-    parts.push(
-      '<div class="desc-card bi-card" id="bi-decision">' +
+  // Card 2 — Torque Take (drop torque_take[0]; bi.title overrides heading)
+  if (ttRest.length) {
+    const heading = (typeof bi.title === 'string' && bi.title.trim())
+      ? bi.title.trim()
+      : 'Torque Take';
+    cards.push(
+      '<article class="wa-card" data-wa-idx="' + cards.length + '">' +
+        '<div class="card-head">' + escBI(heading) + '</div>' +
+        '<div class="desc-body">' +
+          ttRest.map(t => '<p class="desc-para">' + escBI(t) + '</p>').join('') +
+        '</div>' +
+      '</article>'
+    );
+  }
+
+  // Card 3 — Should You Buy It? (makes_it_a_yes only)
+  if (yes.length) {
+    cards.push(
+      '<article class="wa-card" data-wa-idx="' + cards.length + '">' +
         '<div class="card-head">Should You Buy It?</div>' +
         '<div class="desc-body">' +
-          (yes.length
-            ? '<div class="bi-yes-group">' +
-                '<div class="bi-yes-head">' + escBI(yesLabel) + '</div>' +
-                '<ul class="desc-list bi-yes-list">' +
-                  yes.map(v => '<li>' + escBI(v) + '</li>').join('') +
-                '</ul>' +
-              '</div>'
-            : '') +
-          (walk.length
-            ? '<div class="bi-walk-group">' +
-                '<div class="bi-walk-head">' + escBI(walkLabel) + '</div>' +
-                '<ul class="desc-list bi-walk-list">' +
-                  walk.map(v => '<li>' + escBI(v) + '</li>').join('') +
-                '</ul>' +
-              '</div>'
-            : '') +
+          '<p class="desc-para">' + escBI("Here's what I'd want to see before feeling good about this one:") + '</p>' +
+          '<ul class="desc-list">' +
+            yes.map(v => '<li>' + escBI(v) + '</li>').join('') +
+          '</ul>' +
         '</div>' +
-      '</div>'
+      '</article>'
     );
   }
 
-  // 3. "Before You Buy" — collapsed depth card containing fit, questions, verified specs.
-  //    Available depth, not buried: subtle accent + preview line signals there's more here.
-  const fits   = Array.isArray(bi.who_fits)        ? bi.who_fits.filter(Boolean)        : [];
-  const noFits = Array.isArray(bi.who_may_not_fit) ? bi.who_may_not_fit.filter(Boolean) : [];
-  const qs     = Array.isArray(bi.questions)       ? bi.questions.filter(q => q && q.question) : [];
-  const vs     = Array.isArray(bi.verified_specs)
-    ? bi.verified_specs.filter(r => r && (r.label || r.value)) : [];
+  if (!cards.length) return '';
 
-  if (fits.length || noFits.length || qs.length || vs.length) {
-    const sections = [];
+  const dots = cards.map((_, i) =>
+    '<button type="button" class="wa-dot' + (i === 0 ? ' active' : '') +
+    '" data-wa-target="' + i + '" aria-label="Card ' + (i + 1) + '"></button>'
+  ).join('');
 
-    // 3a. Who It's For
-    if (fits.length || noFits.length) {
-      sections.push(
-        '<div class="card-head">Who It’s For</div>' +
-        '<div class="desc-body">' +
-          (fits.length
-            ? '<div class="desc-heading">Good fit</div><ul class="desc-list">' +
-              fits.map(f => '<li>✓ ' + escBI(f) + '</li>').join('') + '</ul>'
-            : '') +
-          (noFits.length
-            ? '<div class="desc-heading">May not fit</div><ul class="desc-list">' +
-              noFits.map(f => '<li>✗ ' + escBI(f) + '</li>').join('') + '</ul>'
-            : '') +
-        '</div>'
-      );
-    }
+  return (
+    '<section class="wa-section" id="wa">' +
+      '<div class="wa-header">' +
+        '<div class="wa-title">The Walkaround</div>' +
+        '<div class="wa-sub">A quick look at what it is, what owners know, and what a good one looks like</div>' +
+      '</div>' +
+      '<div class="wa-track" id="wa-track">' + cards.join('') + '</div>' +
+      '<div class="wa-dots" id="wa-dots">' + dots + '</div>' +
+    '</section>'
+  );
+}
 
-    // 3b. What I'd Check (per-question expanders preserved)
-    if (qs.length) {
-      const items = qs.map(q => {
-        const cf = Array.isArray(q.check_first) ? q.check_first.filter(Boolean) : [];
-        return (
-          '<details class="bi-q">' +
-            '<summary>' + escBI(q.question) + '</summary>' +
-            '<div class="bi-q-body">' +
-              (q.short_answer ? '<p class="desc-para"><strong>' + escBI(q.short_answer) + '</strong></p>' : '') +
-              (q.why          ? '<p class="desc-para">' + escBI(q.why) + '</p>' : '') +
-              (cf.length
-                ? '<div class="desc-heading">Check first</div><ul class="desc-list">' +
-                  cf.map(c => '<li>' + escBI(c) + '</li>').join('') + '</ul>'
-                : '') +
-              (q.take ? '<p class="desc-para" style="font-style:italic;">' + escBI(q.take) + '</p>' : '') +
-            '</div>' +
-          '</details>'
-        );
-      }).join('');
-      sections.push(
-        '<div class="card-head">What I’d Check</div>' +
-        '<div class="bi-q-list">' + items + '</div>'
-      );
-    }
+// initWalkaround — wires the scroll-position → active-dot sync and dot-click →
+// scroll-to-card jumps. Modeled on initGallery's scroll listener. Null-safe:
+// returns early when the track is absent, so units without buyer_intelligence
+// (where buildBuyerIntelligenceCards returned '') are completely unaffected.
+function initWalkaround() {
+  const track = document.getElementById('wa-track');
+  if (!track) return;
+  const dots = Array.from(document.querySelectorAll('#wa-dots .wa-dot'));
+  if (!dots.length) return;
 
-    // 3c. Verified Specs
-    if (vs.length) {
-      const badgeBg = (c) =>
-        c === 'verified'    ? '#16a34a' :
-        c === 'likely'      ? '#ca8a04' :
-        c === 'unconfirmed' ? '#64748b' : '#475569';
-      const rows = vs.map(r => {
-        const conf = String(r.confidence || '').toLowerCase();
-        const badge = conf
-          ? '<span class="bi-conf" style="background:' + badgeBg(conf) + ';">' + escBI(conf) + '</span>'
-          : '';
-        return (
-          '<div class="spec-row">' +
-            '<div class="spec-label">' + escBI(r.label || '') + '</div>' +
-            '<div class="spec-val">' + escBI(r.value || '') + badge + '</div>' +
-          '</div>'
-        );
-      }).join('');
-      const footer = bi.specs_footer
-        ? '<div class="bi-specs-footer">' + escBI(bi.specs_footer) + '</div>'
-        : '';
-      sections.push(
-        '<div class="card-head">Verified Specs</div>' +
-        '<div class="specs-grid">' + rows + '</div>' +
-        footer
-      );
-    }
+  let activeIdx = 0;
+  let scrollTimer = null;
+  let programmatic = false;
 
-    parts.push(
-      '<details class="desc-card bi-card bi-depth" id="bi-depth">' +
-        '<summary>' +
-          '<div class="bi-depth-text">' +
-            '<div class="bi-depth-title">Before You Buy</div>' +
-            '<div class="bi-depth-preview">Hauling, inspection notes, fit, and verified specs.</div>' +
-          '</div>' +
-          '<span class="bi-depth-chevron" aria-hidden="true">▾</span>' +
-        '</summary>' +
-        '<div class="bi-depth-inner">' + sections.join('') + '</div>' +
-      '</details>'
-    );
+  // One "step" = card width + gap. Read gap from computed style so changes to
+  // CSS don't require touching this JS.
+  function cardStep() {
+    const firstCard = track.querySelector('.wa-card');
+    if (!firstCard) return 0;
+    const cs = getComputedStyle(track);
+    const gap = parseFloat(cs.columnGap || cs.gap || '0') || 0;
+    return firstCard.offsetWidth + gap;
   }
 
-  return parts.join('');
+  function setActive(i) {
+    if (i === activeIdx) return;
+    activeIdx = i;
+    dots.forEach((d, j) => d.classList.toggle('active', j === i));
+  }
+
+  track.addEventListener('scroll', () => {
+    if (programmatic) return;
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(() => {
+      const step = cardStep();
+      if (!step) return;
+      setActive(Math.round(track.scrollLeft / step));
+    }, 100);
+  }, { passive: true });
+
+  dots.forEach((dot, i) => {
+    dot.addEventListener('click', () => {
+      const step = cardStep();
+      programmatic = true;
+      track.scrollTo({ left: i * step, behavior: 'smooth' });
+      setActive(i);
+      setTimeout(() => { programmatic = false; }, 400);
+    });
+  });
 }
 
 // ─── RENDER VDP ─────────────────────────────────────────────────────────────
@@ -1068,6 +1074,8 @@ function render(unit, dealerKey) {
   if (biSlot) {
     const bi = parseBuyerIntelligence(unit.buyer_intelligence);
     biSlot.innerHTML = bi ? buildBuyerIntelligenceCards(bi) : '';
+    // initWalkaround is null-safe; only call when bi data exists at all.
+    if (bi) initWalkaround();
   }
 
   // Lead form hidden fields
