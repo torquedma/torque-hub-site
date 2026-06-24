@@ -45,7 +45,7 @@ exports.handler = async (event) => {
   // dx_locked=false guard is always applied — locked units are excluded even if listed in ?stocks.
   let query = supabase
     .from('inventory')
-    .select('stock, dealer, year, make, model, price, mileage, hours, engine, horsepower, transmission, drivetrain, fuel, vin, raw_description, description')
+    .select('stock, dealer, year, make, model, trim, price, mileage, hours, engine, horsepower, transmission, drivetrain, fuel, vin, raw_description, description')
     .eq('sold', false)
     .eq('dx_locked', false);
   if (stocksList)      query = query.in('stock', stocksList);

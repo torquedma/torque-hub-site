@@ -1,6 +1,29 @@
+const { canonicalize } = require('./taxonomy.generated.js');
+
 function trimSpec(val) {
   if (!val) return val;
   return val.split(/\s*[—–]\s*|\s+-\s+/)[0].trim();
+}
+
+// cleanTrim — behavior parity with the locked title-composition doctrine in
+// js/title-helpers.js + netlify/edge-functions/lib/title-helpers.js. Reuses
+// the SAME canonicalize() firewall (single source of truth = taxonomy.json),
+// rather than duplicating the taxonomy logic. Suppresses values that:
+//   - are empty / 'used' / 'new'
+//   - equal the make or model (case-insensitive de-dupe)
+//   - look like a model fragment (e.g. "3500", "3500HD")
+//   - resolve to a canonical subcategory (so a bare body type like "Dump Truck"
+//     is suppressed, while a real OEM trim or non-taxonomy descriptor like
+//     "Flatbed Dump Truck" passes through to the title).
+function cleanTrim(unit) {
+  const t = (unit.trim || '').trim();
+  if (!t) return '';
+  const lt = t.toLowerCase();
+  if (lt === 'used' || lt === 'new') return '';
+  if (lt === (unit.make || '').toLowerCase() || lt === (unit.model || '').toLowerCase()) return '';
+  if (/^\d+[A-Za-z]{0,4}$/.test(t)) return '';      // model fragment (3500, 3500HD)
+  if (canonicalize(t)) return '';                    // TAXONOMY FIREWALL: it's a category -> suppress
+  return t;
 }
 
 function buildPrompt(unit, dealer) {
@@ -15,6 +38,10 @@ function buildPrompt(unit, dealer) {
   lines.push('Year: ' + (unit.year || 'Unknown'));
   if (unit.make)  lines.push('Make: ' + unit.make);
   if (unit.model) lines.push('Model: ' + unit.model);
+  // Real trim / body descriptor only — taxonomy firewall in cleanTrim suppresses
+  // bare subcategory leakage (e.g. "Dump Truck") so the LLM can't invent a
+  // generic taxonomy-shaped hook in place of the actual descriptor.
+  const ct = cleanTrim(unit); if (ct) lines.push('Trim: ' + ct);
   lines.push('Price: ' + price);
   if (unit.mileage)                    lines.push(runtimeLabel + ': ' + unit.mileage);
   if (trimSpec(unit.engine))           lines.push('Engine: ' + trimSpec(unit.engine));
@@ -44,6 +71,8 @@ OUTPUT FORMAT — return EXACTLY two parts separated by a line containing only "
 [Year] [Make] [Model] – [Short Buyer Hook]
 ===
 [2-3 sentence Overview: what it is, condition, best use case. Professional, direct, blue-collar tone. No fluff. Only use the word "fleet" if the raw description explicitly mentions it.]
+
+If a Trim value is provided in UNIT INFO, use the full "[Year] [Make] [Model] [Trim]" as the unit's name in the Overview's opening sentence (e.g. "This 1998 International 4700 Flatbed Dump Truck is powered by..."), not a generic class descriptor.
 
 Do NOT write a "Key Details" section, bullet list, contact section, prices, or specs lists. ONLY the headline line, then "===", then the Overview prose.`;
 }
@@ -107,7 +136,7 @@ async function generateDescription(unit, dealer, apiKey) {
   const data = await res.json();
   const raw = (data.content?.[0]?.text || '').trim();
   const parts = raw.split(/\n?===\n?/);
-  const defaultHeadline = [unit.year, unit.make, unit.model].filter(Boolean).join(' ') || 'Unit Available';
+  const defaultHeadline = [unit.year, unit.make, unit.model, cleanTrim(unit)].filter(Boolean).join(' ') || 'Unit Available';
   let headline = '';
   let overview = '';
   if (parts.length >= 2) {
