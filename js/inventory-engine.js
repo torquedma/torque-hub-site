@@ -466,6 +466,17 @@ window.InventoryEngine = (function () {
         else if (cat === 'farm')         order = ['horsepower','hours'];
         else                             order = ['mileage','fuel'];
         var isNew = !badText(u.condition) && String(u.condition).trim().toLowerCase() === 'new';
+        // search_pills override: if curated buyer-search hooks exist, show those (up to 3) and skip
+        // the category-default spec pills entirely.
+        if (Array.isArray(u.search_pills) && u.search_pills.length) {
+          var sp = u.search_pills.filter(function(x){ return x && String(x).trim(); }).slice(0,3);
+          if (sp.length) {
+            var spChips = [];
+            if (isNew) spChips.push('NEW');
+            for (var k=0;k<sp.length && spChips.length<3;k++){ spChips.push(String(sp[k]).trim()); }
+            return spChips;
+          }
+        }
         var chips = [];
         if (isNew) chips.push('NEW');
         for (var i=0;i<order.length && chips.length<2;i++){
