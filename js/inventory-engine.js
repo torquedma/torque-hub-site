@@ -468,7 +468,6 @@ window.InventoryEngine = (function () {
         var isNew = !badText(u.condition) && String(u.condition).trim().toLowerCase() === 'new';
         var chips = [];
         if (isNew) chips.push('NEW');
-        if (u.stock === 'MPX-4JD9976') console.log('PILL DEBUG cat:', u.category, 'hours:', u.hours, 'hp:', u.horsepower, 'order:', order);
         for (var i=0;i<order.length && chips.length<2;i++){
           var v = F[order[i]] && F[order[i]]();
           if (v) chips.push(v);
