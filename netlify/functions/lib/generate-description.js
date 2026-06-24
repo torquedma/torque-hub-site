@@ -57,7 +57,17 @@ async function generateDescription(unit, dealer, apiKey) {
   if (unit.make)                   detailLines.push('- Make: ' + unit.make);
   if (unit.model)                  detailLines.push('- Model: ' + unit.model);
   if (unit.mileage)                detailLines.push('- ' + runtimeLabel + ': ' + unit.mileage);
+  if (unit.hours)                  detailLines.push('- Hours Shown: ' + unit.hours);
   if (trimSpec(unit.engine))       detailLines.push('- Engine: ' + trimSpec(unit.engine));
+  if (unit.horsepower) {
+    // Some feeds store horsepower with its unit already attached (e.g. "97 HP",
+    // "300 hp", "200-300 HP."). Only append " HP" if the stored value doesn't
+    // already end with HP/hp (optionally followed by a period). Word boundary
+    // prevents matching e.g. trailing "...ship".
+    const hpVal    = String(unit.horsepower).trim();
+    const hpSuffix = /\bhp\.?$/i.test(hpVal) ? '' : ' HP';
+    detailLines.push('- Horsepower: ' + hpVal + hpSuffix);
+  }
   if (trimSpec(unit.transmission)) detailLines.push('- Transmission: ' + trimSpec(unit.transmission));
   if (unit.drivetrain)             detailLines.push('- Drivetrain: ' + unit.drivetrain);
   if (unit.fuel)                   detailLines.push('- Fuel: ' + unit.fuel);
@@ -65,7 +75,9 @@ async function generateDescription(unit, dealer, apiKey) {
   const vp = unit._vpic || {};
   if (vp.gvwrClass)  detailLines.push('- GVWR: ' + vp.gvwrClass);
   if (vp.bodyClass)  detailLines.push('- Body Class: ' + vp.bodyClass);
-  if (vp.horsepower) detailLines.push('- Horsepower: ' + vp.horsepower + ' HP');
+  // Inventory column wins over vPIC enrichment — emit vPIC horsepower only when
+  // the inventory column is absent, so the buyer sees at most one Horsepower line.
+  if (vp.horsepower && !unit.horsepower) detailLines.push('- Horsepower: ' + vp.horsepower + ' HP');
   if (vp.torque)     detailLines.push('- Torque: ' + vp.torque + ' lb-ft');
   const priceNum = Number(String(unit.price).replace(/[^0-9.]/g, ''));
   if (priceNum > 0)                detailLines.push('- Price: $' + priceNum.toLocaleString());
