@@ -18,7 +18,7 @@ const { WALKAROUND_SYSTEM_PROMPT } = require('./lib/walkaround-prompt.js');
 // unique index in walkaround_review_queue is the upsert conflict target;
 // regenerating the same stock under the same engine_version overwrites the
 // pending review row, which is the desired behavior for retries.
-const ENGINE_VERSION = 'walkaround-v1.1-text';
+const ENGINE_VERSION = 'walkaround-v1.2-text';
 
 // Six allowed uncertainty_type values. Anything else (including arrays,
 // numbers, misspellings) is dropped to null before write.
@@ -54,6 +54,10 @@ function isPhantom(unit, key) {
   if (cat === 'farm' && FARM_ATTACHMENT_SUBS.has(sub)) {
     if (key === 'engine' || key === 'fuel' || key === 'horsepower' || key === 'hours' || key === 'mileage') return true;
   }
+  // Classic cars predate mainstream diesel; feed-defaulted "Fuel: Diesel" is almost always a
+  // phantom value on this subcategory. Suppress fuel so the model doesn't treat a wrong fact
+  // as ground truth (a contradictory fact can also wrongly trigger abstain).
+  if (sub === 'classic car' && key === 'fuel') return true;
   return false;
 }
 
