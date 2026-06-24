@@ -15,7 +15,7 @@ exports.handler = async (event) => {
 
     const { data, error } = await supabase
       .from('inventory')
-      .select('stock,dealer,year,make,model,trim,price,subcategory,category,hours,horsepower,first_photo:photos->0')
+      .select('stock,dealer,year,make,model,trim,price,subcategory,category,mileage,engine,hours,horsepower,first_photo:photos->0')
       .eq('dealer', 'Impex Heavy Metal')
       .eq('sold', false)
       .order('year', { ascending: false });
