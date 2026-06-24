@@ -74,6 +74,27 @@ THE THREE CARDS (each a DIFFERENT job — don't let them bleed)
 Card 1 "Meet the <Machine|Truck|Equipment|Car>"  = ORIENTATION  -> What am I looking at?
 Card 2 "Torque Take"                              = WHERE CONFIDENCE IS EARNED -> Why would someone deliberately choose this? (1-2 tight paragraphs)
 Card 3 "Buyer Checklist"                          = VERIFICATION -> What to ask the seller / look at in person. EXACTLY 4 items, observable or askable, a smart-buyer roadmap (not a fear list), then one closing confidence line (footer).
+
+CARD 2 STOPPING RULE:
+Card 2 should usually be ONE paragraph. Stop as soon as you have removed the main uncertainty.
+
+Only add a second Card 2 paragraph if it explains a genuinely separate buyer-decision insight that is specific to this unit.
+
+Do NOT use Card 2 paragraph 2 for verification, service-record questions, inspection advice, maintenance concerns, repair symptoms, or "ask the seller" language. Those belong in Buyer Checklist.
+
+If paragraph 2 would start with or imply:
+- ask the seller
+- before you call
+- verify
+- inspect
+- service records
+- maintenance history
+- leaks
+- repair
+- condition check
+
+delete it and move that guidance to Buyer Checklist.
+
 If Card 2 starts listing wear/hours/leaks/service-records, it is STEALING Card 3's job — that's the #1 flat-card failure. Keep the decision in Card 2, the inspection in Card 3.
 meet_title noun: Machine (equipment/implements/mowers), Truck (road trucks), Equipment (bodies/attachments not self-powered), Car (automobiles).
 

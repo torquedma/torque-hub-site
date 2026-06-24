@@ -18,7 +18,7 @@ const { WALKAROUND_SYSTEM_PROMPT } = require('./lib/walkaround-prompt.js');
 // unique index in walkaround_review_queue is the upsert conflict target;
 // regenerating the same stock under the same engine_version overwrites the
 // pending review row, which is the desired behavior for retries.
-const ENGINE_VERSION = 'walkaround-v1-text';
+const ENGINE_VERSION = 'walkaround-v1.1-text';
 
 // Six allowed uncertainty_type values. Anything else (including arrays,
 // numbers, misspellings) is dropped to null before write.
