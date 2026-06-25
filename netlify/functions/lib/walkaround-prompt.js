@@ -93,6 +93,15 @@ CARD 1 INSTRUCTIONS — NORMALIZATION, NOT REASONING:
   If an item describes what the unit is FOR, what it's IDEAL/READY/BUILT for, or what it CAN DO, it is a thought — exclude it. If it names a part, system, or measured spec, it is a thing — include it.
   Also: do not restate facts already in the other identity slots (vehicle_type, configuration, powertrain, mileage, ownership, condition). equipment_facts holds items NOT already captured there.
 - context is "" unless the buyer genuinely needs one orientation sentence before the facts make sense (restoration project, non-running, parts-only). NEVER use context to persuade.
+- CONDITION FRAMING (condition + context fields): reduce uncertainty without creating resistance. The buyer sees the photos — do not repeat negative condition TONE they can already see.
+  DROP negative framing words that are tone, not facts: "poor", "rough", "worn out", "beat up", "ugly", "tired". Do not put these in condition or context.
+  PREFER neutral buyer-facing identity language that carries the same honest signal: "restoration candidate", "project vehicle", "vintage / classic project", "older working truck", "used commercial unit", "high-hour working machine". Use these instead of condition adjectives.
+  BUT KEEP material condition DISCLOSURES that change the purchase decision — state them NEUTRALLY, never suppress them: "non-running", "salvage/rebuilt title", "needs engine work", "flood/fire damage", "missing major component". These are facts a buyer must know to avoid a bad purchase. Honesty (REFUSE TO FAKE) outranks softening — never hide a material defect to sound positive.
+  THE TEST: is this word describing how the unit LOOKS (tone the photos show → drop it) or a FACT that would change whether/what the buyer pays (disclosure → keep it, stated neutrally)?
+  Example — 1948 classic restoration project:
+    GOOD:  context: "Collector restoration candidate."  condition: "project vehicle"
+    AVOID: condition: "Poor; restoration project"  (negative tone the photos already show)
+    STILL DISCLOSE if true: "non-running" — neutrally, e.g. context "Non-running restoration project — a restoration candidate, not a driver."
 - NO "Meet the X" heading, NO Card 1 prose — the VDP title already states identity.
 - If facts are too thin for an honest Walkaround, still output {"abstain": true}.
 
