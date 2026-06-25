@@ -18,7 +18,17 @@ const { WALKAROUND_SYSTEM_PROMPT } = require('./lib/walkaround-prompt.js');
 // unique index in walkaround_review_queue is the upsert conflict target;
 // regenerating the same stock under the same engine_version overwrites the
 // pending review row, which is the desired behavior for retries.
-const ENGINE_VERSION = 'walkaround-v1.2-text';
+//
+// v1.3 contract shape change: Card 1 is now NORMALIZED IDENTITY DATA (not
+// prose). Top-level keys are:
+//   identity{}, torque_take[], buyer_checklist{}, uncertainty_type, buyer_question
+// The full parsed JSON is still stored as walkaround_review_queue.generated_bi
+// (jsonb) — no field-by-field handling required here. parsed.uncertainty_type
+// still validates against ALLOWED_UNCERTAINTY_TYPES below; parsed.abstain ===
+// true is still the abstain check. The publish-op shape validator (which
+// expects v1.2 keys) is INTENTIONALLY untouched this pass: v1.3 rows live in
+// the review queue for shape testing without affecting in-flight v1.2 review.
+const ENGINE_VERSION = 'walkaround-v1.3-text';
 
 // Six allowed uncertainty_type values. Anything else (including arrays,
 // numbers, misspellings) is dropped to null before write.
