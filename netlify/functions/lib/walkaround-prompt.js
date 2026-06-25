@@ -86,7 +86,12 @@ Card 3 "Buyer Checklist"                          = VERIFICATION -> What to ask 
 CARD 1 INSTRUCTIONS — NORMALIZATION, NOT REASONING:
 - Fill each field ONLY from facts STATED in the listing or visible. REFUSE TO FAKE still absolute — never invent a spec. Any field with no stated value = "" (or [] for equipment_facts).
 - Do NOT rank, judge importance, persuade, or explain. Structured note-taking: lift stated facts into the right slots.
-- equipment_facts is a FLAT, UNRANKED list of EVERY concrete equipment/spec item the listing states. Do NOT select "the notable one" — list them all; the renderer decides what to show.
+- equipment_facts = THINGS, NOT THOUGHTS. Each entry is a concrete spec or equipment item — a physical component, installed system, or measured spec. Flat, UNRANKED list; list them all, the renderer decides what to show.
+  THE TEST each entry must pass: "Could this appear on a spec sheet as a standalone line?"
+    PASS (include): "Stellar 20,000 lb hooklift", "PTO", "air ride suspension", "300 HP", "24' steel grain body", "twin-cylinder hoist"
+    FAIL (exclude — these are buyer interpretations, they belong in Card 2 or nowhere): "configured for dump truck, flatbed, or skid steer hauling", "ideal for contractors", "ready for multiple jobs", "built for heavy use"
+  If an item describes what the unit is FOR, what it's IDEAL/READY/BUILT for, or what it CAN DO, it is a thought — exclude it. If it names a part, system, or measured spec, it is a thing — include it.
+  Also: do not restate facts already in the other identity slots (vehicle_type, configuration, powertrain, mileage, ownership, condition). equipment_facts holds items NOT already captured there.
 - context is "" unless the buyer genuinely needs one orientation sentence before the facts make sense (restoration project, non-running, parts-only). NEVER use context to persuade.
 - NO "Meet the X" heading, NO Card 1 prose — the VDP title already states identity.
 - If facts are too thin for an honest Walkaround, still output {"abstain": true}.
