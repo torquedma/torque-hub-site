@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Torque Hub — Money-Making Trucks & Equipment</title>
-  <meta name="description" content="Torque Hub is a commercial marketplace for buyers shopping work trucks, trailers, and equipment. Real dealer inventory, direct financing, and serious buyer tools." />
+  <meta name="description" content="Torque Hub is a commercial marketplace for buyers shopping work trucks, trailers, and equipment. Real seller inventory, direct financing, and serious buyer tools." />
   <meta name="robots" content="index,follow" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Torque Hub — Money-Making Trucks & Equipment" />
@@ -26,7 +26,7 @@
       "name": "Torque Hub",
       "alternateName": "Torque Hub powered by Torque DMA",
       "url": "https://hub.torquedma.com/",
-      "description": "Torque Hub is a commercial marketplace for buyers and dealers of work trucks, trailers, and equipment. Financing built for commercial buyers.",
+      "description": "Torque Hub is a commercial marketplace for buyers and sellers of work trucks, trailers, and equipment. Financing built for commercial buyers.",
       "brand": {
         "@type": "Brand",
         "name": "Torque DMA"
@@ -953,11 +953,11 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
         <div class="hero-header">
           <div class="eyebrow">Torque Hub — Commercial Marketplace</div>
           <h1>Commercial Trucks, Trailers &amp; Equipment For Sale</h1>
-          <p class="hero-sub">Find work-ready trucks, trailers &amp; equipment from real dealers. Fast financing. Direct contact. No junk listings.</p>
+          <p class="hero-sub">Find work-ready trucks, trailers &amp; equipment from verified sellers. Fast financing. Direct contact. No junk listings.</p>
           <p class="hero-trust-line">
             <span><span id="trust-listing-count" class="hero-trust-line__count">450+</span> Listings</span>
             <span class="hero-trust-line__sep">·</span>
-            <span><span id="trust-dealer-count" class="hero-trust-line__count">8+</span> Trusted Dealers</span>
+            <span><span id="trust-dealer-count" class="hero-trust-line__count">8+</span> Verified Sellers</span>
             <span class="hero-trust-line__sep">·</span>
             <span>Updated Daily</span>
           </p>
@@ -1089,7 +1089,7 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
             </div>
           </div>
         </div>
-        <p class="cat-browser-seo" style="text-align:center;max-width:760px;margin:28px auto 0">Torque Hub connects buyers with commercial trucks, trailers, tractors, and heavy equipment for sale across the Southeast. Browse dealer inventory, compare units, and apply for financing.</p>
+        <p class="cat-browser-seo" style="text-align:center;max-width:760px;margin:28px auto 0">Torque Hub connects buyers with commercial trucks, trailers, tractors, and heavy equipment for sale across the Southeast. Browse seller inventory, compare units, and apply for financing.</p>
         <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:16px">
           <a href="/finance.html" style="font-size:12px;color:#94a3b8;text-decoration:none;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:6px 12px;transition:color 0.15s" onmouseover="this.style.color='#f1f5f9'" onmouseout="this.style.color='#94a3b8'">Commercial Financing</a>
           <a href="/commercial-truck-financing.html" style="font-size:12px;color:#94a3b8;text-decoration:none;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:6px 12px;transition:color 0.15s" onmouseover="this.style.color='#f1f5f9'" onmouseout="this.style.color='#94a3b8'">Truck Financing</a>
@@ -1110,7 +1110,7 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
           <a class="btn btn-secondary" href="/inventory.html" onclick="event.preventDefault();window.location.href=buildInventoryURL();">View All</a>
         </div>
 
-        <p id="inv-blurb" style="margin-bottom:16px;color:#64748b;font-size:14px;line-height:1.65;">Browse work trucks, trailers, construction equipment, and farm equipment from real dealers across the Southeast.</p>
+        <p id="inv-blurb" style="margin-bottom:16px;color:#64748b;font-size:14px;line-height:1.65;">Browse work trucks, trailers, construction equipment, and farm equipment from verified sellers across the Southeast.</p>
 
         <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
           <div class="search-suggestions-wrap" style="flex:1;min-width:200px;">
@@ -1118,7 +1118,7 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
             <div id="inv-suggestions" class="search-suggestions" hidden></div>
           </div>
           <select id="dealer-filter" onchange="applyFilters()" style="padding:10px 14px;background:rgba(17,24,39,0.9);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#f8fafc;font-size:14px;font-family:inherit;outline:none;cursor:pointer">
-            <option value="">All Dealers</option>
+            <option value="">All Sellers</option>
           </select>
           <select id="condition-filter" onchange="applyFilters()" style="padding:10px 14px;background:rgba(17,24,39,0.9);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#f8fafc;font-size:14px;font-family:inherit;outline:none;cursor:pointer">
             <option value="">New & Used</option>
@@ -1150,26 +1150,12 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
       </div>
     </section>
 
-    <section class="section" id="sell">
-      <div class="container">
-        <div class="cta-band">
-          <div>
-            <h2>Dealer &amp; Commercial Lending Partners</h2>
-            <p>Torque Hub connects commercial buyers with real dealer inventory and financing paths for work trucks, trailers, and equipment. Dealers bring the inventory. Lending partners help turn buyer interest into funded deals.</p>
-          </div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap">
-            <a class="btn btn-primary" href="/dealer-partners.html">Partner as a Dealer</a>
-            <a class="btn btn-primary" href="/lender-partners.html">Partner as a Lender</a>
-          </div>
-        </div>
-      </div>
-    </section>
     <section class="section" id="dealers">
       <div class="container">
         <div class="section-header">
           <div>
-            <h2 class="section-title">Featured dealers</h2>
-            <p class="section-sub">Browse inventory from real dealers with trucks, trailers, and equipment ready for commercial use.</p>
+            <h2 class="section-title">Featured Sellers</h2>
+            <p class="section-sub">Browse inventory from verified sellers with trucks, trailers, and equipment ready for commercial use.</p>
           </div>
         </div>
 
@@ -1193,7 +1179,7 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
     <div class="container footer-grid">
       <div class="footer-col footer-brand">
         <h3>Torque Hub</h3>
-        <p>Torque Hub connects commercial buyers with real dealer inventory across the Southeast. Browse trucks, trailers, and equipment ready for work.</p>
+        <p>Torque Hub connects commercial buyers with real seller inventory across the Southeast. Browse trucks, trailers, and equipment ready for work.</p>
         <div class="footer-social" aria-label="Social media">
           <a href="https://www.facebook.com/torquedma" target="_blank" rel="noopener" aria-label="Facebook">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22 12a10 10 0 1 0-11.5 9.9v-7H8v-3h2.5V9.5C10.5 7 12 5.7 14.2 5.7c1 0 2.1.2 2.1.2v2.3h-1.2c-1.2 0-1.5.7-1.5 1.5V12H17l-.4 3h-2.6v7A10 10 0 0 0 22 12z"/></svg>
@@ -1207,7 +1193,7 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
         <h4>Marketplace</h4>
         <ul>
           <li><a href="/inventory.html">Browse Inventory</a></li>
-          <li><a href="#dealers">Featured Dealers</a></li>
+          <li><a href="#dealers">Featured Sellers</a></li>
           <li><a href="/finance.html">Financing</a></li>
         </ul>
       </div>

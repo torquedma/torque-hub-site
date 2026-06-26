@@ -209,7 +209,7 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
         </select>
         <input type="text" id="f-unit-display" placeholder="Unit / Stock # you're interested in (optional)">
         <select id="f-dealer-select" required>
-          <option value="" disabled selected>Dealer Selling Vehicle</option>
+          <option value="" disabled selected>Seller Selling Vehicle</option>
         </select>
         <div id="f-dealer-display" style="display:none; width:100%; padding:14px 16px; border-radius:10px; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.04); color:#94a3b8; font-size:16px; font-family:inherit; box-sizing:border-box;"></div>
         <input type="hidden" id="f-stock">
@@ -458,7 +458,7 @@ const SRC_TO_DEALER = {
     sel.value = resolved;
     sel.style.display = "none";
     sel.removeAttribute("required");
-    display.textContent = "Dealer: " + resolved;
+    display.textContent = "Seller: " + resolved;
     display.style.display = "block";
   }
 })();
@@ -481,7 +481,7 @@ function submitFinance() {
   const selectedDealer = dealerLocked
     ? document.getElementById("f-dealer").value
     : dealerSelEl.value;
-  if (!dealerLocked && !selectedDealer) { alert("Please select the dealer selling the vehicle."); return; }
+  if (!dealerLocked && !selectedDealer) { alert("Please select the seller selling the vehicle."); return; }
 
   const btn = document.getElementById("submit-btn");
   btn.disabled = true;

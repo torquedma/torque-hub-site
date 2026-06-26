@@ -4,14 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title id="page-title">Unit Details — Torque Hub</title>
-  <meta name="description" id="page-desc" content="Browse work trucks, trailers, and equipment from real dealers across the Southeast at Torque Hub powered by Torque DMA." />
+  <meta name="description" id="page-desc" content="Browse work trucks, trailers, and equipment from verified sellers across the Southeast at Torque Hub powered by Torque DMA." />
   <meta name="robots" content="index,follow" />
   <link rel="canonical" id="canonical-url" href="https://hub.torquedma.com/vehicle.html" />
 
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
   <meta property="og:title" id="og-title" content="Unit Details — Torque Hub" />
-  <meta property="og:description" id="og-desc" content="Browse work trucks, trailers, and equipment from real dealers across the Southeast." />
+  <meta property="og:description" id="og-desc" content="Browse work trucks, trailers, and equipment from verified sellers across the Southeast." />
   <meta property="og:image" id="og-image" content="https://hub.torquedma.com/torque-logo.png" />
   <meta property="og:image:width" id="og-image-width" content="1200" />
   <meta property="og:image:height" id="og-image-height" content="630" />
@@ -450,10 +450,10 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
               <input type="hidden" id="f-page-url" name="page_url">
               <input type="hidden" id="f-referrer" name="referrer">
               <button class="btn btn-call" onclick="submitLead()" style="margin-top:4px">Send Message</button>
-              <p style="font-size:11px;color:var(--soft);text-align:center;margin-top:10px;line-height:1.5;">Your info is never sold. We connect you directly with the dealer.</p>
+              <p style="font-size:11px;color:var(--soft);text-align:center;margin-top:10px;line-height:1.5;">Your info is never sold. We connect you directly with the seller.</p>
             </div>
             <div class="form-success" id="form-success">
-              ✓ Message sent! A dealer representative will be in touch shortly.
+              ✓ Message sent! A seller representative will be in touch shortly.
             </div>
           </div>
         </div>
@@ -979,7 +979,7 @@ function render(unit, dealerKey) {
   // recover the core by stripping the ' for Sale ... ' suffix it added.
   const seoTitle = document.title;
   const seoCore = seoTitle.replace(/\s+for Sale.*$/, '');
-  const descContent = `${seoCore} for sale${cityState ? ' in ' + cityState : ''}. ${price}. Call ${d.phone || 'the dealer'} or apply for financing online. Torque Hub.`;
+  const descContent = `${seoCore} for sale${cityState ? ' in ' + cityState : ''}. ${price}. Call ${d.phone || 'the seller'} or apply for financing online. Torque Hub.`;
 
   const pageTitleEl = el('page-title');   if (pageTitleEl) pageTitleEl.textContent = document.title;
   const pageDescEl  = el('page-desc');    if (pageDescEl)  pageDescEl.content      = descContent;

@@ -469,7 +469,7 @@ export default async function handler(request, context) {
     // — feeds the SEO H2 and meta description so they match client byte-for-byte.
     const seoCore   = pageTitle.replace(/\s+for Sale.*$/, '');
     const seoLine   = seoCore + ' for Sale' + (cityState ? ' in ' + cityState : '');
-    const pageDesc  = `${seoCore} for sale${cityState ? ' in ' + cityState : ''}. ${price}. Call ${d.phone || 'the dealer'} or apply for financing online. Torque Hub.`;
+    const pageDesc  = `${seoCore} for sale${cityState ? ' in ' + cityState : ''}. ${price}. Call ${d.phone || 'the seller'} or apply for financing online. Torque Hub.`;
 
     const descHtml  = buildDescHtml(unit.description);
     const schema    = buildSchema(unit, d, pageUrl, dealerKey);

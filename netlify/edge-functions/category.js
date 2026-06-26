@@ -14,14 +14,14 @@ const SHELL = `<!DOCTYPE html>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title id="page-title">Inventory for Sale | Torque Hub</title>
-  <meta name="description" id="page-desc" content="Browse work trucks, trailers, and equipment from real dealers across the Southeast at Torque Hub powered by Torque DMA." />
+  <meta name="description" id="page-desc" content="Browse work trucks, trailers, and equipment from verified sellers across the Southeast at Torque Hub powered by Torque DMA." />
   <meta name="robots" content="index,follow" />
   <link rel="canonical" id="canonical-url" href="https://hub.torquedma.com/" />
 
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
   <meta property="og:title" id="og-title" content="Inventory for Sale | Torque Hub" />
-  <meta property="og:description" id="og-desc" content="Browse work trucks, trailers, and equipment from real dealers across the Southeast." />
+  <meta property="og:description" id="og-desc" content="Browse work trucks, trailers, and equipment from verified sellers across the Southeast." />
   <meta property="og:image" content="https://hub.torquedma.com/torque-logo.png" />
   <meta property="og:url" id="og-url" content="https://hub.torquedma.com/" />
   <meta property="og:site_name" content="Torque Hub" />
@@ -430,7 +430,7 @@ export default async function handler(request) {
     const h1Text = label + ' for Sale';
     const count = units.length;
     const descText = count
-      ? ('Browse ' + count + ' ' + label.toLowerCase() + ' for sale at Torque Hub. Commercial ' + label.toLowerCase() + ' from trusted dealers — financing available.')
+      ? ('Browse ' + count + ' ' + label.toLowerCase() + ' for sale at Torque Hub. Commercial ' + label.toLowerCase() + ' from verified sellers — financing available.')
       : ('Shop ' + label.toLowerCase() + ' for sale at Torque Hub. New inventory added regularly — financing available.');
     const taglineText = "Tell 'em Torque sent ya.";
     const canonical = BASE + '/' + slug;
