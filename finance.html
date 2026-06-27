@@ -187,7 +187,7 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
     <div class="form-body">
       <div id="form-inner">
         <input type="text" id="f-name" placeholder="Full Name" required>
-        <input type="tel" id="f-phone" placeholder="Phone Number" required>
+        <input type="tel" id="f-phone" placeholder="(919) 555-1234" inputmode="tel" maxlength="14" autocomplete="tel" required>
         <input type="email" id="f-email" placeholder="Email Address">
         <select id="f-credit" required>
           <option value="">Credit Score Range</option>
@@ -254,6 +254,7 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
       <div id="business-info" style="display:none;">
         <h3 style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;text-transform:uppercase;color:#86efac;text-align:center;margin:18px 0 6px">Business Information</h3>
         <p style="color:#94a3b8;text-align:center;margin-bottom:6px;font-size:14px">Tell us about the business applying for financing.</p>
+        <p style="color:#86efac;text-align:center;font-size:12px;font-style:italic;margin-bottom:16px">Financing starts with a soft credit check that will not affect your credit score.</p>
         <p style="color:#64748b;text-align:center;margin-bottom:16px;font-size:12px">This helps route your request correctly and keeps you from repeating this information inside the lender application.</p>
         <select id="f-business-type" style="width:100%;margin-bottom:10px">
           <option value="">Type of Business</option>
@@ -285,6 +286,7 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
       <div id="lender-embed" style="display:none;">
         <h3 style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;text-transform:uppercase;color:#86efac;text-align:center;margin:18px 0 10px">One More Step</h3>
         <p style="color:#94a3b8;text-align:center;margin-bottom:14px;font-size:13px">Complete your secure credit application below.</p>
+        <p style="color:#86efac;text-align:center;font-size:12px;font-style:italic;margin-bottom:14px">H.I.L. Financial starts with a soft credit check that will not affect your credit score.</p>
         <div id="lender-embed-frame"></div>
       </div>
       <div class="form-success" id="form-success">
@@ -533,16 +535,38 @@ const SRC_TO_DEALER = {
 
 // Source label intentionally hidden from buyers — attribution flows via #f-source and payload.
 
+// Phone: normalize to 10 US digits (drop leading 1 on 11-digit), then format "(XXX) XXX-XXXX".
+function normalizePhoneDigits(raw) {
+  let d = (raw || "").replace(/\D/g, "");
+  if (d.length === 11 && d[0] === "1") d = d.slice(1);
+  return d;
+}
+function formatPhone(raw) {
+  const d = normalizePhoneDigits(raw).slice(0, 10);
+  const a = d.slice(0, 3), b = d.slice(3, 6), c = d.slice(6, 10);
+  if (d.length > 6) return `(${a}) ${b}-${c}`;
+  if (d.length > 3) return `(${a}) ${b}`;
+  if (d.length > 0) return `(${a}`;
+  return "";
+}
+
+(function () {
+  const pe = document.getElementById("f-phone");
+  if (pe) pe.addEventListener("input", function () { this.value = formatPhone(this.value); });
+})();
+
 function submitFinance() {
   const name = document.getElementById("f-name").value.trim();
-  const phone = document.getElementById("f-phone").value.trim();
+  const phoneDigits = normalizePhoneDigits(document.getElementById("f-phone").value);
+  const phone = formatPhone(phoneDigits);   // formatted "(XXX) XXX-XXXX" → customer_phone, buyer_phone, message, prefill
   const email = document.getElementById("f-email").value.trim();
   const credit = document.getElementById("f-credit").value;
   const business = document.getElementById("f-business").value.trim();
   const revenue = document.getElementById("f-revenue").value.trim();
   const unitDisplay = document.getElementById("f-unit-display").value.trim();
 
-  if (!name || !phone) { alert("Please enter your name and phone number."); return; }
+  if (!name) { alert("Please enter your name."); return; }
+  if (phoneDigits.length !== 10) { alert("Please enter a valid 10-digit phone number."); return; }
 
   const dealerSelEl = document.getElementById("f-dealer-select");
   const dealerLocked = dealerSelEl.style.display === "none";
