@@ -254,6 +254,11 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
         <p>We will be in touch shortly to discuss your financing options. Keep an eye on your phone.</p>
         <a href="/inventory.html" class="btn-back">Browse More Inventory</a>
       </div>
+      <div class="form-success" id="lender-embed">
+        <h3>One More Step</h3>
+        <p>Complete your secure credit application below.</p>
+        <div id="lender-embed-frame"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -422,6 +427,27 @@ document.getElementById("f-lender").value = lender;
 document.getElementById("f-rep").value = rep;
 document.getElementById("f-dealer").value = dealer;
 
+// Lender-agnostic, route_code-keyed config. submit-lead returns route_code on
+// success; if it maps to an entry here, we reveal the lender's inline credit
+// app prefilled via URL params. Unmapped routes fall through to showSuccess().
+const LENDER_FORM_CONFIGS = {
+  L001: {
+    lenderName: "H.I.L. Financial",
+    provider: "formstack",
+    formUrl: "https://twaddle.formstack.com/forms/vehiclenetwork",
+    fieldMap: {
+      source:        "field196509669",
+      dealer:        "field196509670",
+      stock_number:  "field196509673",
+      vehicle_title: "field196509672",
+      buyer_name:    "field196509676",
+      buyer_email:   "field196509677",
+      buyer_phone:   "field196509678",
+      lead_id:       "field196509679"
+    }
+  }
+};
+
 // ⚠️ HARDCODED dealer list — these strings MUST match finance_routes.dealer_name
 //    and inventory.dealer EXACTLY. If a dealer is added/renamed/removed, update
 //    this array or finance routing will silently break for that dealer.
@@ -512,14 +538,24 @@ function submitFinance() {
     credit_score: credit || null
   };
 
+  const canonical = {
+    source:        document.getElementById("f-source").value,
+    dealer:        selectedDealer || document.getElementById("f-dealer").value,
+    stock_number:  document.getElementById("f-stock").value,
+    vehicle_title: document.getElementById("f-unit-display").value || document.getElementById("f-unit").value,
+    buyer_name:    name,
+    buyer_email:   email,
+    buyer_phone:   phone
+  };
+
   fetch("/.netlify/functions/submit-lead", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
-  }).then(r => {
+  }).then(async r => {
     if (!r.ok) throw new Error("failed");
-    showSuccess();
-  }).catch(() => {
+    return r.json();
+  }).then(res => handleLeadCreated(res, canonical)).catch(() => {
     const subject = encodeURIComponent("Finance Application - " + (unitDisplay || stock || "General"));
     const body = encodeURIComponent("Name: " + name + "\nPhone: " + phone + "\nEmail: " + email + "\nCredit: " + credit + "\nBusiness: " + business + "\nRevenue: " + revenue + "\nUnit: " + unitDisplay + "\nStock: " + stock + "\nSource: " + src);
     window.location.href = "mailto:leads@torquedma.com?subject=" + subject + "&body=" + body;
@@ -530,6 +566,24 @@ function submitFinance() {
 function showSuccess() {
   document.getElementById("form-inner").style.display = "none";
   document.getElementById("form-success").style.display = "block";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function handleLeadCreated(res, canonical) {
+  const cfg = (res && res.route_code) ? LENDER_FORM_CONFIGS[res.route_code] : null;
+  if (!cfg) { showSuccess(); return; }
+  const vals = Object.assign({}, canonical, { lead_id: res.lead_id });
+  const params = Object.keys(cfg.fieldMap)
+    .filter(function (k) { return vals[k] != null && vals[k] !== ""; })
+    .map(function (k) { return cfg.fieldMap[k] + "=" + encodeURIComponent(vals[k]); })
+    .join("&");
+  const iframe = document.createElement("iframe");
+  iframe.src = cfg.formUrl + (params ? "?" + params : "");
+  iframe.style.cssText = "width:100%;min-height:1600px;border:0;background:#fff;border-radius:10px;";
+  iframe.title = "Credit Application";
+  document.getElementById("lender-embed-frame").appendChild(iframe);
+  document.getElementById("form-inner").style.display = "none";
+  document.getElementById("lender-embed").style.display = "block";
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 </script>
