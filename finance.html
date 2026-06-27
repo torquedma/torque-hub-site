@@ -255,7 +255,23 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
         <h3 style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;text-transform:uppercase;color:#86efac;text-align:center;margin:18px 0 6px">Business Information</h3>
         <p style="color:#94a3b8;text-align:center;margin-bottom:6px;font-size:14px">Tell us about the business applying for financing.</p>
         <p style="color:#64748b;text-align:center;margin-bottom:16px;font-size:12px">This helps route your request correctly and keeps you from repeating this information inside the lender application.</p>
-        <!-- EDIT C will insert the business fields here -->
+        <select id="f-business-type" style="width:100%;margin-bottom:10px">
+          <option value="">Type of Business</option>
+          <option value="Sole Proprietorship">Sole Proprietorship</option>
+          <option value="LLC">LLC</option>
+          <option value="Corporation">Corporation</option>
+          <option value="Partnership">Partnership</option>
+          <option value="Other">Other</option>
+        </select>
+        <select id="f-time-in-business" style="width:100%;margin-bottom:10px">
+          <option value="">Time in Business</option>
+          <option value="Less than 1 year">Less than 1 year</option>
+          <option value="1-2 years">1-2 years</option>
+          <option value="3-5 years">3-5 years</option>
+          <option value="5-10 years">5-10 years</option>
+          <option value="10+ years">10+ years</option>
+        </select>
+        <!-- EDIT C-2: address fields here -->
         <div id="phase-2-error" style="display:none;color:#fca5a5;text-align:center;font-size:13px;margin-bottom:10px"></div>
         <button class="btn-submit" id="business-continue-btn" onclick="submitBusinessInfo()">Continue to Secure Application</button>
       </div>
