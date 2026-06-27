@@ -123,6 +123,10 @@ exports.handler = async (event) => {
     rep:            payload.rep            || null,
     referrer:       payload.referrer       || null,
     dealer_code:    dealerCode,
+    business_name:   payload.business_name   || null,
+    monthly_revenue: payload.monthly_revenue || null,
+    down_payment:    payload.down_payment    || null,
+    timeframe:       payload.timeframe       || null,
     source,
     status:         'new'
   }]).select('id').single();
