@@ -59,6 +59,7 @@ exports.handler = async (event) => {
   let dealerEmail = null;
   let lenderEmail = null;
   let dealerCode = null;
+  let routeCode = null;
   let stockRouteResolved = false;
   if (payload.stock_number) {
     try {
@@ -70,7 +71,7 @@ exports.handler = async (event) => {
       if (inv && inv.dealer) {
         const { data: route } = await supabase
           .from('finance_routes')
-          .select('lender_name, dealer_notification_email, lender_notification_email, dealer_code')
+          .select('lender_name, dealer_notification_email, lender_notification_email, dealer_code, code')
           .eq('dealer_name', inv.dealer)
           .eq('status', 'active')
           .single();
@@ -80,6 +81,7 @@ exports.handler = async (event) => {
           dealerEmail = route.dealer_notification_email || null;
           lenderEmail = route.lender_notification_email || null;
           dealerCode = route.dealer_code || null;
+          routeCode = route.code || null;
         }
       }
     } catch (e) {
@@ -91,7 +93,7 @@ exports.handler = async (event) => {
     try {
       const { data: routeByDealer } = await supabase
         .from('finance_routes')
-        .select('lender_name, dealer_notification_email, lender_notification_email, dealer_code')
+        .select('lender_name, dealer_notification_email, lender_notification_email, dealer_code, code')
         .eq('dealer_name', payload.dealer_name)
         .eq('status', 'active')
         .single();
@@ -100,6 +102,7 @@ exports.handler = async (event) => {
         dealerEmail = routeByDealer.dealer_notification_email || null;
         lenderEmail = routeByDealer.lender_notification_email || null;
         dealerCode = routeByDealer.dealer_code || null;
+        routeCode = routeByDealer.code || null;
       }
     } catch (e) {
       console.error('dealer-name route attribution failed:', e);
@@ -280,5 +283,5 @@ exports.handler = async (event) => {
     }
   }
 
-  return { statusCode: 200, headers, body: JSON.stringify({ success: true }) };
+  return { statusCode: 200, headers, body: JSON.stringify({ success: true, lead_id: leadId, dealer_code: dealerCode, route_code: routeCode }) };
 };
