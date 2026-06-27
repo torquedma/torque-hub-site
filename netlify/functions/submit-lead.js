@@ -60,6 +60,7 @@ exports.handler = async (event) => {
   let lenderEmail = null;
   let dealerCode = null;
   let routeCode = null;
+  let routeBasis = null;
   let stockRouteResolved = false;
   if (payload.stock_number) {
     try {
@@ -82,6 +83,7 @@ exports.handler = async (event) => {
           lenderEmail = route.lender_notification_email || null;
           dealerCode = route.dealer_code || null;
           routeCode = route.code || null;
+          routeBasis = 'matched';
         }
       }
     } catch (e) {
@@ -103,10 +105,26 @@ exports.handler = async (event) => {
         lenderEmail = routeByDealer.lender_notification_email || null;
         dealerCode = routeByDealer.dealer_code || null;
         routeCode = routeByDealer.code || null;
+        routeBasis = 'matched';
       }
     } catch (e) {
       console.error('dealer-name route attribution failed:', e);
     }
+  }
+
+  // BRANCH 3: platform-default lender route (fallback). Lender email only — never dealer email.
+  if (!routeCode) {
+    try {
+      const { data: def } = await supabase.from('finance_routes')
+        .select('lender_name, lender_notification_email, code')
+        .eq('is_default', true).eq('status', 'active').limit(1).single();
+      if (def) {
+        if (def.lender_name) resolvedLender = def.lender_name;
+        lenderEmail = def.lender_notification_email || null;   // lender only — do NOT set dealerEmail
+        routeCode   = def.code || null;
+        routeBasis  = 'default';
+      }
+    } catch (e) { console.error('default route lookup failed:', e); }
   }
 
   const { data: inserted, error } = await supabase.from('leads').insert([{
@@ -128,7 +146,9 @@ exports.handler = async (event) => {
     down_payment:    payload.down_payment    || null,
     timeframe:       payload.timeframe       || null,
     source,
-    status:         'new'
+    status:         'new',
+    route_code:  routeCode,
+    route_basis: routeBasis
   }]).select('id').single();
 
   if (error) {
