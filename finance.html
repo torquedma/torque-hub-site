@@ -478,6 +478,7 @@ const LENDER_FORM_CONFIGS = {
       buyer_phone:   "field196509678",
       lead_id:       "field196509679",
       business_type:    "field157836337",
+      business_name:    "field157805829",
       time_in_business: "field157805830",
       business_street:  "field157805832-address",
       business_city:    "field157805832-city",
@@ -590,7 +591,8 @@ function submitFinance() {
     vehicle_title: document.getElementById("f-unit-display").value || document.getElementById("f-unit").value,
     buyer_name:    name,
     buyer_email:   email,
-    buyer_phone:   phone
+    buyer_phone:   phone,
+    business_name: business || null
   };
 
   fetch("/.netlify/functions/submit-lead", {
