@@ -476,7 +476,13 @@ const LENDER_FORM_CONFIGS = {
       buyer_name:    "field196509676",
       buyer_email:   "field196509677",
       buyer_phone:   "field196509678",
-      lead_id:       "field196509679"
+      lead_id:       "field196509679",
+      business_type:    "field157836337",
+      time_in_business: "field157805830",
+      business_street:  "field157805832-address",
+      business_city:    "field157805832-city",
+      business_state:   "field157805832-state",
+      business_zip:     "field157805832-zip"
     }
   }
 };
@@ -620,7 +626,7 @@ function handleLeadCreated(res, canonical) {
 function revealLenderEmbed() {
   if (!pendingLender) return;
   const { res, canonical, cfg } = pendingLender;
-  const vals = Object.assign({}, canonical, { lead_id: res.lead_id });
+  const vals = Object.assign({}, canonical, pendingLender.business || {}, { lead_id: res.lead_id });
   const params = Object.keys(cfg.fieldMap)
     .filter(function (k) { return vals[k] != null && vals[k] !== ""; })
     .map(function (k) { return cfg.fieldMap[k] + "=" + encodeURIComponent(vals[k]); })
@@ -674,6 +680,7 @@ function submitBusinessInfo() {
     })
   }).then(r => {
     if (!r.ok) throw new Error("update-lead failed");
+    pendingLender.business = { business_type, time_in_business, business_street, business_city, business_state, business_zip };
     revealLenderEmbed();
   }).catch(() => {
     btn.disabled = false;
