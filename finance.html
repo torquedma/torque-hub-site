@@ -236,8 +236,15 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
           <option value="60days">Within 60 days</option>
           <option value="exploring">Just exploring options</option>
         </select>
-        <p style="font-size:12px;color:#64748b;text-align:center;margin-top:4px">Phone required so a financing rep can move fast on your behalf.</p>
-        <button class="btn-submit" id="submit-btn" onclick="submitFinance()">Get Pre-Approved Now</button>
+        <div id="lender-embed" style="display:none;">
+          <h3 style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;text-transform:uppercase;color:#86efac;text-align:center;margin:18px 0 10px">One More Step</h3>
+          <p style="color:#94a3b8;text-align:center;margin-bottom:14px;font-size:13px">Complete your secure credit application below.</p>
+          <div id="lender-embed-frame"></div>
+        </div>
+        <div id="submit-area">
+          <p style="font-size:12px;color:#64748b;text-align:center;margin-top:4px">Phone required so a financing rep can move fast on your behalf.</p>
+          <button class="btn-submit" id="submit-btn" onclick="submitFinance()">Continue to Secure Application</button>
+        </div>
         <p class="trust">Your information is secure and will only be used to match you with financing options.</p>
         <p class="trust">Initial application is intended for matching. If a lender needs a hard credit pull, you should be notified first.</p>
         <p class="trust" style="color:#475569;margin-top:8px">Submitting this form does not guarantee approval. Terms vary by lender, credit profile, collateral, and documentation.</p>
@@ -253,11 +260,6 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
         <h3>&#10003; Application Received!</h3>
         <p>We will be in touch shortly to discuss your financing options. Keep an eye on your phone.</p>
         <a href="/inventory.html" class="btn-back">Browse More Inventory</a>
-      </div>
-      <div class="form-success" id="lender-embed">
-        <h3>One More Step</h3>
-        <p>Complete your secure credit application below.</p>
-        <div id="lender-embed-frame"></div>
       </div>
     </div>
   </div>
@@ -582,7 +584,7 @@ function handleLeadCreated(res, canonical) {
   iframe.style.cssText = "width:100%;min-height:1600px;border:0;background:#fff;border-radius:10px;";
   iframe.title = "Credit Application";
   document.getElementById("lender-embed-frame").appendChild(iframe);
-  document.getElementById("form-inner").style.display = "none";
+  document.getElementById("submit-area").style.display = "none";
   document.getElementById("lender-embed").style.display = "block";
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
