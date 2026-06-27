@@ -271,7 +271,14 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
           <option value="5-10 years">5-10 years</option>
           <option value="10+ years">10+ years</option>
         </select>
-        <!-- EDIT C-2: address fields here -->
+        <input type="text" id="f-business-street" placeholder="Street Address" style="width:100%;margin-bottom:10px">
+        <input type="text" id="f-business-street2" placeholder="Suite / Unit (optional)" style="width:100%;margin-bottom:10px">
+        <input type="text" id="f-business-city" placeholder="City" style="width:100%;margin-bottom:10px">
+        <select id="f-business-state" style="width:100%;margin-bottom:10px">
+          <option value="">State</option>
+          <option value="AL">AL</option><option value="AK">AK</option><option value="AZ">AZ</option><option value="AR">AR</option><option value="CA">CA</option><option value="CO">CO</option><option value="CT">CT</option><option value="DE">DE</option><option value="FL">FL</option><option value="GA">GA</option><option value="HI">HI</option><option value="ID">ID</option><option value="IL">IL</option><option value="IN">IN</option><option value="IA">IA</option><option value="KS">KS</option><option value="KY">KY</option><option value="LA">LA</option><option value="ME">ME</option><option value="MD">MD</option><option value="MA">MA</option><option value="MI">MI</option><option value="MN">MN</option><option value="MS">MS</option><option value="MO">MO</option><option value="MT">MT</option><option value="NE">NE</option><option value="NV">NV</option><option value="NH">NH</option><option value="NJ">NJ</option><option value="NM">NM</option><option value="NY">NY</option><option value="NC">NC</option><option value="ND">ND</option><option value="OH">OH</option><option value="OK">OK</option><option value="OR">OR</option><option value="PA">PA</option><option value="RI">RI</option><option value="SC">SC</option><option value="SD">SD</option><option value="TN">TN</option><option value="TX">TX</option><option value="UT">UT</option><option value="VT">VT</option><option value="VA">VA</option><option value="WA">WA</option><option value="WV">WV</option><option value="WI">WI</option><option value="WY">WY</option><option value="DC">DC</option>
+        </select>
+        <input type="text" id="f-business-zip" placeholder="ZIP Code" inputmode="numeric" pattern="\d{5}(-\d{4})?" maxlength="10" style="width:100%;margin-bottom:10px">
         <div id="phase-2-error" style="display:none;color:#fca5a5;text-align:center;font-size:13px;margin-bottom:10px"></div>
         <button class="btn-submit" id="business-continue-btn" onclick="submitBusinessInfo()">Continue to Secure Application</button>
       </div>
@@ -474,6 +481,8 @@ const LENDER_FORM_CONFIGS = {
   }
 };
 
+let pendingLender = null;   // holds { res, canonical, cfg } between Phase 1 success and Phase 2 submit
+
 // ⚠️ HARDCODED dealer list — these strings MUST match finance_routes.dealer_name
 //    and inventory.dealer EXACTLY. If a dealer is added/renamed/removed, update
 //    this array or finance routing will silently break for that dealer.
@@ -602,6 +611,15 @@ function showSuccess() {
 function handleLeadCreated(res, canonical) {
   const cfg = (res && res.route_code) ? LENDER_FORM_CONFIGS[res.route_code] : null;
   if (!cfg) { showSuccess(); return; }
+  pendingLender = { res, canonical, cfg };
+  document.getElementById("form-inner").style.display = "none";
+  document.getElementById("business-info").style.display = "block";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function revealLenderEmbed() {
+  if (!pendingLender) return;
+  const { res, canonical, cfg } = pendingLender;
   const vals = Object.assign({}, canonical, { lead_id: res.lead_id });
   const params = Object.keys(cfg.fieldMap)
     .filter(function (k) { return vals[k] != null && vals[k] !== ""; })
@@ -612,9 +630,57 @@ function handleLeadCreated(res, canonical) {
   iframe.style.cssText = "width:100%;min-height:1600px;border:0;background:#fff;border-radius:10px;";
   iframe.title = "Credit Application";
   document.getElementById("lender-embed-frame").appendChild(iframe);
-  document.getElementById("submit-area").style.display = "none";
+  document.getElementById("business-info").style.display = "none";
   document.getElementById("lender-embed").style.display = "block";
   window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function submitBusinessInfo() {
+  const business_type    = document.getElementById("f-business-type").value;
+  const time_in_business = document.getElementById("f-time-in-business").value;
+  const business_street  = document.getElementById("f-business-street").value.trim();
+  const business_street2 = document.getElementById("f-business-street2").value.trim();
+  const business_city    = document.getElementById("f-business-city").value.trim();
+  const business_state   = document.getElementById("f-business-state").value;
+  const business_zip     = document.getElementById("f-business-zip").value.trim();
+
+  const errEl = document.getElementById("phase-2-error");
+  if (!business_type || !time_in_business || !business_street || !business_city || !business_state || !business_zip) {
+    errEl.textContent = "Please complete all business fields.";
+    errEl.style.display = "block";
+    return;
+  }
+  errEl.textContent = "";
+  errEl.style.display = "none";
+
+  const btn = document.getElementById("business-continue-btn");
+  btn.disabled = true;
+  btn.textContent = "Saving...";
+
+  if (!pendingLender) { showSuccess(); return; }
+
+  fetch("/.netlify/functions/update-lead", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      lead_id:          pendingLender.res.lead_id,
+      business_type:    business_type,
+      time_in_business: time_in_business,
+      business_street:  business_street,
+      business_street2: business_street2 || null,
+      business_city:    business_city,
+      business_state:   business_state,
+      business_zip:     business_zip
+    })
+  }).then(r => {
+    if (!r.ok) throw new Error("update-lead failed");
+    revealLenderEmbed();
+  }).catch(() => {
+    btn.disabled = false;
+    btn.textContent = "Continue to Secure Application";
+    errEl.textContent = "Something went wrong saving your information. Please try again.";
+    errEl.style.display = "block";
+  });
 }
 </script>
 </body>
