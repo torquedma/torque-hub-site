@@ -680,6 +680,15 @@
       z-index: 200;
       box-shadow: 0 20px 40px rgba(0,0,0,0.4);
     }
+    .dropdown-menu::before {
+      content: "";
+      position: absolute;
+      top: -8px;
+      left: 0;
+      right: 0;
+      height: 8px;
+      background: transparent;
+    }
     .nav-dropdown:hover .dropdown-menu,
     .nav-dropdown:focus-within .dropdown-menu {
       display: block;
