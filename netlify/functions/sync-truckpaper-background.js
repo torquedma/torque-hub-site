@@ -1,6 +1,7 @@
 const { createClient } = require('@supabase/supabase-js');
 const { generateDescription } = require('./lib/generate-description');
 const { CANONICAL_SUBCATEGORIES, SUBCATEGORY_ALIASES, canonicalize } = require('./lib/taxonomy.generated.js');
+const { isPhantom } = require('./lib/phantom-fields');
 
 // Strip marketing filler after a dash/em-dash separator, e.g.
 // "Cummins ISB 6.7L - Powerful and efficient" → "Cummins ISB 6.7L"
@@ -548,7 +549,7 @@ exports.handler = async (event) => {
           mileage, vin: item.vin || '', engine, transmission, drivetrain,
           horsepower: item.horsepower || '',
           hours: item.hours || '',
-          fuel: item.fuel || 'Diesel',
+          fuel: item.fuel || null,
           condition: item.condition || 'Used',
           raw_description: rawDescription,
           description: rawDescription,
@@ -559,6 +560,16 @@ exports.handler = async (event) => {
           source_url: item.source_url || item.url || '',
           source_listing_id: item.source_listing_id || null,
         };
+
+        // Non-powered units (trailers, farm attachments, classic cars) must not carry phantom
+        // powertrain fields. One source of truth: lib/phantom-fields.js, shared with the
+        // walkaround generator. No fuel beats fake fuel.
+        const _pf = { category: derivedCategory, subcategory: sub };
+        if (isPhantom(_pf, 'fuel'))       unit.fuel = null;
+        if (isPhantom(_pf, 'engine'))     unit.engine = '';
+        if (isPhantom(_pf, 'horsepower')) unit.horsepower = '';
+        if (isPhantom(_pf, 'hours'))      unit.hours = '';
+        if (isPhantom(_pf, 'mileage'))    unit.mileage = '';
 
         unit.photos = stripSandhillsJunkPhotos(unit.photos);
         unit.photos = reorderDbtPhotos(unit.photos, dealer);
