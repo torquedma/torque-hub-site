@@ -1,5 +1,5 @@
 // SSR edge function for /inventory.html
-// Fetches the top 6 units by price-desc from Supabase and injects them into the
+// Fetches the top 6 units by created_at desc (Recently Added) from Supabase and injects them into the
 // static inventory.html shell so the LCP image is in the initial HTML response —
 // discoverable by the browser preload scanner before any JS runs.
 //
@@ -248,7 +248,7 @@ export default async function handler(request, context) {
     const invRes = await fetch(
       SUPABASE_URL +
         '/rest/v1/inventory_cards?sold=eq.false&limit=1000' +
-        '&select=stock,year,make,model,trim,subcategory,category,price,mileage,engine,horsepower,hours,fuel,condition,photos,dealer',
+        '&select=stock,year,make,model,trim,subcategory,category,price,mileage,engine,horsepower,hours,fuel,condition,photos,dealer,created_at',
       { headers: SB_HEADERS }
     ).catch(() => null);
 
@@ -263,7 +263,7 @@ export default async function handler(request, context) {
     // (b) all 6 SSR cards render a real photo rather than the "coming soon" placeholder.
     const sorted = allUnits
       .filter(u => { const ph = getPhotos(u); return ph.length > 0 && (ph[0].url || ph[0].dataUrl); })
-      .sort((a, b) => ppNum(b.price) - ppNum(a.price));
+      .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
 
     // Nothing photo-bearing in Supabase (extremely unlikely) — serve static page.
     if (!sorted.length) return response;

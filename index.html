@@ -1313,7 +1313,7 @@ function buildInventoryURL() {
   if (q)                           p.set('q', q);
   if (dealer)                      p.set('dealer', dealer);
   if (condition)                   p.set('condition', condition);
-  if (sort && sort !== 'price-desc') p.set('sort', sort);
+  if (sort && sort !== 'created-desc') p.set('sort', sort);
   if (cat)                         p.set('cat', cat);
   var qs = p.toString();
   return qs ? '/inventory.html?' + qs : '/inventory.html';

@@ -234,11 +234,11 @@ window.InventoryEngine = (function () {
 
   // ── Sort options ───────────────────────────────────────────────────────────
   var SORT_OPTIONS = [
+    { value: 'created-desc', label: 'Recently Added' },
     { value: 'price-desc',   label: 'Price: High to Low' },
     { value: 'price-asc',    label: 'Price: Low to High' },
     { value: 'year-desc',    label: 'Model Year: Newest' },
     { value: 'year-asc',     label: 'Model Year: Oldest' },
-    { value: 'created-desc', label: 'Recently Added' },
     { value: 'make-asc',     label: 'Make: A to Z' },
     { value: 'make-desc',    label: 'Make: Z to A' }
   ];
@@ -370,7 +370,7 @@ window.InventoryEngine = (function () {
     var q      = (_el(fids.search)    || { value: '' }).value.toLowerCase().trim();
     var dealer = (_el(fids.dealer)    || { value: '' }).value;
     var cond   = (_el(fids.condition) || { value: '' }).value;
-    var sort   = (_el(fids.sort)      || { value: 'price-desc' }).value;
+    var sort   = (_el(fids.sort)      || { value: 'created-desc' }).value;
 
     var filtered = ALL_INV.filter(function(u) {
       var haystack = (String(u.year||'') + ' ' + String(u.make||'') + ' ' + String(u.model||'') + ' ' + String(u.stock||'') + ' ' + String(u.dealer||'') + ' ' + String(u.trim||'') + ' ' + String(u.subcategory||'')).toLowerCase();
@@ -415,7 +415,7 @@ window.InventoryEngine = (function () {
 
     var _fids = _cfg.filterIds || {};
     var _isDefView =
-      ((_el(_fids.sort)      || { value: 'price-desc' }).value === 'price-desc') &&
+      ((_el(_fids.sort)      || { value: 'created-desc' }).value === 'created-desc') &&
       ((_el(_fids.search)    || { value: '' }).value.toLowerCase().trim() === '') &&
       ((_el(_fids.dealer)    || { value: '' }).value === '') &&
       ((_el(_fids.condition) || { value: '' }).value === '') &&
