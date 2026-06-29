@@ -167,6 +167,14 @@
   path = "/concession-trailers-for-sale"
   function = "category"
 
+[[edge_functions]]
+  path = "/hopper-bottom-trailers-for-sale"
+  function = "category"
+
+[[edge_functions]]
+  path = "/belt-trailers-for-sale"
+  function = "category"
+
 # Farm subcategories (6)
 [[edge_functions]]
   path = "/tractors-for-sale"

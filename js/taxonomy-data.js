@@ -40,7 +40,7 @@ const TAXONOMY_DATA = [
   { category: 'Trucks', slug: 'bucket-trucks-for-sale',         label: 'Bucket Trucks',         kw: 'bucket truck',    subs: ['Bucket Truck'],                       ssr: true },
   { category: 'Trucks', slug: 'roll-off-trucks-for-sale',       label: 'Roll-Off Trucks',       kw: 'roll off',        subs: ['Roll-Off'],                           ssr: true },
 
-  // ── Trailers (14 SSR) ──
+  // ── Trailers (16 SSR) ──
   { category: 'Trailers', slug: 'reefer-trailers-for-sale',          label: 'Reefer Trailers',          kw: 'reefer',          subs: ['Reefer Trailer'],          ssr: true },
   { category: 'Trailers', slug: 'dry-van-trailers-for-sale',         label: 'Dry Van Trailers',         kw: 'dry van',         subs: ['Dry Van Trailer'],         ssr: true },
   { category: 'Trailers', slug: 'flatbed-trailers-for-sale',         label: 'Flatbed Trailers',         kw: 'flatbed',         subs: ['Flatbed Trailer'],         ssr: true },
@@ -55,6 +55,8 @@ const TAXONOMY_DATA = [
   { category: 'Trailers', slug: 'utility-trailers-for-sale',         label: 'Utility Trailers',         kw: 'utility',         subs: ['Utility Trailer'],         ssr: true },
   { category: 'Trailers', slug: 'deckover-trailers-for-sale',        label: 'Deckover Trailers',        kw: 'deckover',        subs: ['Deckover Trailer'],        ssr: true },
   { category: 'Trailers', slug: 'concession-trailers-for-sale',      label: 'Concession Trailers',      kw: 'concession',      subs: ['Concession Trailer'],      ssr: true },
+  { category: 'Trailers', slug: 'hopper-bottom-trailers-for-sale',   label: 'Hopper Bottom Trailers',   kw: 'hopper',          subs: ['Hopper Bottom Trailer'],   ssr: true },
+  { category: 'Trailers', slug: 'belt-trailers-for-sale',            label: 'Belt Trailers',            kw: 'belt',            subs: ['Belt Trailer'],            ssr: true },
 
   // ── Construction (8 SSR + 1 kw-only) ──
   { category: 'Construction', slug: 'skid-steers-for-sale',      label: 'Skid Steers',      kw: 'skid',            subs: ['Skid Steer', 'Compact Track Loader', 'Mini Skid Steer'],                                         ssr: true },
