@@ -142,6 +142,24 @@ compareLists('CJS ALLOW_MILEAGE', extractHubCJSSet(cjs, 'ALLOW_MILEAGE'),
 compareLists('CJS SUPPRESS_BOTH', extractHubCJSSet(cjs, 'SUPPRESS_BOTH'),
              'browser suppressBoth', extractBrowserArr(browser, 'suppressBoth'), 'suppress_both');
 
+// ── (c) usageClass behavior — sample coverage against the CJS mirror ──────────
+// Byte-parity above proves the browser mirror uses the same sets, so testing
+// only the CJS path is sufficient (identical logic, identical inputs).
+const usageDisplay = require(path.join(ROOT, 'netlify/functions/lib/usage-display.generated.js'));
+function assertUsageClass(subcategory, expected, label) {
+  const got = usageDisplay.usageClass({ subcategory });
+  if (got === expected) {
+    console.log(`OK: usageClass(${label}) = '${got}'`);
+  } else {
+    console.error(`FAIL: usageClass(${label}) = '${got}', expected '${expected}'`);
+    failures++;
+  }
+}
+assertUsageClass('Backhoe',         'hours-based', 'Backhoe');
+assertUsageClass('Crane Truck',     'odometer',    'Crane Truck');
+assertUsageClass('Enclosed Trailer','neither',     'Enclosed Trailer (SUPPRESS_BOTH)');
+assertUsageClass('Zorp Widget',     'neither',     'Zorp Widget (unknown/unmapped)');
+
 if (failures) {
   console.error(`\nverify-usage-display: ${failures} failure(s)`);
   process.exit(1);

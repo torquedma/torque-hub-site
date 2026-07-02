@@ -101,7 +101,24 @@ function isKnownSuppressHours(unit) {
   return ALLOW_MILEAGE.has(sub) || SUPPRESS_BOTH.has(sub);
 }
 
-module.exports = { showMileage, showHours, isKnownSuppressMileage, isKnownSuppressHours, normalizeSubcategory };
+// Pure subcategory classifier — returns which usage set the canonical
+// subcategory belongs to, with no value gate. Composed from the same three
+// sets above; introduces NO new list. Intended for callers that need to
+// dispatch on usage class (e.g. AI Intake fieldset selection) rather than
+// answer a per-value "should this render?" question.
+//   ALLOW_HOURS   → 'hours-based'
+//   ALLOW_MILEAGE → 'odometer'
+//   SUPPRESS_BOTH → 'neither'
+//   unknown/unmapped/aliased-to-empty → 'neither'
+function usageClass(unit) {
+  const sub = normalizeSubcategory(unit);
+  if (!sub) return 'neither';
+  if (ALLOW_HOURS.has(sub))   return 'hours-based';
+  if (ALLOW_MILEAGE.has(sub)) return 'odometer';
+  return 'neither';
+}
+
+module.exports = { showMileage, showHours, isKnownSuppressMileage, isKnownSuppressHours, usageClass, normalizeSubcategory };
 `;
 }
 
@@ -174,6 +191,15 @@ export function isKnownSuppressHours(unit) {
   const sub = normalizeSubcategory(unit);
   if (!sub) return false;
   return ALLOW_MILEAGE.has(sub) || SUPPRESS_BOTH.has(sub);
+}
+
+// Pure subcategory classifier — see CJS mirror for full rationale.
+export function usageClass(unit) {
+  const sub = normalizeSubcategory(unit);
+  if (!sub) return 'neither';
+  if (ALLOW_HOURS.has(sub))   return 'hours-based';
+  if (ALLOW_MILEAGE.has(sub)) return 'odometer';
+  return 'neither';
 }
 `;
 }
@@ -253,11 +279,21 @@ ${suppressLines}
     return allowMileage.indexOf(sub) !== -1 || suppressBoth.indexOf(sub) !== -1;
   }
 
+  // Pure subcategory classifier — see CJS mirror for full rationale.
+  function usageClass(unit) {
+    var sub = normalizeSubcategory(unit);
+    if (!sub) return 'neither';
+    if (allowHours.indexOf(sub)   !== -1) return 'hours-based';
+    if (allowMileage.indexOf(sub) !== -1) return 'odometer';
+    return 'neither';
+  }
+
   root.UsageDisplay = {
     showMileage: showMileage,
     showHours: showHours,
     isKnownSuppressMileage: isKnownSuppressMileage,
     isKnownSuppressHours: isKnownSuppressHours,
+    usageClass: usageClass,
     normalizeSubcategory: normalizeSubcategory
   };
 }(typeof window !== 'undefined' ? window : this));

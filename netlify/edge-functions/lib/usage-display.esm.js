@@ -172,3 +172,12 @@ export function isKnownSuppressHours(unit) {
   if (!sub) return false;
   return ALLOW_MILEAGE.has(sub) || SUPPRESS_BOTH.has(sub);
 }
+
+// Pure subcategory classifier — see CJS mirror for full rationale.
+export function usageClass(unit) {
+  const sub = normalizeSubcategory(unit);
+  if (!sub) return 'neither';
+  if (ALLOW_HOURS.has(sub))   return 'hours-based';
+  if (ALLOW_MILEAGE.has(sub)) return 'odometer';
+  return 'neither';
+}
