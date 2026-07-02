@@ -439,9 +439,10 @@ window.InventoryEngine = (function () {
           return (isFinite(n) && n > 0) ? n : null;
         }
         function fmtNum(n){ return n.toLocaleString('en-US'); }
+        var UD = (typeof window !== 'undefined' && window.UsageDisplay) || null;
         var F = {
-          mileage:          function(){ var n=num(u.mileage); return n? fmtNum(n)+' mi':null; },
-          hours:            function(){ var n=num(u.hours); return n? fmtNum(n)+' hrs':null; },
+          mileage:          function(){ if(UD && !UD.showMileage(u)) return null; var n=num(u.mileage); return n? fmtNum(n)+' mi':null; },
+          hours:            function(){ if(UD && !UD.showHours(u))   return null; var n=num(u.hours);   return n? fmtNum(n)+' hrs':null; },
           engine:           function(){ return badText(u.engine)? null : (typeof trimEngine==='function'?trimEngine(u.engine):String(u.engine).trim()); },
           transmission:     function(){ return badText(u.transmission)? null : String(u.transmission).trim(); },
           drivetrain:       function(){ return badText(u.drivetrain)? null : String(u.drivetrain).trim(); },

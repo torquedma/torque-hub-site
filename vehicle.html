@@ -471,8 +471,10 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
 <!-- Taxonomy + title helpers MUST load before the inline render() script below.
      Non-defer so they're available synchronously when the inline script runs.
      Order matters: taxonomy.browser.js sets window.TAXONOMY, then
-     title-helpers.js reads it to expose window.TITLE_HELPERS. -->
+     usage-display.browser.js reads it to expose window.UsageDisplay, then
+     title-helpers.js exposes window.TITLE_HELPERS. -->
 <script src="/js/taxonomy.browser.js"></script>
+<script src="/js/usage-display.browser.js"></script>
 <script src="/js/title-helpers.js"></script>
 
 <script>
@@ -1006,7 +1008,7 @@ function render(unit, dealerKey) {
     "model": unit.model || undefined,
     "fuelType": unit.fuel || undefined,
     "vehicleBodyType": subcat || undefined,
-    "mileageFromOdometer": unit.mileage ? { "@type": "QuantitativeValue", "value": unit.mileage, "unitCode": "SMI" } : undefined,
+    "mileageFromOdometer": (typeof UsageDisplay !== 'undefined' && UsageDisplay.showMileage(unit)) ? { "@type": "QuantitativeValue", "value": unit.mileage, "unitCode": "SMI" } : undefined,
     "vehicleCondition": isSold ? "https://schema.org/UsedCondition" : (unit.condition === "New" ? "https://schema.org/NewCondition" : "https://schema.org/UsedCondition"),
     "image": firstPhoto || undefined,
     "url": pageUrl,

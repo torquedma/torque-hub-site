@@ -159,3 +159,16 @@ export function showHours(unit) {
   if (!ALLOW_HOURS.has(sub)) return false;
   return hasRealNumber(unit.hours);
 }
+
+// Conservative variants — see CJS mirror for full rationale.
+export function isKnownSuppressMileage(unit) {
+  const sub = normalizeSubcategory(unit);
+  if (!sub) return false;
+  return ALLOW_HOURS.has(sub) || SUPPRESS_BOTH.has(sub);
+}
+
+export function isKnownSuppressHours(unit) {
+  const sub = normalizeSubcategory(unit);
+  if (!sub) return false;
+  return ALLOW_MILEAGE.has(sub) || SUPPRESS_BOTH.has(sub);
+}

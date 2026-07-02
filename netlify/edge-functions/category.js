@@ -1,5 +1,6 @@
 import { TAXONOMY_DATA, CATEGORY_HUB } from '../../js/taxonomy-data.js';
 import { buildDisplayTitle } from './lib/title-helpers.js';
+import { showMileage, showHours } from './lib/usage-display.esm.js';
 const SUPABASE_URL = 'https://bxsikkmqasydosmblzov.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4c2lra21xYXN5ZG9zbWJsem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTc1OTksImV4cCI6MjA5MDQ3MzU5OX0.JMEI7cx2tddmbvfqm_qxiIWp7f5Phuk5l0Y487DUSZg';
 const SB_HEADERS = { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON };
@@ -314,8 +315,8 @@ function buildCardChips(u) {
   }
   function fmtNum(n){ return n.toLocaleString('en-US'); }
   const F = {
-    mileage:          () => { const n=num(u.mileage); return n? fmtNum(n)+' mi':null; },
-    hours:            () => { const n=num(u.hours); return n? fmtNum(n)+' hrs':null; },
+    mileage:          () => { if (!showMileage(u)) return null; const n=num(u.mileage); return n? fmtNum(n)+' mi':null; },
+    hours:            () => { if (!showHours(u))   return null; const n=num(u.hours);   return n? fmtNum(n)+' hrs':null; },
     engine:           () => badText(u.engine)? null : trimEngine(u.engine),
     transmission:     () => badText(u.transmission)? null : String(u.transmission).trim(),
     drivetrain:       () => badText(u.drivetrain)? null : String(u.drivetrain).trim(),

@@ -14,6 +14,7 @@
 const { createClient } = require('@supabase/supabase-js');
 const { WALKAROUND_SYSTEM_PROMPT } = require('./lib/walkaround-prompt.js');
 const { isPhantom } = require('./lib/phantom-fields');
+const { showMileage, showHours } = require('./lib/usage-display.generated.js');
 
 // HARDCODED — pinned to this engine version. The (stock, engine_version)
 // unique index in walkaround_review_queue is the upsert conflict target;
@@ -58,9 +59,10 @@ function buildFacts(unit) {
   }
 
   // Runtime / usage — hours marked "shown" per doctrine (it's what the meter shows,
-  // not a verified lifetime figure).
-  if (unit.hours    && !isPhantom(unit, 'hours'))    facts.push('Hours: ' + unit.hours + ' shown');
-  if (unit.mileage  && !isPhantom(unit, 'mileage'))  facts.push('Mileage: ' + unit.mileage);
+  // not a verified lifetime figure). Gate via the canonical usage-display rule so
+  // the AI is never fed a value that wouldn't render to buyers (no fabrication).
+  if (showHours(unit))    facts.push('Hours: ' + unit.hours + ' shown');
+  if (showMileage(unit))  facts.push('Mileage: ' + unit.mileage);
 
   // Engine block
   if (unit.engine     && !isPhantom(unit, 'engine'))     facts.push('Engine: ' + unit.engine);

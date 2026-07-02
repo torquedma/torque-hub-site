@@ -8,6 +8,7 @@
 // benefit, never a broken page.
 
 import { buildDisplayTitle } from './lib/title-helpers.js';
+import { showMileage, showHours } from './lib/usage-display.esm.js';
 
 const SUPABASE_URL = 'https://bxsikkmqasydosmblzov.supabase.co';
 // Non-sensitive public anon key — same value used in category.js and inventory-engine.js.
@@ -131,8 +132,8 @@ function buildCardChips(u) {
   }
   function fmtNum(n){ return n.toLocaleString('en-US'); }
   const F = {
-    mileage:          () => { const n=num(u.mileage); return n? fmtNum(n)+' mi':null; },
-    hours:            () => { const n=num(u.hours); return n? fmtNum(n)+' hrs':null; },
+    mileage:          () => { if (!showMileage(u)) return null; const n=num(u.mileage); return n? fmtNum(n)+' mi':null; },
+    hours:            () => { if (!showHours(u))   return null; const n=num(u.hours);   return n? fmtNum(n)+' hrs':null; },
     engine:           () => badText(u.engine)? null : trimEngine(u.engine),
     transmission:     () => badText(u.transmission)? null : String(u.transmission).trim(),
     drivetrain:       () => badText(u.drivetrain)? null : String(u.drivetrain).trim(),

@@ -12,14 +12,15 @@ const FARM_ATTACHMENT_SUBS = new Set([
 function isPhantom(unit, key) {
   const cat = String(unit.category || '').toLowerCase();
   const sub = String(unit.subcategory || '').toLowerCase();
-  // Trailers don't have engines/fuel/transmission/drivetrain/horsepower/hours.
-  // (Mileage is left in — axle miles are sometimes relevant.)
+  // Trailers don't have engines/fuel/horsepower. (Hours/mileage suppression is
+  // owned by lib/usage-display — do NOT duplicate here.)
   if (cat === 'trailers') {
-    if (key === 'engine' || key === 'fuel' || key === 'horsepower' || key === 'hours') return true;
+    if (key === 'engine' || key === 'fuel' || key === 'horsepower') return true;
   }
-  // Farm attachments (non-self-propelled) have no engine block.
+  // Farm attachments (non-self-propelled) have no engine block. Hours/mileage
+  // suppression is owned by lib/usage-display — do NOT duplicate here.
   if (cat === 'farm' && FARM_ATTACHMENT_SUBS.has(sub)) {
-    if (key === 'engine' || key === 'fuel' || key === 'horsepower' || key === 'hours' || key === 'mileage') return true;
+    if (key === 'engine' || key === 'fuel' || key === 'horsepower') return true;
   }
   // Classic cars predate mainstream diesel; feed-defaulted "Fuel: Diesel" is almost always a
   // phantom value on this subcategory. Suppress fuel so the model doesn't treat a wrong fact

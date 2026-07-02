@@ -2,6 +2,7 @@ const { createClient } = require('@supabase/supabase-js');
 const { generateDescription } = require('./lib/generate-description');
 const { CANONICAL_SUBCATEGORIES, SUBCATEGORY_ALIASES, canonicalize } = require('./lib/taxonomy.generated.js');
 const { isPhantom } = require('./lib/phantom-fields');
+const { isKnownSuppressMileage, isKnownSuppressHours } = require('./lib/usage-display.generated.js');
 
 // Strip marketing filler after a dash/em-dash separator, e.g.
 // "Cummins ISB 6.7L - Powerful and efficient" → "Cummins ISB 6.7L"
@@ -564,14 +565,20 @@ exports.handler = async (event) => {
         };
 
         // Non-powered units (trailers, farm attachments, classic cars) must not carry phantom
-        // powertrain fields. One source of truth: lib/phantom-fields.js, shared with the
-        // walkaround generator. No fuel beats fake fuel.
+        // powertrain fields. Two sources of truth: lib/phantom-fields.js for engine/fuel/HP,
+        // lib/usage-display for mileage/hours (single canonical rule shared with display + AI).
+        // No fuel beats fake fuel; no mileage beats fake mileage.
         const _pf = { category: derivedCategory, subcategory: sub };
         if (isPhantom(_pf, 'fuel'))       unit.fuel = null;
         if (isPhantom(_pf, 'engine'))     unit.engine = '';
         if (isPhantom(_pf, 'horsepower')) unit.horsepower = '';
-        if (isPhantom(_pf, 'hours'))      unit.hours = '';
-        if (isPhantom(_pf, 'mileage'))    unit.mileage = '';
+        // CONSERVATIVE canonical rule — null hours/mileage ONLY when the subcategory
+        // is KNOWN to disallow the field. Unknown/unmapped subcategories preserve the
+        // raw value (destructive write; do not discard data on a guess). Display/AI
+        // surfaces use the aggressive showMileage/showHours variants which suppress
+        // rendering on the same unknown cases without touching the DB row.
+        if (unit.hours   && isKnownSuppressHours(unit))   unit.hours   = '';
+        if (unit.mileage && isKnownSuppressMileage(unit)) unit.mileage = '';
 
         unit.photos = stripSandhillsJunkPhotos(unit.photos);
         unit.photos = reorderDbtPhotos(unit.photos, dealer);

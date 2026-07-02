@@ -85,7 +85,23 @@ function showHours(unit) {
   return hasRealNumber(unit.hours);
 }
 
-module.exports = { showMileage, showHours, normalizeSubcategory };
+// Conservative variants for DESTRUCTIVE contexts (e.g. import scrubs that null
+// the DB row). Returns TRUE only when the subcategory is KNOWN to disallow the
+// field — never on unknown/unmapped/aliased-to-empty. Prefer these over
+// !showMileage/!showHours anywhere raw data would be discarded on a guess.
+function isKnownSuppressMileage(unit) {
+  const sub = normalizeSubcategory(unit);
+  if (!sub) return false;
+  return ALLOW_HOURS.has(sub) || SUPPRESS_BOTH.has(sub);
+}
+
+function isKnownSuppressHours(unit) {
+  const sub = normalizeSubcategory(unit);
+  if (!sub) return false;
+  return ALLOW_MILEAGE.has(sub) || SUPPRESS_BOTH.has(sub);
+}
+
+module.exports = { showMileage, showHours, isKnownSuppressMileage, isKnownSuppressHours, normalizeSubcategory };
 `;
 }
 
@@ -145,6 +161,19 @@ export function showHours(unit) {
   }
   if (!ALLOW_HOURS.has(sub)) return false;
   return hasRealNumber(unit.hours);
+}
+
+// Conservative variants — see CJS mirror for full rationale.
+export function isKnownSuppressMileage(unit) {
+  const sub = normalizeSubcategory(unit);
+  if (!sub) return false;
+  return ALLOW_HOURS.has(sub) || SUPPRESS_BOTH.has(sub);
+}
+
+export function isKnownSuppressHours(unit) {
+  const sub = normalizeSubcategory(unit);
+  if (!sub) return false;
+  return ALLOW_MILEAGE.has(sub) || SUPPRESS_BOTH.has(sub);
 }
 `;
 }
@@ -211,9 +240,24 @@ ${suppressLines}
     return hasRealNumber(unit.hours);
   }
 
+  // Conservative variants — see CJS mirror for full rationale.
+  function isKnownSuppressMileage(unit) {
+    var sub = normalizeSubcategory(unit);
+    if (!sub) return false;
+    return allowHours.indexOf(sub) !== -1 || suppressBoth.indexOf(sub) !== -1;
+  }
+
+  function isKnownSuppressHours(unit) {
+    var sub = normalizeSubcategory(unit);
+    if (!sub) return false;
+    return allowMileage.indexOf(sub) !== -1 || suppressBoth.indexOf(sub) !== -1;
+  }
+
   root.UsageDisplay = {
     showMileage: showMileage,
     showHours: showHours,
+    isKnownSuppressMileage: isKnownSuppressMileage,
+    isKnownSuppressHours: isKnownSuppressHours,
     normalizeSubcategory: normalizeSubcategory
   };
 }(typeof window !== 'undefined' ? window : this));

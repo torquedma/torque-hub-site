@@ -4,6 +4,7 @@
 // listing data instead of the client-side loading state.
 
 import { buildDisplayTitle, buildSeoTitle } from './lib/title-helpers.js';
+import { showMileage, showHours } from './lib/usage-display.esm.js';
 
 const SUPABASE_URL = 'https://bxsikkmqasydosmblzov.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4c2lra21xYXN5ZG9zbWJsem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTc1OTksImV4cCI6MjA5MDQ3MzU5OX0.JMEI7cx2tddmbvfqm_qxiIWp7f5Phuk5l0Y487DUSZg';
@@ -65,6 +66,12 @@ function formatMileage(raw) {
   return isNaN(n) ? String(raw) : n.toLocaleString('en-US') + ' mi';
 }
 
+function formatHours(raw) {
+  if (!raw) return '';
+  const n = parseInt(String(raw).replace(/[^0-9]/g, ''), 10);
+  return isNaN(n) ? String(raw) : n.toLocaleString('en-US') + ' hrs';
+}
+
 function getPhotos(unit) {
   const raw = unit.photos;
   if (!raw) return [];
@@ -81,7 +88,8 @@ function buildSpecsHtml(unit) {
     unit.model        && ['Model',        unit.model],
     unit.condition    && ['Condition',    unit.condition],
     unit.fuel         && ['Fuel',         unit.fuel],
-    unit.mileage      && ['Mileage',      formatMileage(unit.mileage)],
+    showMileage(unit) && ['Mileage',      formatMileage(unit.mileage)],
+    showHours(unit)   && ['Hours',        formatHours(unit.hours)],
     unit.engine       && ['Engine',       trimSpec(unit.engine)],
     unit.transmission && ['Transmission', trimSpec(unit.transmission)],
     unit.drivetrain   && ['Drivetrain',   unit.drivetrain],
@@ -140,7 +148,7 @@ function buildSchema(unit, d, pageUrl, dealerKey) {
     ...(unit.model      && { 'model': unit.model }),
     ...(unit.fuel       && { 'fuelType': unit.fuel }),
     ...(unit.subcategory && { 'vehicleBodyType': unit.subcategory }),
-    ...(unit.mileage    && { 'mileageFromOdometer': { '@type': 'QuantitativeValue', 'value': unit.mileage, 'unitCode': 'SMI' } }),
+    ...(showMileage(unit) && { 'mileageFromOdometer': { '@type': 'QuantitativeValue', 'value': unit.mileage, 'unitCode': 'SMI' } }),
     'vehicleCondition': unit.condition === 'New' ? 'https://schema.org/NewCondition' : 'https://schema.org/UsedCondition',
     ...(firstPhoto      && { 'image': firstPhoto }),
     'url': pageUrl,
