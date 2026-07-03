@@ -44,7 +44,8 @@
     "Air Compressor",
     "Motor Grader",
     "Backhoe Attachment",
-    "Crawler Loader"
+    "Crawler Loader",
+    "Side by Side"
   ],
   "allow_mileage": [
     "Box Truck",
@@ -81,8 +82,7 @@
     "Water Truck",
     "SUV",
     "Motorcycle",
-    "Classic Car",
-    "Side by Side"
+    "Classic Car"
   ],
   "suppress_both": [
     "Enclosed Trailer",

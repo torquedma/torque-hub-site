@@ -49,7 +49,8 @@ const ALLOW_HOURS = new Set([
   'Air Compressor',
   'Motor Grader',
   'Backhoe Attachment',
-  'Crawler Loader'
+  'Crawler Loader',
+  'Side by Side'
 ]);
 
 const ALLOW_MILEAGE = new Set([
@@ -87,8 +88,7 @@ const ALLOW_MILEAGE = new Set([
   'Water Truck',
   'SUV',
   'Motorcycle',
-  'Classic Car',
-  'Side by Side'
+  'Classic Car'
 ]);
 
 const SUPPRESS_BOTH = new Set([
