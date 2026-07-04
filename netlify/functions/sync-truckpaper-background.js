@@ -1,5 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
-const { generateDescription } = require('./lib/generate-description');
+const { generateDescription } = require('./lib/generate-description.generated');
 const { CANONICAL_SUBCATEGORIES, SUBCATEGORY_ALIASES, canonicalize } = require('./lib/taxonomy.generated.js');
 const { isPhantom } = require('./lib/phantom-fields');
 const { isKnownSuppressMileage, isKnownSuppressHours } = require('./lib/usage-display.generated.js');

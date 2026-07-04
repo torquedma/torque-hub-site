@@ -1,5 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
-const { generateDescription } = require('./lib/generate-description');
+const { generateDescription } = require('./lib/generate-description.generated');
 const { decodeVin } = require('./lib/vin-decode');
 
 exports.handler = async (event) => {
