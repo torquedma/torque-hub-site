@@ -1,6 +1,7 @@
 const { createClient } = require('@supabase/supabase-js');
 const { generateDescription } = require('./lib/generate-description.generated');
 const { decodeVin } = require('./lib/vin-decode');
+const { stampFacts } = require('./lib/provenance');
 
 exports.handler = async (event) => {
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
@@ -45,7 +46,7 @@ exports.handler = async (event) => {
   // dx_locked=false guard is always applied — locked units are excluded even if listed in ?stocks.
   let query = supabase
     .from('inventory')
-    .select('stock, dealer, year, make, model, trim, subcategory, price, mileage, hours, engine, horsepower, transmission, drivetrain, fuel, vin, raw_description, description')
+    .select('stock, dealer, year, make, model, trim, subcategory, price, mileage, hours, engine, horsepower, transmission, drivetrain, fuel, vin, raw_description, description, provenance')
     .eq('sold', false)
     .eq('dx_locked', false);
   if (stocksList)      query = query.in('stock', stocksList);
@@ -96,12 +97,20 @@ exports.handler = async (event) => {
         const vp = await decodeVin(unit.vin);
         if (vp) {
           vinDecoded = true;
+          const verifiedThisRun = {};
           // Fill empty existing fields only
           if (!unit.engine && vp.engineManufacturer) {
             unit.engine = [vp.engineManufacturer, vp.displacementL ? vp.displacementL + 'L' : null, vp.fuelTypePrimary].filter(Boolean).join(' ');
+            verifiedThisRun.engine = unit.engine;
           }
-          if (!unit.fuel && vp.fuelTypePrimary) unit.fuel = vp.fuelTypePrimary;
-          if (!unit.drivetrain && vp.driveType) unit.drivetrain = vp.driveType;
+          if (!unit.fuel && vp.fuelTypePrimary) {
+            unit.fuel = vp.fuelTypePrimary;
+            verifiedThisRun.fuel = unit.fuel;
+          }
+          if (!unit.drivetrain && vp.driveType) {
+            unit.drivetrain = vp.driveType;
+            verifiedThisRun.drivetrain = unit.drivetrain;
+          }
           // Attach NEW vPIC-only fields for Key Details (drive type NOT here — handled via fill-empty above; no redundancy)
           unit._vpic = {
             gvwrClass:  vp.gvwrClass,
@@ -109,6 +118,7 @@ exports.handler = async (event) => {
             horsepower: vp.horsepower,
             torque:     vp.torque,
           };
+          unit._verifiedThisRun = verifiedThisRun;
         }
       }
 
@@ -120,13 +130,19 @@ exports.handler = async (event) => {
         continue;
       }
 
+      const vpicFilled = unit._verifiedThisRun || {};
+      const newProvenance = Object.keys(vpicFilled).length > 0
+        ? stampFacts(unit.provenance || null, vpicFilled, { source: 'vin_decode', trust: 'verified', mode: 'fill-empty' })
+        : null;
+
       const { error: writeError } = await supabase
         .from('inventory')
         .update({
           description: text,
           description_source: 'torque_hub_dx',
           description_generated_at: new Date().toISOString(),
-          ...(vinDecoded ? { vin_decoded_at: new Date().toISOString() } : {})
+          ...(vinDecoded ? { vin_decoded_at: new Date().toISOString() } : {}),
+          ...(newProvenance ? { provenance: newProvenance } : {})
         })
         .eq('stock', unit.stock)
         .eq('sold', false);
