@@ -3,6 +3,7 @@ const { generateDescription } = require('./lib/generate-description.generated');
 const { CANONICAL_SUBCATEGORIES, SUBCATEGORY_ALIASES, canonicalize } = require('./lib/taxonomy.generated.js');
 const { isPhantom } = require('./lib/phantom-fields');
 const { isKnownSuppressMileage, isKnownSuppressHours } = require('./lib/usage-display.generated.js');
+const { stampFacts } = require('./lib/provenance');
 
 // Strip marketing filler after a dash/em-dash separator, e.g.
 // "Cummins ISB 6.7L - Powerful and efficient" → "Cummins ISB 6.7L"
@@ -443,14 +444,16 @@ exports.handler = async (event) => {
   // Get existing rows (stock + source_listing_id for dual-key upsert)
   const { data: existing } = await supabase
     .from('inventory')
-    .select('stock,source_listing_id,subcategory_locked,model_locked,source_url')
+    .select('stock,source_listing_id,subcategory_locked,model_locked,source_url,provenance')
     .eq('dealer', dealer)
     .eq('sold', false);
 
   const existingStocks = new Set((existing || []).map(u => u.stock));
   const existingByListingId = new Map();
+  const existingByStock = new Map();
   for (const row of (existing || [])) {
-    if (row.source_listing_id) existingByListingId.set(row.source_listing_id, row.stock);
+    if (row.source_listing_id) existingByListingId.set(row.source_listing_id, row);
+    existingByStock.set(row.stock, row);
   }
   const lockedSubcat = new Set((existing || []).filter(u => u.subcategory_locked).map(u => u.stock));
   const lockedModel  = new Set((existing || []).filter(u => u.model_locked).map(u => u.stock));
@@ -594,7 +597,8 @@ exports.handler = async (event) => {
 
         // Determine upsert path: prefer (dealer, source_listing_id) when present, fall back to (dealer, stock)
         const incomingListingId = item.source_listing_id || null;
-        const matchedExistingStock = incomingListingId ? existingByListingId.get(incomingListingId) : null;
+        const matchedExistingRow = incomingListingId ? existingByListingId.get(incomingListingId) : null;
+        const matchedExistingStock = matchedExistingRow ? matchedExistingRow.stock : null;
         const isExisting = matchedExistingStock ? true : existingStocks.has(stock);
         const lookupStock = matchedExistingStock || stock;
 
@@ -605,6 +609,17 @@ exports.handler = async (event) => {
           delete unit.description;
           delete unit.raw_description;
         }
+
+        const existingRowForProv = matchedExistingRow || existingByStock.get(stock) || null;
+        const provFactSubset = {};
+        for (const k of ['year','make','model','trim','mileage','vin','engine','transmission','drivetrain','horsepower','hours','fuel','condition']) {
+          if (unit[k] !== undefined && unit[k] !== null && unit[k] !== '') provFactSubset[k] = unit[k];
+        }
+        unit.provenance = stampFacts(
+          existingRowForProv ? existingRowForProv.provenance : null,
+          provFactSubset,
+          { source: unit.source_type || 'unknown', trust: 'attributed', mode: 'fill-empty' }
+        );
 
         let result;
         if (dryRun) {
