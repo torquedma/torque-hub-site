@@ -122,6 +122,15 @@ exports.handler = async (event) => {
         }
       }
 
+      // T1.2-A: compute newProvenance and attach to `unit` BEFORE generateDescription so the
+      // generator (first consumer) can read unit.provenance for provenance-aware Mileage/Hours.
+      // The DB write of provenance still happens below via the .update payload.
+      const vpicFilled = unit._verifiedThisRun || {};
+      const newProvenance = Object.keys(vpicFilled).length > 0
+        ? stampFacts(unit.provenance || null, vpicFilled, { source: 'vin_decode', trust: 'verified', mode: 'fill-empty' })
+        : null;
+      if (newProvenance) unit.provenance = newProvenance;
+
       const text = await generateDescription(unit, dealerContact, anthropicKey);
 
       if (!text || !text.trim()) {
@@ -129,11 +138,6 @@ exports.handler = async (event) => {
         skipped_error++;
         continue;
       }
-
-      const vpicFilled = unit._verifiedThisRun || {};
-      const newProvenance = Object.keys(vpicFilled).length > 0
-        ? stampFacts(unit.provenance || null, vpicFilled, { source: 'vin_decode', trust: 'verified', mode: 'fill-empty' })
-        : null;
 
       const { error: writeError } = await supabase
         .from('inventory')

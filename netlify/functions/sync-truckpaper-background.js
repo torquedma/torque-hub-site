@@ -586,15 +586,6 @@ exports.handler = async (event) => {
         unit.photos = stripSandhillsJunkPhotos(unit.photos);
         unit.photos = reorderDbtPhotos(unit.photos, dealer);
 
-        if (anthropicKey) {
-          try {
-            const desc = await generateDescription(unit, dealerInfo, anthropicKey);
-            if (desc) unit.description = desc;
-          } catch (e) {
-            console.error(`Description generation failed for ${stock}:`, e.message);
-          }
-        }
-
         // Determine upsert path: prefer (dealer, source_listing_id) when present, fall back to (dealer, stock)
         const incomingListingId = item.source_listing_id || null;
         const matchedExistingRow = incomingListingId ? existingByListingId.get(incomingListingId) : null;
@@ -602,14 +593,15 @@ exports.handler = async (event) => {
         const isExisting = matchedExistingStock ? true : existingStocks.has(stock);
         const lookupStock = matchedExistingStock || stock;
 
+        // Field-lock deletes must run BEFORE the provenance stamp so provFactSubset excludes
+        // locked/dropped fields — keeps provenance consistent with the persisted row.
         if (isExisting) {
           if (lockedSubcat.has(lookupStock)) { delete unit.subcategory; delete unit.category; delete unit.trim; }
           if (lockedModel.has(lookupStock))  { delete unit.make; delete unit.model; }
-          // Preserve curated DX on existing rows — backfill data fields without rewriting descriptions
-          delete unit.description;
-          delete unit.raw_description;
         }
 
+        // T1.2-A: stamp provenance BEFORE generateDescription so the generator (first consumer) can
+        // read unit.provenance for provenance-aware Mileage/Hours rendering.
         const existingRowForProv = matchedExistingRow || existingByStock.get(stock) || null;
         const provFactSubset = {};
         for (const k of ['year','make','model','trim','mileage','vin','engine','transmission','drivetrain','horsepower','hours','fuel','condition']) {
@@ -620,6 +612,21 @@ exports.handler = async (event) => {
           provFactSubset,
           { source: unit.source_type || 'unknown', trust: 'attributed', mode: 'fill-empty' }
         );
+
+        if (anthropicKey) {
+          try {
+            const desc = await generateDescription(unit, dealerInfo, anthropicKey);
+            if (desc) unit.description = desc;
+          } catch (e) {
+            console.error(`Description generation failed for ${stock}:`, e.message);
+          }
+        }
+
+        if (isExisting) {
+          // Preserve curated DX on existing rows — backfill data fields without rewriting descriptions
+          delete unit.description;
+          delete unit.raw_description;
+        }
 
         let result;
         if (dryRun) {
