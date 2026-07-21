@@ -246,3 +246,6 @@
   from = "/sitemap.xml"
   to = "/.netlify/functions/sitemap"
   status = 200
+
+[functions."decode-vin-background"]
+  timeout = 900
