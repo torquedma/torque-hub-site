@@ -12,6 +12,9 @@
 [functions."generate-dx-background"]
   timeout = 900
 
+[functions."decode-vin-cron"]
+  schedule = "0 7,19 * * *"
+
 [[edge_functions]]
   path = "/inventory.html"
   function = "inventory"
