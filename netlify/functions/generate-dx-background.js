@@ -1,7 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
 const { generateDescription } = require('./lib/generate-description.generated');
-const { decodeVin } = require('./lib/vin-decode');
-const { stampFacts } = require('./lib/provenance');
 
 exports.handler = async (event) => {
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
@@ -46,7 +44,7 @@ exports.handler = async (event) => {
   // dx_locked=false guard is always applied — locked units are excluded even if listed in ?stocks.
   let query = supabase
     .from('inventory')
-    .select('stock, dealer, year, make, model, trim, subcategory, price, mileage, hours, engine, horsepower, transmission, drivetrain, fuel, vin, raw_description, description, provenance')
+    .select('stock, dealer, year, make, model, trim, subcategory, price, mileage, hours, engine, horsepower, transmission, drivetrain, fuel, vin, raw_description, description, provenance, gvwr_class, body_class, vin_decoded_at, created_at')
     .eq('sold', false)
     .eq('dx_locked', false);
   if (stocksList)      query = query.in('stock', stocksList);
@@ -64,6 +62,28 @@ exports.handler = async (event) => {
   let candidates = forceAll
     ? (rows || [])
     : (rows || []).filter(u => !(u.description || '').includes('Key Details'));
+
+  // D6 (lifecycle contract): description generation must not race ahead of an
+  // eligible, incomplete VIN-decode stage. A real-VIN unit not yet decoded is
+  // DEFERRED so its description gets the decoded facts. Bounded-wait release
+  // prevents a never-decoding unit from never getting a description. ?stocks
+  // bypasses this (operator override).
+  const BOUNDED_WAIT_DAYS = 3;
+  const nowMs = Date.now();
+  if (!stocksList) {
+    candidates = candidates.filter(u => {
+      if ((u.vin || '').trim().length !== 17) return true;
+      if (u.vin_decoded_at) return true;
+      const ageDays = (nowMs - new Date(u.created_at).getTime()) / 86400000;
+      if (ageDays > BOUNDED_WAIT_DAYS) {
+        console.warn(`[D6-RELEASE] ${u.stock} — waited ${ageDays.toFixed(1)}d for decode; releasing`);
+        return true;
+      }
+      console.log(`[D6-WAIT] ${u.stock} — real VIN undecoded; deferring description`);
+      return false;
+    });
+  }
+
   const total_candidates = candidates.length;
 
   // Report how many of the requested stocks were actually found (post dx_locked filter).
@@ -91,46 +111,10 @@ exports.handler = async (event) => {
     }
 
     try {
-      // vPIC enrichment (best-effort, fill-empty-only, never overwrite feed/dealer data)
-      let vinDecoded = false;
-      if (unit.vin) {
-        const vp = await decodeVin(unit.vin);
-        if (vp) {
-          vinDecoded = true;
-          const verifiedThisRun = {};
-          // Fill empty existing fields only
-          if (!unit.engine && vp.engineManufacturer) {
-            unit.engine = [vp.engineManufacturer, vp.displacementL ? vp.displacementL + 'L' : null, vp.fuelTypePrimary].filter(Boolean).join(' ');
-            verifiedThisRun.engine = unit.engine;
-          }
-          if (!unit.fuel && vp.fuelTypePrimary) {
-            unit.fuel = vp.fuelTypePrimary;
-            verifiedThisRun.fuel = unit.fuel;
-          }
-          if (!unit.drivetrain && vp.driveType) {
-            unit.drivetrain = vp.driveType;
-            verifiedThisRun.drivetrain = unit.drivetrain;
-          }
-          // Attach NEW vPIC-only fields for Key Details (drive type NOT here — handled via fill-empty above; no redundancy)
-          unit._vpic = {
-            gvwrClass:  vp.gvwrClass,
-            bodyClass:  vp.bodyClass,
-            horsepower: vp.horsepower,
-            torque:     vp.torque,
-          };
-          unit._verifiedThisRun = verifiedThisRun;
-        }
-      }
-
-      // T1.2-A: compute newProvenance and attach to `unit` BEFORE generateDescription so the
-      // generator (first consumer) can read unit.provenance for provenance-aware Mileage/Hours.
-      // The DB write of provenance still happens below via the .update payload.
-      const vpicFilled = unit._verifiedThisRun || {};
-      const newProvenance = Object.keys(vpicFilled).length > 0
-        ? stampFacts(unit.provenance || null, vpicFilled, { source: 'vin_decode', trust: 'verified', mode: 'fill-empty' })
-        : null;
-      if (newProvenance) unit.provenance = newProvenance;
-
+      // VIN decoding lives in decode-vin-background.js (T1.3). This function
+      // READS decoded facts (engine/fuel/drivetrain/gvwr_class/body_class/
+      // horsepower on the row, plus provenance for T1.2-A usage rendering) but
+      // no longer performs decoding.
       const text = await generateDescription(unit, dealerContact, anthropicKey);
 
       if (!text || !text.trim()) {
@@ -145,8 +129,6 @@ exports.handler = async (event) => {
           description: text,
           description_source: 'torque_hub_dx',
           description_generated_at: new Date().toISOString(),
-          ...(vinDecoded ? { vin_decoded_at: new Date().toISOString() } : {}),
-          ...(newProvenance ? { provenance: newProvenance } : {})
         })
         .eq('stock', unit.stock)
         .eq('sold', false);
