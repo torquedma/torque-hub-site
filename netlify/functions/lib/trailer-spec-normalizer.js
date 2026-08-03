@@ -262,6 +262,110 @@ function inferSchemaHint({ keyDetails, rawDescription }) {
   return 'unknown';
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// detectContradictions — small, explicit contradiction detector. NO general
+// equivalence engine. FIVE attributes only:
+//   deck_length      (feet — ADDITIVE totals so "16'+2'" and "18'" both = 18)
+//   width            (inches — first number on a width/between-fenders line)
+//   axle_rating      (pounds — first weight on an axle line; commas/# stripped)
+//   tire_size        (digits-only normalization of an ST or bare NNN/NN token)
+//   tire_load_range  (single letter after "Load Range")
+//
+// A contradiction fires in a group iff ≥1 high AND ≥1 low entry exist AND at
+// least one low value differs from the canonical (first) high value.
+// KEEP BOTH: mark each conflicting low with presentation:'suppressed_due_to_conflict'
+// and conflictsWith:<high sourceLineId>. Never touch the high entry. Delete nothing.
+// Push ONE warning per contradicting group.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Derive a single {attribute, value} for a normalized line via first-match-wins
+// over the five detectors in spec order. Returns {attribute:null, value:null}
+// when nothing matches. Numbers are numeric; tire_size/tire_load_range are strings.
+function _deriveAttribute(text) {
+  const s = String(text == null ? '' : text);
+
+  // 1. deck_length — additive foot total across the line.
+  if (/deck\s*length/i.test(s) ||
+      /\d+\s*['’]\s*\+\s*\d+\s*['’]/.test(s) ||
+      /^\s*Length\s+\d+\s*['’]/i.test(s)) {
+    const feetMatches = [...s.matchAll(/(\d+)\s*(?:['’]|\bft\b)/gi)];
+    if (feetMatches.length > 0) {
+      const total = feetMatches.reduce((sum, m) => sum + parseInt(m[1], 10), 0);
+      return { attribute: 'deck_length', value: total };
+    }
+  }
+
+  // 2. width — first number on a width/between-fenders line.
+  if (/\bwidth\b/i.test(s) || /between\s+(?:the\s+)?fenders/i.test(s)) {
+    const m = s.match(/(\d+)/);
+    if (m) return { attribute: 'width', value: parseInt(m[1], 10) };
+  }
+
+  // 3. axle_rating — first weight on an axle line (also matches "axles").
+  if (/\baxles?\b/i.test(s)) {
+    const m = s.match(/(\d[\d,]*)/);
+    if (m) {
+      const w = parseInt(m[1].replace(/,/g, ''), 10);
+      if (w > 0) return { attribute: 'axle_rating', value: w };
+    }
+  }
+
+  // 4. tire_size — ST-prefixed first, else bare NNN/NN in tire context.
+  const st = s.match(/\bST\d+[\/\-\d]+[A-Z]?\d*/i);
+  if (st) {
+    const digits = st[0].replace(/\D/g, '');
+    if (digits) return { attribute: 'tire_size', value: digits };
+  }
+  const bare = s.match(/\b\d{3}[\/\-]\d{2}(?:R\d{2,3}|\d{0,3})?/i);
+  if (bare && /tires?|radial|\bLR[A-Z]?\b|load\s*range/i.test(s)) {
+    const digits = bare[0].replace(/\D/g, '');
+    if (digits) return { attribute: 'tire_size', value: digits };
+  }
+
+  // 5. tire_load_range — single letter after "Load Range".
+  const lr = s.match(/load\s*range\s*([A-Z])/i);
+  if (lr) return { attribute: 'tire_load_range', value: lr[1].toUpperCase() };
+
+  return { attribute: null, value: null };
+}
+
+function detectContradictions(keyDetails, warnings) {
+  // Bucket entries by non-null attribute.
+  const groups = new Map();
+  for (const entry of (keyDetails || [])) {
+    const derived = _deriveAttribute(entry.normalizedLine);
+    if (derived.attribute == null) continue;
+    if (!groups.has(derived.attribute)) groups.set(derived.attribute, []);
+    groups.get(derived.attribute).push({ entry, value: derived.value });
+  }
+
+  for (const [attribute, members] of groups) {
+    const highs = members.filter(m => m.entry.confidence === 'high');
+    const lows  = members.filter(m => m.entry.confidence === 'low');
+    if (highs.length === 0 || lows.length === 0) continue; // need both to constitute a contradiction
+
+    const canonicalHigh = highs[0];
+    const conflictingLows = lows.filter(l => l.value !== canonicalHigh.value);
+    if (conflictingLows.length === 0) continue; // all lows agree with canonical high — no conflict
+
+    // Mark each conflicting low; delete nothing; do NOT touch the high entry.
+    for (const l of conflictingLows) {
+      l.entry.presentation = 'suppressed_due_to_conflict';
+      l.entry.conflictsWith = canonicalHigh.entry.sourceLineId;
+    }
+
+    const involvedIds = [
+      ...highs.map(m => m.entry.sourceLineId),
+      ...conflictingLows.map(l => l.entry.sourceLineId),
+    ];
+    warnings.push({
+      code: 'CONTRADICTION',
+      sourceLineIds: involvedIds,
+      note: attribute + ': conflicting values retained; low-confidence reading suppressed for display.',
+    });
+  }
+}
+
 /**
  * normalizeTrailerSpecs — public entry. GATE FIRST, then detect and route.
  */
@@ -283,6 +387,7 @@ function normalizeTrailerSpecs(rawDescription, category) {
 
   if (format === 'hgr_delimited') {
     const { leadProse, keyDetails, excluded, warnings } = classifyHgr(splitLines(rawDescription));
+    detectContradictions(keyDetails, warnings);
     return {
       format: 'hgr_delimited',
       handling: 'normalized',
@@ -326,4 +431,4 @@ function normalizeTrailerSpecs(rawDescription, category) {
   }] };
 }
 
-module.exports = { normalizeTrailerSpecs, detectTrailerFormat, splitLines, classifyHgr, assignGroup, inferSchemaHint };
+module.exports = { normalizeTrailerSpecs, detectTrailerFormat, splitLines, classifyHgr, assignGroup, inferSchemaHint, detectContradictions };
