@@ -80,6 +80,50 @@ function detectTrailerFormat(rawDescription) {
   return 'free_form';
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// assignGroup — first-match-wins over an ORDERED [group, keywords] table.
+// Chassis groups first (deck_loading before interior_buildout, etc.) so that
+// "2″ Treated Pine Floor" lands in deck_loading rather than interior_buildout.
+// Short keywords (length ≤ 3) are word-boundary-anchored on any side that
+// ends in a word char; longer keywords use plain case-insensitive substring.
+// ─────────────────────────────────────────────────────────────────────────────
+const HGR_GROUPS = [
+  ['deck_loading',         ['deck', 'dovetail', 'ramp', 'tilt', 'flat deck', 'bed length', 'slide in', 'treated pine', 'pine floor', 'wood floor', 'trailer floor']],
+  ['axles_tires_brakes',   ['axle', 'tire', 'radial', 'brake', 'spring', 'suspension', 'wheel', 'gvwr', 'gawr', 'load range', 'lre', 'lr-e', 'dexter', 'lippert']],
+  ['frame_construction',   ['frame', 'i-beam', 'ibeam', 'channel', 'crossmember', 'steel', 'tube', 'gauge', 'ga.', 'beavertail', 'bump rail']],
+  ['coupling_support',     ['coupler', 'gooseneck', 'hitch', 'jack', 'drop leg', 'ball', 'pintle', 'safety chain', 'landing gear']],
+  ['electrical_lighting',  ['light', 'led', 'wiring', 'harness', 'plug', '7 way', 'rv', 'breakaway', 'break away', 'd.o.t', 'dot', 'receptacle', 'recept']],
+  ['finish_convenience',   ['powdercoat', 'powder coat', 'paint', 'color', 'primer', 'sandblast', 'acid wash', 'stake pocket', 'toolbox', 'spare', 'side step', 'd-ring', 'tie down', 'pin stripe', 'stoneguard', 'trim']],
+  ['interior_buildout',    ['cabinet', 'wall', 'ceiling', 'floor covering', 'vinyl floor', 'rubber floor', 'plywood wall', 'interior height', 'inside height', 'insulation', 'stud', 'door', 'window', 'screen', 'closet', 'escape door', 'kickplate', 'treadplate']],
+  ['hvac_plumbing',        ['hvac', 'a/c', 'air conditioner', 'furnace', 'sink', 'water tank', 'water heater', 'plumbing', 'propane', 'exhaust hood', 'mini split', 'fresh water', 'freshwater', 'waste tank']],
+  ['appliances_equipment', ['refrigerator', 'freezer', 'microwave', 'generator', 'converter', 'battery', 'stereo', 'appliance', 'winch', 'hot water heater']],
+];
+
+// Compile keyword → RegExp ONCE, at module load. Short keywords (≤3 chars) get
+// word-boundary anchoring on any side whose adjacent char is a word char.
+// A trailing non-word char (e.g. 'ga.') keeps no trailing \b, because \b needs
+// a word char on one side.
+function _kwToRegex(kw) {
+  const escaped = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  if (kw.length <= 3) {
+    const left  = /^\w/.test(kw) ? '\\b' : '';
+    const right = /\w$/.test(kw) ? '\\b' : '';
+    return new RegExp(left + escaped + right, 'i');
+  }
+  return new RegExp(escaped, 'i');
+}
+const HGR_GROUP_MATCHERS = HGR_GROUPS.map(([group, kws]) => [group, kws.map(_kwToRegex)]);
+
+function assignGroup(normalizedLine) {
+  const s = normalizedLine == null ? '' : String(normalizedLine);
+  for (const [group, matchers] of HGR_GROUP_MATCHERS) {
+    for (const rx of matchers) {
+      if (rx.test(s)) return group;
+    }
+  }
+  return 'additional_features';
+}
+
 /**
  * classifyHgr — HGR bullet-body classifier. Operates on splitLines() output only;
  * every text field is already trimmed and every empty line is already dropped.
@@ -103,8 +147,9 @@ function detectTrailerFormat(rawDescription) {
  * normalizedLine strips the leading delimiter and collapses whitespace exactly as normal,
  * preserving garbled bytes without repair.
  *
- * Grouping, schemaHint inference, contradiction detection, and assertAccounting are
- * DEFERRED. group stays 'additional_features'; conflictsWith stays undefined.
+ * Contradiction detection and assertAccounting are DEFERRED. conflictsWith stays undefined.
+ * Grouping is delegated to assignGroup (chassis-first table); schemaHint is computed
+ * afterward by inferSchemaHint in the routing layer.
  */
 function classifyHgr(lines) {
   const leadProse = [];
@@ -128,11 +173,12 @@ function classifyHgr(lines) {
   const firstBulletIndex = lines.findIndex(({ text }) => DELIMITED_RX.test(text));
 
   const pushKeyDetail = (sourceLineId, text, confidence) => {
+    const normalizedLine = normalizeLine(text);
     keyDetails.push({
       sourceLineId,
       originalLine: text,
-      normalizedLine: normalizeLine(text),
-      group: 'additional_features',
+      normalizedLine,
+      group: assignGroup(normalizedLine),
       confidence,
       presentation: 'default',
       conflictsWith: undefined,
@@ -188,6 +234,35 @@ function classifyHgr(lines) {
 }
 
 /**
+ * inferSchemaHint — advisory schema classification computed AFTER classifyHgr.
+ * ADVISORY ONLY: this MUST NOT change any keyDetail's group. It reads the set of
+ * groups that classification produced plus the full rawDescription (lowercased).
+ *
+ * Precedence: living_quarters → concession → chassis → unknown.
+ *
+ * @param {{ keyDetails: Array, rawDescription: string }} args
+ * @returns {'chassis' | 'concession' | 'living_quarters' | 'unknown'}
+ */
+function inferSchemaHint({ keyDetails, rawDescription }) {
+  const groups = new Set((keyDetails || []).map(k => k.group));
+  const text = String(rawDescription || '').toLowerCase();
+
+  if (groups.has('interior_buildout') && /bathroom|freshwater|fresh water|furnace|shower|living quarter/i.test(text)) {
+    return 'living_quarters';
+  }
+  if (/concession|vendor|serving|hood|sink/i.test(text) &&
+      (groups.has('interior_buildout') || groups.has('electrical_lighting') ||
+       groups.has('hvac_plumbing')     || groups.has('appliances_equipment'))) {
+    return 'concession';
+  }
+  if (groups.has('deck_loading') || groups.has('axles_tires_brakes') ||
+      groups.has('frame_construction') || groups.has('coupling_support')) {
+    return 'chassis';
+  }
+  return 'unknown';
+}
+
+/**
  * normalizeTrailerSpecs — public entry. GATE FIRST, then detect and route.
  */
 function normalizeTrailerSpecs(rawDescription, category) {
@@ -211,7 +286,7 @@ function normalizeTrailerSpecs(rawDescription, category) {
     return {
       format: 'hgr_delimited',
       handling: 'normalized',
-      schemaHint: 'unknown',
+      schemaHint: inferSchemaHint({ keyDetails, rawDescription }),
       leadProse,
       keyDetails,
       excluded,
@@ -251,4 +326,4 @@ function normalizeTrailerSpecs(rawDescription, category) {
   }] };
 }
 
-module.exports = { normalizeTrailerSpecs, detectTrailerFormat, splitLines, classifyHgr };
+module.exports = { normalizeTrailerSpecs, detectTrailerFormat, splitLines, classifyHgr, assignGroup, inferSchemaHint };
