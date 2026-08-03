@@ -431,4 +431,200 @@ function normalizeTrailerSpecs(rawDescription, category) {
   }] };
 }
 
-module.exports = { normalizeTrailerSpecs, detectTrailerFormat, splitLines, classifyHgr, assignGroup, inferSchemaHint, detectContradictions };
+// ─────────────────────────────────────────────────────────────────────────────
+// assertAccounting — TEST-TIME helper (not called from normalizeTrailerSpecs).
+// Reports every contract violation it finds; never throws for a contract issue.
+// Throws TypeError only when rawDescription is not a string — that is a
+// programming error at the CALL SITE, not a fixture/output violation.
+//
+// Raw byte-identity of rawDescription is deliberately NOT checked here. JS
+// strings are immutable and this helper receives no transformed copy, so any
+// in-helper comparison would be a meaningless self-check. Byte-identity is
+// asserted at the Step 6 fixture call sites where the raw body and the
+// normalized-input string are two independent references worth comparing.
+// ─────────────────────────────────────────────────────────────────────────────
+function assertAccounting(result, rawDescription) {
+  if (typeof rawDescription !== 'string') {
+    throw new TypeError('assertAccounting: rawDescription must be a string');
+  }
+
+  // Rule 1: category gate short-circuit — nothing to account for.
+  if (result === null) return { ok: true, violations: [] };
+
+  const violations = [];
+
+  // CHANGE 1 — SHAPE validation. Accumulating (never early-returns). An absent
+  // or wrong-typed field must be VISIBLE, not silently coerced to []. describe()
+  // is needed because JSON.stringify(undefined) returns undefined, not a string.
+  const describe = (v) =>
+    v === undefined ? 'undefined' :
+    v === null      ? 'null'      :
+    JSON.stringify(v);
+  const validateShape = (raw, name) => {
+    if (!Array.isArray(raw)) {
+      violations.push('SHAPE: ' + name + ' must be an array (got ' + describe(raw) + ')');
+      return [];
+    }
+    return raw;
+  };
+  const leadProse  = validateShape(result && result.leadProse,  'leadProse');
+  const keyDetails = validateShape(result && result.keyDetails, 'keyDetails');
+  const excluded   = validateShape(result && result.excluded,   'excluded');
+  const warnings   = validateShape(result && result.warnings,   'warnings');
+
+  const handling = result && result.handling;
+
+  // Rule 5: unknown handling value → early return. SHAPE violations already
+  // in `violations` come along, so callers see the full picture.
+  if (handling !== 'normalized' && handling !== 'safe_fallback') {
+    violations.push('HANDLING: unknown handling value ' + JSON.stringify(handling));
+    return { ok: false, violations };
+  }
+
+  // Rule 4: safe_fallback contract — the three arrays must be empty, warnings
+  // must be a single entry with an allowlisted code. NO accounting union here.
+  if (handling === 'safe_fallback') {
+    if (leadProse.length !== 0)  violations.push('SAFE_FALLBACK: leadProse must be empty (got ' + leadProse.length + ')');
+    if (keyDetails.length !== 0) violations.push('SAFE_FALLBACK: keyDetails must be empty (got ' + keyDetails.length + ')');
+    if (excluded.length !== 0)   violations.push('SAFE_FALLBACK: excluded must be empty (got ' + excluded.length + ')');
+    if (warnings.length !== 1) {
+      violations.push('SAFE_FALLBACK: warnings must have exactly 1 entry (got ' + warnings.length + ')');
+    } else {
+      const code = warnings[0] && warnings[0].code;
+      const allowed = new Set(['FORMAT_HANDLER_DEFERRED', 'FORMAT_FREE_FORM', 'FORMAT_UNKNOWN']);
+      if (!allowed.has(code)) {
+        violations.push('SAFE_FALLBACK: warning code must be one of FORMAT_HANDLER_DEFERRED, FORMAT_FREE_FORM, FORMAT_UNKNOWN (got ' + JSON.stringify(code) + ')');
+      }
+    }
+    return { ok: violations.length === 0, violations };
+  }
+
+  // Rule 2 + 3: normalized — full accounting union.
+  // Re-derive expected ids via THIS MODULE'S OWN splitLines — same reference the
+  // normalizer used. If the id scheme drifts, this is the drift-detector.
+  const expectedList = splitLines(rawDescription);
+  const expected     = expectedList.map((l) => l.sourceLineId);
+  const expectedSet  = new Set(expected);
+
+  // CHANGE 2 — SPLIT_ID_COLLISION. When expected is degenerate (splitLines
+  // emitted a duplicate id) the accounting union is meaningless: one disposition
+  // can satisfy two distinct input lines while MISSING and FOREIGN both stay
+  // silent. This is the ONE condition under which the accounting invariant
+  // cannot be evaluated at all, so it's the ONE place an early-return is
+  // correct inside the normalized branch.
+  if (expected.length !== expectedSet.size) {
+    const seen = new Set();
+    const dups = [];
+    for (const id of expected) {
+      if (seen.has(id) && !dups.includes(id)) dups.push(id);
+      seen.add(id);
+    }
+    violations.push('SPLIT_ID_COLLISION: ' + dups.join(', ') + ' emitted more than once by splitLines');
+    return { ok: false, violations };
+  }
+
+  const arrayNames = ['leadProse', 'keyDetails', 'excluded'];
+  const arrayLists = { leadProse, keyDetails, excluded };
+
+  // CHANGE 3 — MALFORMED disposition entries. An entry whose sourceLineId is
+  // null/undefined/non-string is invalid. Push one MALFORMED per broken entry
+  // and DROP it from downstream accounting (contributes nothing to dispositioned,
+  // never appears in DUPLICATE/OVERLAP/FOREIGN). The input line it should have
+  // owned naturally surfaces as MISSING — both firing together is the intended,
+  // complete diagnosis. Never infer or repair the id.
+  const idsByArray = {};
+  for (const arrName of arrayNames) {
+    const list = arrayLists[arrName];
+    const good = [];
+    for (let idx = 0; idx < list.length; idx++) {
+      const id = list[idx] && list[idx].sourceLineId;
+      if (typeof id !== 'string') {
+        violations.push('MALFORMED: ' + arrName + '[' + idx + '] has no sourceLineId');
+        continue;
+      }
+      good.push(id);
+    }
+    idsByArray[arrName] = good;
+  }
+
+  // 3b: DUPLICATE within a single array.
+  for (const arrName of arrayNames) {
+    const seen = new Set();
+    const dups = [];
+    for (const id of idsByArray[arrName]) {
+      if (id == null) continue;
+      if (seen.has(id) && !dups.includes(id)) dups.push(id);
+      seen.add(id);
+    }
+    if (dups.length > 0) {
+      violations.push('DUPLICATE: ' + dups.join(', ') + ' appears more than once in ' + arrName);
+    }
+  }
+
+  // 3c: OVERLAP — id in more than one of the three arrays.
+  const memberOf = new Map();
+  for (const arrName of arrayNames) {
+    for (const id of idsByArray[arrName]) {
+      if (id == null) continue;
+      if (!memberOf.has(id)) memberOf.set(id, []);
+      const list = memberOf.get(id);
+      if (!list.includes(arrName)) list.push(arrName);
+    }
+  }
+  for (const [id, arrNames] of memberOf) {
+    if (arrNames.length > 1) {
+      const joined = arrNames.length === 2
+        ? 'both ' + arrNames[0] + ' and ' + arrNames[1]
+        : arrNames.slice(0, -1).join(', ') + ', and ' + arrNames[arrNames.length - 1];
+      violations.push('OVERLAP: ' + id + ' in ' + joined);
+    }
+  }
+
+  // Union of dispositioned ids across the three arrays (for 3d/3e).
+  const dispositioned = new Set();
+  for (const arrName of arrayNames) {
+    for (const id of idsByArray[arrName]) if (id != null) dispositioned.add(id);
+  }
+
+  // 3d: MISSING — expected ids not dispositioned. Preserve splitLines order.
+  const missing = expected.filter((id) => !dispositioned.has(id));
+  if (missing.length > 0) {
+    violations.push('MISSING: ' + missing.join(', ') + ' not dispositioned');
+  }
+
+  // 3e: FOREIGN — dispositioned ids not in expected. Preserve first-seen order.
+  const foreignSeen = new Set();
+  const foreign = [];
+  for (const arrName of arrayNames) {
+    for (const id of idsByArray[arrName]) {
+      if (id != null && !expectedSet.has(id) && !foreignSeen.has(id)) {
+        foreignSeen.add(id);
+        foreign.push(id);
+      }
+    }
+  }
+  if (foreign.length > 0) {
+    violations.push('FOREIGN: ' + foreign.join(', ') + ' not in expected line ids');
+  }
+
+  // 3f: warnings ANNOTATE only — sourceLineIds must be a subset of expected.
+  // An empty sourceLineIds array is legal (e.g. FORMAT_HANDLER_DEFERRED).
+  const warningForeignSeen = new Set();
+  const warningForeign = [];
+  for (const w of warnings) {
+    const wids = w && Array.isArray(w.sourceLineIds) ? w.sourceLineIds : [];
+    for (const id of wids) {
+      if (id != null && !expectedSet.has(id) && !warningForeignSeen.has(id)) {
+        warningForeignSeen.add(id);
+        warningForeign.push(id);
+      }
+    }
+  }
+  if (warningForeign.length > 0) {
+    violations.push('WARNING_FOREIGN: ' + warningForeign.join(', ') + ' in warnings.sourceLineIds not in expected');
+  }
+
+  return { ok: violations.length === 0, violations };
+}
+
+module.exports = { normalizeTrailerSpecs, detectTrailerFormat, splitLines, classifyHgr, assignGroup, inferSchemaHint, detectContradictions, assertAccounting };
