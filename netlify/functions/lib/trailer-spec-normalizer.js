@@ -99,18 +99,36 @@ const HGR_GROUPS = [
   ['appliances_equipment', ['refrigerator', 'freezer', 'microwave', 'generator', 'converter', 'battery', 'stereo', 'appliance', 'winch', 'hot water heater']],
 ];
 
-// Compile keyword → RegExp ONCE, at module load. Short keywords (≤3 chars) get
-// word-boundary anchoring on any side whose adjacent char is a word char.
-// A trailing non-word char (e.g. 'ga.') keeps no trailing \b, because \b needs
-// a word char on one side.
+// Compile keyword → RegExp ONCE, at module load. Rule applies to EVERY keyword
+// (no length gate). Only the FIRST and LAST characters of the keyword decide
+// anchoring; punctuation inside is handled by escaping.
+//
+//   LEADING \b   — added when the FIRST char is a word char. Prevents keywords
+//                  from matching inside larger words on the left.
+//   TRAILING     — decided by the LAST char alone:
+//                    alphabetic       → append  s?\b
+//                    other word char  → append  \b
+//                    non-word char    → append  nothing
+//                  The trailing \b is what stops 'frame' from matching inside
+//                  'FRAMELESS', 'wall' inside 'SIDEWALL', 'stud' inside 'STUDDED'.
+//                  The optional 's' is LOAD-BEARING: without it a bare trailing
+//                  \b would drop the ubiquitous plurals — DOORS, AXLES, WHEELS,
+//                  BRAKES, TIRES, CABINETS, CROSSMEMBERS — collapsing much of
+//                  the taxonomy into additional_features. Nothing beyond that:
+//                  no irregular plurals, no stemming.
+//                  A last char that is not a word char (e.g. 'ga.' ending in '.')
+//                  gets no trailing anchor, because \b requires a word char on
+//                  one side.
 function _kwToRegex(kw) {
   const escaped = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  if (kw.length <= 3) {
-    const left  = /^\w/.test(kw) ? '\\b' : '';
-    const right = /\w$/.test(kw) ? '\\b' : '';
-    return new RegExp(left + escaped + right, 'i');
-  }
-  return new RegExp(escaped, 'i');
+  const first = kw.charAt(0);
+  const last  = kw.charAt(kw.length - 1);
+  const left  = /\w/.test(first) ? '\\b' : '';
+  let right;
+  if      (/[a-z]/i.test(last)) right = 's?\\b';
+  else if (/\w/.test(last))     right = '\\b';
+  else                          right = '';
+  return new RegExp(left + escaped + right, 'i');
 }
 const HGR_GROUP_MATCHERS = HGR_GROUPS.map(([group, kws]) => [group, kws.map(_kwToRegex)]);
 
