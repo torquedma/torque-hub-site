@@ -91,12 +91,12 @@ const HGR_GROUPS = [
   ['deck_loading',         ['deck', 'dovetail', 'ramp', 'tilt', 'flat deck', 'bed length', 'slide in', 'treated pine', 'pine floor', 'wood floor', 'trailer floor']],
   ['axles_tires_brakes',   ['axle', 'tire', 'radial', 'brake', 'spring', 'suspension', 'wheel', 'gvwr', 'gawr', 'load range', 'lre', 'lr-e', 'dexter', 'lippert']],
   ['frame_construction',   ['frame', 'i-beam', 'ibeam', 'channel', 'crossmember', 'steel', 'tube', 'gauge', 'ga.', 'beavertail', 'bump rail']],
-  ['coupling_support',     ['coupler', 'gooseneck', 'hitch', 'jack', 'drop leg', 'ball', 'pintle', 'safety chain', 'landing gear']],
+  ['coupling_support',     ['coupler', 'gooseneck', 'hitch', 'jack', 'drop leg', 'ball', 'pintle', 'safety chain', 'landing gear', 'chain tray']],
   ['electrical_lighting',  ['light', 'led', 'wiring', 'harness', 'plug', '7 way', 'rv', 'breakaway', 'break away', 'd.o.t', 'dot', 'receptacle', 'recept']],
   ['finish_convenience',   ['powdercoat', 'powder coat', 'paint', 'color', 'primer', 'sandblast', 'acid wash', 'stake pocket', 'toolbox', 'spare', 'side step', 'd-ring', 'tie down', 'pin stripe', 'stoneguard', 'trim']],
   ['interior_buildout',    ['cabinet', 'wall', 'ceiling', 'floor covering', 'vinyl floor', 'rubber floor', 'plywood wall', 'interior height', 'inside height', 'insulation', 'stud', 'door', 'window', 'screen', 'closet', 'escape door', 'kickplate', 'treadplate']],
-  ['hvac_plumbing',        ['hvac', 'a/c', 'air conditioner', 'furnace', 'sink', 'water tank', 'water heater', 'plumbing', 'propane', 'exhaust hood', 'mini split', 'fresh water', 'freshwater', 'waste tank']],
-  ['appliances_equipment', ['refrigerator', 'freezer', 'microwave', 'generator', 'converter', 'battery', 'stereo', 'appliance', 'winch', 'hot water heater']],
+  ['hvac_plumbing',        ['hvac', 'a/c', 'air conditioner', 'furnace', 'sink', 'water tank', 'water heater', 'plumbing', 'propane', 'exhaust hood', 'mini split', 'fresh water', 'freshwater', 'waste tank', 'bathroom and shower']],
+  ['appliances_equipment', ['refrigerator', 'freezer', 'microwave', 'generator', 'converter', 'battery', 'stereo', 'appliance', 'winch', 'hot water heater', 'refridgerator']],
 ];
 
 // Compile keyword → RegExp ONCE, at module load. Rule applies to EVERY keyword
@@ -147,6 +147,8 @@ const HGR_GROUP_MATCHERS = HGR_GROUPS.map(([group, kws]) => [group, kws.map(_kwT
 // MOST SPECIFIC FIRST; first match wins.
 // ─────────────────────────────────────────────────────────────────────────────
 const HGR_OVERRIDES = [
+  [/^\d+\s*["“”″]?\s*wide\b/i,                           'deck_loading',        'R7 — T1260854 L9 "102” Wide"; bare overall-width dimension. Inch markers only: straight quote, curly quotes, double-prime. Single prime EXCLUDED — it denotes feet. Leading-digit anchor keeps this off "REAR DOOR OPENING WIDTH" and "68\" FROM THE WIDEST POINT".'],
+  [/\bbetween\s+(?:the\s+)?fenders\b/i,                  'deck_loading',        'R7 — S1253510 L6; S1254388 L5; T1261698 L2. One concept, optional article. Must live here rather than in HGR_GROUPS because _kwToRegex escapes metacharacters, so a regex written as a keyword string would be compiled to a literal and match nothing.'],
   [/\b(rear|ramp) door opening\b/i,                      'deck_loading',        'R10 — 223168 L32/L33; TF112953 L12/L13; TA224280 L35/L36'],
   [/\baccess door\b/i,                                   'finish_convenience',  'Ryan judgment — TA224280 L14; gooseneck is location, not function'],
   [/\bside doors?\b/i,                                   'interior_buildout',   'R10 — 223168 L28; TA224280 L37; rv is a door style'],
