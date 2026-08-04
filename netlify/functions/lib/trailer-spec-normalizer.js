@@ -132,8 +132,39 @@ function _kwToRegex(kw) {
 }
 const HGR_GROUP_MATCHERS = HGR_GROUPS.map(([group, kws]) => [group, kws.map(_kwToRegex)]);
 
+// ─────────────────────────────────────────────────────────────────────────────
+// HGR_OVERRIDES — ordered override layer, checked BEFORE the flat HGR_GROUPS map.
+// Encodes OBJECT precedence that a flat first-match keyword map cannot express:
+// e.g. an ACCESS DOOR is a finish item regardless of the 'gooseneck' token on
+// the same line, and a (7)WAY PLUG is electrical regardless of the 'frame'
+// token in a line about wiring welded to the frame.
+//
+// Every entry is backed by a G1 evidence row or an explicit Ryan judgment; no
+// override may be added without one. Entries that produce no behavior change
+// are DELIBERATELY EXCLUDED — regression protection belongs in the fixture
+// diff and the golden assertions, not in production branches.
+//
+// MOST SPECIFIC FIRST; first match wins.
+// ─────────────────────────────────────────────────────────────────────────────
+const HGR_OVERRIDES = [
+  [/\b(rear|ramp) door opening\b/i,                      'deck_loading',        'R10 — 223168 L32/L33; TF112953 L12/L13; TA224280 L35/L36'],
+  [/\baccess door\b/i,                                   'finish_convenience',  'Ryan judgment — TA224280 L14; gooseneck is location, not function'],
+  [/\bside doors?\b/i,                                   'interior_buildout',   'R10 — 223168 L28; TA224280 L37; rv is a door style'],
+  [/(\(7\)|\b7[\s-])way plug\b/i,                        'electrical_lighting', 'R2 — S1253510 L16; S1254388 L15; incidental FRAME'],
+  [/\bbottom trim\b/i,                                   'finish_convenience',  'Ryan judgment — 223168 L15; TA224280 L24; trim is the object, DOT tape a qualifier'],
+  [/\bspare\b.*\b(mount|rack|carrier|compartment)s?\b/i, 'finish_convenience',  'Ryan judgment R6 — storage hardware, not running gear'],
+  [/\btire compartment\b/i,                              'finish_convenience',  'Ryan judgment R6 — TA224280 L57; no "spare" token in line'],
+  [/\bspring assist\b/i,                                 'deck_loading',        'Ryan judgment D1/A1 — load access, not suspension'],
+  [/\bstake pockets?\b/i,                                'deck_loading',        'Ryan judgment D1/A3 — cargo securement'],
+  [/\bstuds?\b/i,                                        'frame_construction',  'Ryan judgment D2/A2 — structural member'],
+  [/\broof bows?\b/i,                                    'frame_construction',  'Ryan judgment D2/A2 — structural member'],
+];
+
 function assignGroup(normalizedLine) {
   const s = normalizedLine == null ? '' : String(normalizedLine);
+  for (const [rx, group] of HGR_OVERRIDES) {
+    if (rx.test(s)) return group;
+  }
   for (const [group, matchers] of HGR_GROUP_MATCHERS) {
     for (const rx of matchers) {
       if (rx.test(s)) return group;
