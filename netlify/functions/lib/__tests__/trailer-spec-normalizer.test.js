@@ -15,6 +15,7 @@ const { createHash } = require('node:crypto');
 
 const { normalizeTrailerSpecs, assertAccounting } = require('../trailer-spec-normalizer');
 const { FIXTURES, raw } = require('./fixtures/trailer-spec-normalizer.fixtures');
+const { GOLDEN_GROUPS } = require('./fixtures/trailer-spec-normalizer.goldens');
 
 function sha16(str) {
   return createHash('sha256').update(str, 'utf8').digest('hex').slice(0, 16);
@@ -165,4 +166,71 @@ test('BLOCK 4 — contradiction mutation (HGR-T1261698)', async (t) => {
       'assertAccounting violations: ' + JSON.stringify(accounting.violations),
     );
   });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BLOCK 5 — GOLDEN GROUPING
+// Frozen expected `group` per keyDetails sourceLineId for the 8 HGR fixtures.
+// Failure here means CODE BEHAVIOR changed; failure in BLOCK 1 means SOURCE
+// BYTES drifted — keep the two diagnostics separate. See the goldens file
+// header for the "regression vs intentional improvement" resolution protocol.
+// ─────────────────────────────────────────────────────────────────────────────
+test('BLOCK 5 — golden grouping', async (t) => {
+  const HGR_STOCKS = FIXTURES
+    .filter((f) => !f.expectsNull && f.expectedHandling === 'normalized' && f.stock.startsWith('HGR-'))
+    .map((f) => f.stock);
+
+  await t.test('golden stocks match HGR normalized fixtures', () => {
+    assert.deepStrictEqual(
+      Object.keys(GOLDEN_GROUPS).slice().sort(),
+      HGR_STOCKS.slice().sort(),
+    );
+  });
+
+  await t.test('well-formedness: group non-empty string; provenance non-empty string when present', () => {
+    for (const stock of Object.keys(GOLDEN_GROUPS)) {
+      for (const id of Object.keys(GOLDEN_GROUPS[stock])) {
+        const e = GOLDEN_GROUPS[stock][id];
+        assert.ok(
+          typeof e.group === 'string' && e.group.length > 0,
+          `${stock} ${id}: group must be a non-empty string (got ${JSON.stringify(e.group)})`,
+        );
+        if ('provenance' in e) {
+          assert.ok(
+            typeof e.provenance === 'string' && e.provenance.length > 0,
+            `${stock} ${id}: provenance must be a non-empty string when present (got ${JSON.stringify(e.provenance)})`,
+          );
+        }
+      }
+    }
+  });
+
+  for (const stock of HGR_STOCKS) {
+    await t.test(stock, () => {
+      const f = FIXTURES.find((x) => x.stock === stock);
+      const result = normalizeTrailerSpecs(raw(f), f.category);
+      const goldForStock = GOLDEN_GROUPS[stock];
+
+      // Completeness, both directions — report BY NAME.
+      const goldIds = new Set(Object.keys(goldForStock));
+      const actualIds = result.keyDetails.map((k) => k.sourceLineId);
+      const actualSet = new Set(actualIds);
+      const missing = actualIds.filter((id) => !goldIds.has(id));
+      const foreign = [...goldIds].filter((id) => !actualSet.has(id));
+      assert.equal(missing.length, 0, `${stock}: missing golden ids: ${missing.join(', ')}`);
+      assert.equal(foreign.length, 0, `${stock}: foreign golden ids (present in golden but not produced): ${foreign.join(', ')}`);
+
+      // Per-line group check with provenance appended on failure.
+      for (const k of result.keyDetails) {
+        const g = goldForStock[k.sourceLineId];
+        if (!g) continue; // already flagged by completeness check
+        const suffix = g.provenance ? ` (provenance: ${g.provenance})` : '';
+        assert.equal(
+          k.group,
+          g.group,
+          `${stock} ${k.sourceLineId}: expected ${g.group}, received ${k.group}${suffix}`,
+        );
+      }
+    });
+  }
 });
