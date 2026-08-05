@@ -210,7 +210,30 @@ function classifyHgr(lines) {
 
   const HEADER_TEXT_LOWER = 'trailers for everything and everything for trailers';
   const DEALER_OFFER_RX   = /^[-·]?\s*(WE CAN ADD|HGR'?S CAN ADD|HGRS? GUARANTEES)/i;
-  const MARKETING_RX      = /^[-·]?\s*GOLD MINE SERIES$/i;
+  // Rule 3 vocabulary. Each alternative is a LITERAL corpus-observed phrase — deliberately
+  // NOT a hype or sentiment detector, which would eventually consume legitimate prose such as
+  // "one-owner, always stored inside" or "recently repacked wheel bearings". The principle is
+  // broad (remove unverifiable promotion, not prose); the implementation is narrow on purpose.
+  // Adding a phrase here requires an OBSERVED CORPUS LINE, not an intuition.
+  //
+  // ANCHORING FOLLOWS THE EVIDENCE, and the asymmetry is deliberate:
+  //   GOLD MINE SERIES / MORE UNITED TRAILERS TO COME — each is an ENTIRE source line, so
+  //     each stays fully anchored.
+  //   WORTH EVERY PENNY — appears INSIDE a long multi-sentence line, so it must be an
+  //     unanchored substring to reach it. It is safe unanchored because it is distinctive
+  //     endorsement language with no equipment meaning and cannot occur in a spec line.
+  //   ONE OBSERVED LINE EARNS ONE RULE: 'NO CORNERS HAVE BEEN CUT' and 'THIS TRAILER IS
+  //     RIGHT' also appear in that same L1 and are deliberately NOT added — WORTH EVERY PENNY
+  //     already matches the line, so they would be pins producing no behavior change. They
+  //     remain part of the recorded evidence for WHY L1 was judged promotional, not
+  //     production branches, until another observed line requires them.
+  //   NEVER anchor on '!!!!' or any punctuation-as-hype signal — a dealer could legitimately
+  //     write '3500# AXLES!!!'.
+  const MARKETING_RX      = new RegExp(
+    '^[-·]?\\s*GOLD MINE SERIES$'
+    + '|^[-·]?\\s*MORE UNITED TRAILERS TO COME$'
+    + '|WORTH EVERY PENNY'
+  , 'i');
   const DELIMITED_RX      = /^[-·]/;
   const MOJIBAKE_RX       = /Ã|Â|\?1\/2/;
   const SPEC_LABEL_RX     = /^(Length|Width|Height|Axle|GVWR|GAWR|Deck|Frame|Tongue)\b\s*\S/i;
