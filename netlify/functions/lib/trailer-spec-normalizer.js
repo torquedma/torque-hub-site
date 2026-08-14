@@ -30,7 +30,7 @@ function splitLines(rawDescription) {
   const out = [];
   if (rawDescription == null) return out;
   const physicalLines = String(rawDescription).split(/\r?\n/);
-  const TAB_SPLIT = /\t+(?=[-·])/;
+  const TAB_SPLIT = /\t+(?=[-·•])/;
 
   let parentIndex = -1;
   for (const rawLine of physicalLines) {
@@ -75,7 +75,7 @@ function detectTrailerFormat(rawDescription) {
   }
   for (const line of src.split(/\r?\n/)) {
     const t = line.trimStart();
-    if (t.startsWith('-') || t.startsWith('·')) return 'hgr_delimited';
+    if (t.startsWith('-') || t.startsWith('·') || t.startsWith('•')) return 'hgr_delimited';
   }
   return 'free_form';
 }
@@ -234,14 +234,14 @@ function classifyHgr(lines) {
     + '|^[-·]?\\s*MORE UNITED TRAILERS TO COME$'
     + '|WORTH EVERY PENNY'
   , 'i');
-  const DELIMITED_RX      = /^[-·]/;
+  const DELIMITED_RX      = /^[-·•]/;
   const MOJIBAKE_RX       = /Ã|Â|\?1\/2/;
   const SPEC_LABEL_RX     = /^(Length|Width|Height|Axle|GVWR|GAWR|Deck|Frame|Tongue)\b\s*\S/i;
   const STARTS_DIGIT_RX   = /^\d/;
   const MEASUREMENT_RX    = /["']|\b(?:lb|lbs|amp|volt|ft|in|ga)\b/i;
 
   const isSpecShaped = (t) => SPEC_LABEL_RX.test(t) || STARTS_DIGIT_RX.test(t) || MEASUREMENT_RX.test(t);
-  const normalizeLine = (text) => text.replace(/^[-·]\s*/, '').replace(/\s+/g, ' ').trim();
+  const normalizeLine = (text) => text.replace(/^[-·•]\s*/, '').replace(/\s+/g, ' ').trim();
 
   // Compute pre-bullet boundary ONCE — do not toggle state in the loop.
   const firstBulletIndex = lines.findIndex(({ text }) => DELIMITED_RX.test(text));
