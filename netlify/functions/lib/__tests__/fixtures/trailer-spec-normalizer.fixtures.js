@@ -351,15 +351,15 @@ const FIXTURES = [
   },
   {
     id: 12,
-    stock: "SYNTHETIC-FREE-FORM-TRAILER",
-    dealer: "(synthetic)",
+    stock: "MAP-296533",
+    dealer: "Mid-Atlantic Power & Equipment",
     category: "Trailers",
-    subcategory: "(synthetic)",
+    subcategory: "Pole Trailer",
 
     // --- integrity (asserted by the fixture-integrity block, before any behavior test) ---
-    chars: 326,
-    bytes: 326,
-    sha256: "b5e7313460800c32",
+    chars: 179,
+    bytes: 179,
+    sha256: "1297253f13f9e563",
     hasTab: false,
     hasZwsp: false,
 
@@ -373,9 +373,9 @@ const FIXTURES = [
     rawNonEmptyLines: 1,
     rawDelimitedLines: 0,
 
-    notes: "SYNTHETIC - NOT FROM THE DATABASE. No real prose-only trailer exists in live inventory (confirmed 2026-08-02 census). Authored to exercise the free_form detection branch. Must never be cited as evidence about real feed content.",
+    notes: "REAL FREE-FORM WITNESS — replaces the synthetic fixture previously occupying id 12, after MAP-296533 proved a real prose-only trailer exists in live inventory. Preserves the same contract role: free_form -> safe_fallback. ★ WHY THIS BODY IS UNUSUALLY GOOD EVIDENCE: it opens with a MATERIAL BUYER DISCLOSURE — 'TRAILER LOOKS AND PULLS FINE BUT DOES HAVE A SALVAGE TITLE.' — followed by real facts (extendable chassis, tire size, all-steel wheels, single fixed rear axle, steel composition). Safe fallback protects that disclosure BY REFUSING TO REINTERPRET IT: the normalizer produces no dispositions and preserves the source body unchanged for the existing description path. A false normalization here would be far more dangerous than doing nothing, which is the argument for safe_fallback in one real unit. Pure ASCII, 179/179, one physical line, zero delimiters, none of the Impex or Allied signature blocks.",
 
-    b64: "Q2xlYW4gMjAxOCB0YW5kZW0gYXhsZSB1dGlsaXR5IHRyYWlsZXIgdGhhdCBoYXMgYmVlbiBrZXB0IHVuZGVyIGNvdmVyIGFuZCBzaG93cyB2ZXJ5IGxpdHRsZSB3ZWFyLiBUaGUgZGVjayB3YXMgcmVzdXJmYWNlZCBsYXN0IHNwcmluZyBhbmQgdGhlIHdpcmluZyB3YXMgZ29uZSB0aHJvdWdoIGF0IHRoZSBzYW1lIHRpbWUuIEJyYWtlcyB3b3JrLCBsaWdodHMgd29yaywgdGlyZXMgaG9sZCBhaXIuIFJlYWR5IHRvIGhvb2sgdXAgYW5kIGdvIHRvIHdvcmsgdG9kYXkuIENhbGwgdGhlIGxvdCBmb3IgZGV0YWlscyBvciB0byBzZXQgdXAgYSB0aW1lIHRvIGxvb2sgaXQgb3Zlci4=",
+    b64: "VFJBSUxFUiBMT09LUyBBTkQgUFVMTFMgRklORSBCVVQgRE9FUyBIQVZFIEEgU0FMVkFHRSBUSVRMRS4gQlVUTEVSIFBPTEUgVFJBSUxFUi4gRXh0ZW5kYWJsZSBjaGFzc2lzLiBUaXJlcyAxMi0xNi41IExULiBBbGwgc3RlZWwgd2hlZWxzLiBTaW5nbGUgZml4ZWQgcmVhciBheGxlLiBTdGVlbCBjb21wb3NpdGlvbi4=",
   },
   {
     id: 13,
