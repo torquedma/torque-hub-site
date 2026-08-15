@@ -25,13 +25,13 @@ function sha16(str) {
 // BLOCK 1 — FIXTURE INTEGRITY (must run first; everything else depends on it)
 // ─────────────────────────────────────────────────────────────────────────────
 test('BLOCK 1 — fixture integrity', async (t) => {
-  await t.test('FIXTURES.length === 14', () => {
-    assert.equal(FIXTURES.length, 14);
+  await t.test('FIXTURES.length === 15', () => {
+    assert.equal(FIXTURES.length, 15);
   });
 
-  await t.test('ids 1..14 present exactly once', () => {
+  await t.test('ids 1..15 present exactly once', () => {
     const ids = FIXTURES.map((f) => f.id).slice().sort((a, b) => a - b);
-    assert.deepStrictEqual(ids, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]);
+    assert.deepStrictEqual(ids, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
   });
 
   for (const f of FIXTURES) {

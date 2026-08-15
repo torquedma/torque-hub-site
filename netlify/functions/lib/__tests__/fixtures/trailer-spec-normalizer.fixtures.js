@@ -433,6 +433,34 @@ const FIXTURES = [
 
     b64: "LVBSSU1FRCBBTkQgUE9XREVSQ09BVEVEIEZSQU1FCgotMTbigJlUaWx0IEJlZCw04oCZIFN0YXRpb25hcnkgRGVjayAgCgrigKIgMTQsMDAwIGxiLiBHLlYuVy5SLgrigKIgNywwMDAgbGIuIHggMiBHLkEuVy5SLgrigKIgQWRqdXN0YWJsZSAyIDUvMTbigJ0gQmFsbCBCdWxsZG9nIENvdXBsZXIK4oCiIFNhZmV0eSBDaGFpbnMK4oCiIDEgLSBEcm9wIExlZyBKYWNrICgxMCwwMDAgbGIuKQrigKIgMiAtIERleHRlciBFLSBaIGx1YmUgQnJha2UgQXhsZXMgKDcsMDAwIGxiLikK4oCiIFRvcnNpb24gU3VzcGVuc2lvbgrigKIgNCAtIDE24oCdIEJsYWNrIE1vZHVsYXIgVHJhaWxlciAgV2hlZWxzCuKAoiA0IC1TVDIzNS84MFIxNiBMb2FkIFJhbmdlIEUgUmFkaWFsIFRyYWlsZXIgVGlyZXMgKDMsNTIwIGxiKQrigKIgU3Rha2UgUG9ja2V0cyAmIFJ1YnJhaWwK4oCiIEVsZWN0cmljIEJyZWFrYXdheSBLaXQgdy8gQ2hhcmdlcgrigKIgRGlhbW9uZCBQbGF0ZSBCb2x0IE9uIEZlbmRlcnMK4oCiIFRvb2wgVHJheSBJbiBUb25ndWUK4oCiIDExIERlZ3JlZSBUaWx0IFBpdGNoCuKAoiAz4oCdIHggMTbigJ0gQ3lsaW5kZXIK4oCiIDbigJ0gQ2hhbm5lbCBGcmFtZSAmIFRvbmd1ZQrigKIgM+KAnSBDaGFubmVsIENyb3NzbWVtYmVycyAxNuKAnSBvbiBDZW50ZXIK4oCiIDLigJ0gVHJlYXRlZCBQaW5lIEx1bWJlciBEZWNrCuKAoiA3NOKAnSBXaWRlIFRpbHRhYmxlIERlY2sK4oCiIDgy4oCdIEJldHdlZW4gRmVuZGVycwrigKIgRE9UIEFwcHJvdmVkIEZsdXNobW91bnQgTGlmZXRpbWUgTEVEIExpZ2h0cwrigKIgMTAgeWVhciBEZXh0ZXIgVG9yZmxleCBBeGxlIFdhcnJhbnR5",
   },
+  {
+    id: 15,
+    stock: "HGR-T3073441",
+    dealer: "HGR's Truck and Trailer",
+    category: "Trailers",
+    subcategory: "Equipment Trailer",
+
+    // --- integrity (asserted by the fixture-integrity block, before any behavior test) ---
+    chars: 699,
+    bytes: 699,
+    sha256: "601297b6ed477735",
+    hasTab: false,
+    hasZwsp: false,
+
+    // --- contract-derived expectations (safe to assert now) ---
+    expectsNull: false,
+    expectedFormat: "free_form",
+    expectedHandling: "safe_fallback",
+    expectedWarningCode: "FORMAT_FREE_FORM",
+
+    // --- observed from bytes alone; anchors, NOT expectations ---
+    rawNonEmptyLines: 24,
+    rawDelimitedLines: 0,
+
+    notes: "★ ADMISSION-GUARD WITNESS — NOT A PERMANENT SEMANTIC GOLDEN. This body is the HGR header plus 23 bare spec lines with NO delimiter of any kind, so it currently detects as free_form and the normalizer returns safe_fallback with zero dispositions, preserving the existing downstream path. CURRENT HANDLING IS A DELIBERATE GOVERNANCE DECISION, NOT A CLAIM THAT THIS UNIT BELONGS IN safe_fallback FOREVER. Stage 1a-V(b) closed EVIDENCE-INSUFFICIENT with no code change. WHAT THE CORPUS SHOWED: only FOUR live zero-delimiter trailers existed; T3073441 and T3073444 are NEAR-DUPLICATE undelimited HGR bodies of the same trailer model, so the affirmative population is closer to n=1 with a variant than n=2; isSpecShaped was FALSIFIED as an admission signal by TTS-993099, 34 characters of prose scoring 100% because an apostrophe in a length trips MEASUREMENT_RX; the HGR header failed both on doctrine (dealer identity is not format evidence) and on evidence (T3073444 has no header); and non-empty line count separated the observed four but had NO multi-line prose adversary to falsify it against. The admission boundary was therefore left unchanged as the conservative current decision. ★ THIS FIXTURE GUARDS AGAINST: accidental detector loosening, a dealer-identity shortcut, and a future 'looks structured enough' heuristic arriving without corpus evidence. ★ CHANGING THIS FIXTURE'S EXPECTED HANDLING REQUIRES REOPENING 1a-V(b) WITH NEW CORPUS EVIDENCE — see the Stage 1a-V closeout for the reopen conditions and the three explicit do-nots. A red test here is the tripwire working: it forces whoever widens detection to confront the decision they are changing instead of sweeping this unit into normalization because a regex got broader.",
+
+    b64: "VFJBSUxFUlMgRk9SIEVWRVJZVEhJTkcgQU5EIEVWRVJZVEhJTkcgRk9SIFRSQUlMRVJTCgoyNTAwMGxiIEdvb3NlbmVjayBDb3VwbGVyCjE2JyBUaWx0IHdpdGggNCcgU3RhdGlvbmFyeSBEZWNrCjE0LDAwMCBsYi4gRy5WLlcuUi4KNywwMDAgbGIuIHggMiBHLkEuVy5SLgpTYWZldHkgQ2hhaW5zCjEgLSBEcm9wIExlZyBKYWNrICgxMCwwMDAgbGIuKQoyIC0gRGV4dGVyIEUtIFogbHViZSBCcmFrZSBBeGxlcyAoNywwMDAgbGIuKQpUb3JzaW9uIFN1c3BlbnNpb24KNCAtIDE2IiBCbGFjayBNb2QgVHJhaWxlciBXaGVlbHMKNCAtIFNUMjM1LzgwUjE2IFJhZGlhbCBUaXJlcyAoMyw1MjAgbGIpClN0YWtlIFBvY2tldHMgJiBSdWJyYWlsCkVsZWN0cmljIEJyZWFrYXdheSBLaXQgdy8gQ2hhcmdlcgpEaWFtb25kIFBsYXRlIEJvbHQgT24gRmVuZGVycwpUb29sIFRyYXkgSW4gVG9uZ3VlCjExIERlZ3JlZSBUaWx0IFBpdGNoCjMiIHggMTYiIEN5bGluZGVyCjYiIENoYW5uZWwgRnJhbWUgJiBUb25ndWUKMyIgQ2hhbm5lbCBDcm9zc21lbWJlcnMgMTYiIG9uIENlbnRlcgoyIiBUcmVhdGVkIFBpbmUgTHVtYmVyIERlY2sKNzQiIFdpZGUgVGlsdGFibGUgRGVjawo4MiIgQmV0d2VlbiBGZW5kZXJzCkRPVCBBcHByb3ZlZCBGbHVzaG1vdW50IExpZmV0aW1lIExFRCBMaWdodHMKMTAgeWVhciBEZXh0ZXIgVG9yZmxleCBBeGxlIFdhcnJhbnR5",
+  },
 ];
 
 /** Decode a fixture body to its exact source string. */
