@@ -405,6 +405,34 @@ const FIXTURES = [
 
     b64: "MjAxNSBGb3JkIEYtNzUwIOKAkyBNZWRpdW0tRHV0eSBEaWVzZWwgRHVtcCBUcnVjawoKS2V5IERldGFpbHMKLSBZZWFyOiAyMDE1Ci0gTWFrZTogRm9yZAotIE1vZGVsOiBGLTc1MAotIE1pbGVhZ2U6IDE2OCwxODQKLSBFbmdpbmU6IDYuN2wgNi1DeWwKLSBUcmFuc21pc3Npb246IEF1dG9tYXRpYwotIERyaXZldHJhaW46IDR4MgotIEZ1ZWw6IERpZXNlbAotIEdWV1I6IENsYXNzIDY6IDE5LDUwMSAtIDI2LDAwMCBsYiAoOCw4NDUgLSAxMSw3OTQga2cpCi0gQm9keSBDbGFzczogVHJ1Y2sKLSBIb3JzZXBvd2VyOiAyNDAgSFAKLSBUb3JxdWU6IDU2MCBsYi1mdAotIFByaWNlOiAkMjUsOTAwCi0gVklOOiAzRlJXRjdGQ1hGVjUyNTE2NwotIFN0b2NrICM6IERTRS02NTU2CgpPdmVydmlldwpUaGlzIDIwMTUgRm9yZCBGLTc1MCBpcyBwb3dlcmVkIGJ5IGEgNi43TCBkaWVzZWwgZW5naW5lIHdpdGggYXV0b21hdGljIHRyYW5zbWlzc2lvbiBpbiBhIDR4MiBjb25maWd1cmF0aW9uLCBzaG93aW5nIDE2OCwxODQgbWlsZXMuIEJ1aWx0IGZvciBjb250cmFjdG9yIGpvYnNpdGUgd29yaywgbWF0ZXJpYWwgaGF1bGluZywgYW5kIGVxdWlwbWVudCBkZWxpdmVyeS4gUmVhZHkgZm9yIHJlbGlhYmxlIHBlcmZvcm1hbmNlIGFjcm9zcyBhIHZhcmlldHkgb2YgaGF1bGluZyBhcHBsaWNhdGlvbnMuCgpJbnRlcmVzdGVkIEluIFRoaXMgVW5pdD8KQ2FsbCBEaWNrIFNtaXRoIEVxdWlwbWVudDogOTE5LTczNC0xMTkxIHwgR29sZHNib3JvLCBOQw==",
   },
+  {
+    id: 14,
+    stock: "HGR-V1438778",
+    dealer: "HGR's Truck and Trailer",
+    category: "Trailers",
+    subcategory: "Equipment Trailer",
+
+    // --- integrity (asserted by the fixture-integrity block, before any behavior test) ---
+    chars: 763,
+    bytes: 831,
+    sha256: "3f7d666dc96bb1b8",
+    hasTab: false,
+    hasZwsp: false,
+
+    // --- contract-derived expectations (safe to assert now) ---
+    expectsNull: false,
+    expectedFormat: "hgr_delimited",
+    expectedHandling: "normalized",
+    expectedWarningCode: null,
+
+    // --- observed from bytes alone; anchors, NOT expectations ---
+    rawNonEmptyLines: 24,
+    rawDelimitedLines: 24,
+
+    notes: "U+2022 DELIMITER WITNESS — the reason this fixture exists. 22 of its 24 lines begin with U+2022 BULLET; the other 2 begin with a hyphen. Before Stage 1a-V(a) (c72ebe8) those 22 lines failed the delimited test and were graded confidence:'low' instead of 'high' — the harm was SYSTEMATIC MISGRADING, not loss, and low confidence is what loses a contradiction. All 24 lines are delimited, so expect zero leadProse, zero excluded, zero warnings. NOTE L0 'PRIMED AND POWDERCOATED FRAME' is delimited but NOT spec-shaped; it groups by the 'frame' keyword. ★ FIVE OBSERVED MISGROUPINGS ARE FROZEN AS-IS AND ARE KNOWN DEFECTS, NOT EXPECTATIONS — see the per-line provenance in the goldens file.",
+
+    b64: "LVBSSU1FRCBBTkQgUE9XREVSQ09BVEVEIEZSQU1FCgotMTbigJlUaWx0IEJlZCw04oCZIFN0YXRpb25hcnkgRGVjayAgCgrigKIgMTQsMDAwIGxiLiBHLlYuVy5SLgrigKIgNywwMDAgbGIuIHggMiBHLkEuVy5SLgrigKIgQWRqdXN0YWJsZSAyIDUvMTbigJ0gQmFsbCBCdWxsZG9nIENvdXBsZXIK4oCiIFNhZmV0eSBDaGFpbnMK4oCiIDEgLSBEcm9wIExlZyBKYWNrICgxMCwwMDAgbGIuKQrigKIgMiAtIERleHRlciBFLSBaIGx1YmUgQnJha2UgQXhsZXMgKDcsMDAwIGxiLikK4oCiIFRvcnNpb24gU3VzcGVuc2lvbgrigKIgNCAtIDE24oCdIEJsYWNrIE1vZHVsYXIgVHJhaWxlciAgV2hlZWxzCuKAoiA0IC1TVDIzNS84MFIxNiBMb2FkIFJhbmdlIEUgUmFkaWFsIFRyYWlsZXIgVGlyZXMgKDMsNTIwIGxiKQrigKIgU3Rha2UgUG9ja2V0cyAmIFJ1YnJhaWwK4oCiIEVsZWN0cmljIEJyZWFrYXdheSBLaXQgdy8gQ2hhcmdlcgrigKIgRGlhbW9uZCBQbGF0ZSBCb2x0IE9uIEZlbmRlcnMK4oCiIFRvb2wgVHJheSBJbiBUb25ndWUK4oCiIDExIERlZ3JlZSBUaWx0IFBpdGNoCuKAoiAz4oCdIHggMTbigJ0gQ3lsaW5kZXIK4oCiIDbigJ0gQ2hhbm5lbCBGcmFtZSAmIFRvbmd1ZQrigKIgM+KAnSBDaGFubmVsIENyb3NzbWVtYmVycyAxNuKAnSBvbiBDZW50ZXIK4oCiIDLigJ0gVHJlYXRlZCBQaW5lIEx1bWJlciBEZWNrCuKAoiA3NOKAnSBXaWRlIFRpbHRhYmxlIERlY2sK4oCiIDgy4oCdIEJldHdlZW4gRmVuZGVycwrigKIgRE9UIEFwcHJvdmVkIEZsdXNobW91bnQgTGlmZXRpbWUgTEVEIExpZ2h0cwrigKIgMTAgeWVhciBEZXh0ZXIgVG9yZmxleCBBeGxlIFdhcnJhbnR5",
+  },
 ];
 
 /** Decode a fixture body to its exact source string. */
