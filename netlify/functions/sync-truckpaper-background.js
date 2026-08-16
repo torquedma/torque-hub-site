@@ -618,7 +618,11 @@ exports.handler = async (event) => {
             const desc = await generateDescription(unit, dealerInfo, anthropicKey);
             if (desc) unit.description = desc;
           } catch (e) {
-            console.error(`Description generation failed for ${stock}:`, e.message);
+            if (e.code === 'INSUFFICIENT_EVIDENCE') {
+              console.log(`[SKIP-INSUFFICIENT-EVIDENCE] ${stock} — no source evidence and insufficient canonical identity; no description generated`);
+            } else {
+              console.error(`Description generation failed for ${stock}:`, e.message);
+            }
           }
         }
 

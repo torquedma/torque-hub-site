@@ -100,6 +100,7 @@ exports.handler = async (event) => {
   console.log(`generate-dx-background: ${(rows || []).length} total fetched, ${total_candidates} candidates, processing ${candidates.length} (limit=${stocksList ? 'n/a (stocks mode)' : (limit ?? 'none')})`);
 
   let processed = 0, skipped_no_contact = 0, skipped_error = 0;
+  let skipped_insufficient_evidence = 0;
 
   for (const unit of candidates) {
     // ── (b) dealerMap replaces DEALER_CONTACT lookup ─────────────────────
@@ -141,12 +142,17 @@ exports.handler = async (event) => {
         processed++;
       }
     } catch (err) {
-      console.error(`[SKIP-ERROR] ${unit.stock} (${unit.dealer}):`, err.message);
-      skipped_error++;
+      if (err.code === 'INSUFFICIENT_EVIDENCE') {
+        console.log(`[SKIP-INSUFFICIENT-EVIDENCE] ${unit.stock} (${unit.dealer}) — no source evidence and insufficient canonical identity; existing description left unchanged`);
+        skipped_insufficient_evidence++;
+      } else {
+        console.error(`[SKIP-ERROR] ${unit.stock} (${unit.dealer}):`, err.message);
+        skipped_error++;
+      }
     }
   }
 
-  const summary = { total_candidates, processed, skipped_no_contact, skipped_error, limit_applied: stocksList ? 'n/a (stocks mode)' : (limit ?? 'none'), stocks_requested: stocksList ? stocksList.length : null, stock_filter: stocksList ? stocksList : stockParam, force: forceAll };
+  const summary = { total_candidates, processed, skipped_no_contact, skipped_error, skipped_insufficient_evidence, limit_applied: stocksList ? 'n/a (stocks mode)' : (limit ?? 'none'), stocks_requested: stocksList ? stocksList.length : null, stock_filter: stocksList ? stocksList : stockParam, force: forceAll };
   console.log('generate-dx-background complete:', JSON.stringify(summary));
   return { statusCode: 200, body: JSON.stringify(summary) };
 };
