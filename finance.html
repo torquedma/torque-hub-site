@@ -438,6 +438,13 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
 </footer>
 
 <script>
+// Public browser-side Supabase config, matching the pattern already used in
+// js/inventory-engine.js and vehicle.html. The anon key is public by design.
+// DEBT: this is now the fourth copy of this config in the repo.
+const SB_URL  = 'https://bxsikkmqasydosmblzov.supabase.co';
+const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4c2lra21xYXN5ZG9zbWJsem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTc1OTksImV4cCI6MjA5MDQ3MzU5OX0.JMEI7cx2tddmbvfqm_qxiIWp7f5Phuk5l0Y487DUSZg';
+const SB_HDRS = { apikey: SB_ANON, Authorization: 'Bearer ' + SB_ANON };
+
 const params = new URLSearchParams(window.location.search);
 const stock = params.get("stock") || "";
 const unit = params.get("unit") || "";
@@ -447,6 +454,36 @@ const lender = params.get("lender") || "";
 const rep = params.get("rep") || "";
 const dealer = params.get("dealer") || "";
 
+// financeSubject answers WHAT is being financed. sellerContext answers WHO is selling
+// and how we know. They are deliberately separate: subject identity is not routing
+// identity, and a valid subject may have no route at all.
+let financeSubject = { mode: 'none', torqueHub: null, external: null };
+// mode: 'none' | 'torque_hub' | 'external'
+// torqueHub: { stock, title, listingPrice, sold } — SET ONLY BY INVENTORY RESOLUTION
+// external:  { year, make, model, externalPrice } — buyer claim (5b-ii)
+let sellerContext = { seller: null, basis: 'none' };
+// basis: 'inventory_row' | 'src_map' | 'url_param' | 'buyer_selected' | 'none'
+let urlCandidateStock = stock || '';   // a STRING. Not identity until inventory says so.
+
+function renderSubject() {
+  if (financeSubject.mode !== 'torque_hub') return;
+  const s = financeSubject.torqueHub;
+  document.getElementById('contextUnit').textContent = s.title;
+  if (s.listingPrice) document.getElementById('contextPrice').textContent =
+    '$' + Number(String(s.listingPrice).replace(/[^0-9.]/g, '')).toLocaleString();
+  document.getElementById('contextBox').style.display = 'block';
+  document.getElementById('f-stock').value = s.stock;
+  document.getElementById('f-unit').value = s.title;
+  if (sellerContext.seller) {
+    const d = document.getElementById('f-dealer-display');
+    d.textContent = 'Seller: ' + sellerContext.seller;
+    d.style.display = 'block';
+  }
+}
+
+// PRESENTATION HINT ONLY, derived from the URL. This is NOT evidence of identity and
+// MUST NOT flow into financeSubject or the payload. Only inventory resolution can
+// promote urlCandidateStock into a torque_hub subject.
 if (unit || stock) {
   const unitLabel = unit ? unit.replace(/-/g," ").replace(/\b\w/g, l => l.toUpperCase()) : "Stock # " + stock;
   document.getElementById("contextUnit").textContent = unitLabel;
@@ -455,6 +492,35 @@ if (unit || stock) {
   document.getElementById("f-unit-display").value = unitLabel;
   document.getElementById("f-unit-display").setAttribute("readonly", true);
 }
+
+async function resolveCandidateStock() {
+  if (!urlCandidateStock) return;
+  try {
+    // NO sold filter: a sold unit still satisfies financing-subject identity.
+    // sold is fetched for PRESENTATION only.
+    const url = SB_URL + '/rest/v1/inventory_cards?select=stock,year,make,model,trim,price,dealer,sold&stock=eq.'
+                + encodeURIComponent(urlCandidateStock) + '&limit=1';
+    const r = await fetch(url, { headers: SB_HDRS });
+    if (!r.ok) return;
+    const rows = await r.json();
+    if (!Array.isArray(rows) || rows.length === 0) return;   // presence is not identity
+    const row = rows[0];
+    financeSubject.mode = 'torque_hub';
+    financeSubject.torqueHub = {
+      stock: row.stock,
+      title: [row.year, row.make, row.model, row.trim].filter(Boolean).join(' '),
+      listingPrice: row.price != null ? String(row.price) : null,
+      sold: !!row.sold
+    };
+    if (row.dealer) { sellerContext.seller = row.dealer; sellerContext.basis = 'inventory_row'; }
+    renderSubject();
+  } catch (e) {
+    // Fail open. An unresolved candidate leaves mode 'none' and the buyer keeps the
+    // legacy path until 5b-ii provides selection controls.
+    console.error('candidate stock resolution failed:', e);
+  }
+}
+resolveCandidateStock();
 
 document.getElementById("f-stock").value = stock;
 document.getElementById("f-unit").value = unit;
@@ -535,6 +601,10 @@ const SRC_TO_DEALER = {
     display.textContent = "Seller: " + resolved;
     display.style.display = "block";
   }
+  if (resolved && sellerContext.basis !== 'inventory_row') {
+    sellerContext.seller = resolved;
+    sellerContext.basis = (dealer && DEALERS.indexOf(dealer) !== -1) ? 'url_param' : 'src_map';
+  }
 })();
 
 // Source label intentionally hidden from buyers — attribution flows via #f-source and payload.
@@ -570,7 +640,6 @@ function submitFinance() {
   const credit = document.getElementById("f-credit").value;
   const business = document.getElementById("f-business").value.trim();
   const revenue = document.getElementById("f-revenue").value.trim();
-  const unitDisplay = document.getElementById("f-unit-display").value.trim();
 
   if (!name) { alert("Please enter your name."); return; }
   if (phoneDigits.length !== 10) { alert("Please enter a valid 10-digit phone number."); return; }
@@ -593,6 +662,17 @@ function submitFinance() {
   const downPayment = document.getElementById("f-down-payment").value;
   const timeframe = document.getElementById("f-timeframe").value;
 
+  // TEMPORARY 5b-i COMPATIBILITY: the legacy controls are still the buyer's only
+  // inputs. They may feed state ONLY while nothing authoritative exists. 5b-ii
+  // replaces them.
+  const unitDisplay = document.getElementById("f-unit-display").value.trim();
+  // NOTE: no write-back into financeSubject.torqueHub. Once a candidate resolves,
+  // stock, title, listingPrice and sold come from the inventory row and NOTHING
+  // may modify them — not the URL, not a legacy control, not a hidden field.
+  if (selectedDealer && sellerContext.basis !== 'inventory_row') {
+    sellerContext.seller = selectedDealer; sellerContext.basis = 'buyer_selected';
+  }
+
   const payload = {
     customer_name: name,
     customer_phone: phone,
@@ -603,13 +683,15 @@ function submitFinance() {
       business ? "Business: " + business : null,
       revenue ? "Monthly Revenue: " + revenue : null,
     ].filter(Boolean).join("\n"),
-    stock_number: stock || null,
-    listing_title: unitDisplay || unit || null,
+    // mode 'none' yields a null subject — identical to today's direct-link behavior.
+    // This is temporary compatibility, NOT evidence that resolution completed.
+    stock_number:  financeSubject.mode === 'torque_hub' ? financeSubject.torqueHub.stock : null,
+    listing_title: financeSubject.mode === 'torque_hub' ? financeSubject.torqueHub.title : (unitDisplay || null),
     source_url: window.location.href,
     referrer: document.getElementById("f-referrer").value,
     source: document.getElementById("f-source").value,
     status: "new",
-    dealer_name: selectedDealer || "Torque Hub Finance Lead",
+    dealer_name: sellerContext.seller || "Torque Hub Finance Lead",
     lender: lender || null,
     rep: rep || null,
     credit_score: credit || null,
@@ -621,9 +703,9 @@ function submitFinance() {
 
   const canonical = {
     source:        document.getElementById("f-source").value,
-    dealer:        selectedDealer || document.getElementById("f-dealer").value,
-    stock_number:  document.getElementById("f-stock").value,
-    vehicle_title: document.getElementById("f-unit-display").value || document.getElementById("f-unit").value,
+    dealer:        sellerContext.seller || "",
+    stock_number:  financeSubject.mode === 'torque_hub' ? financeSubject.torqueHub.stock : "",
+    vehicle_title: financeSubject.mode === 'torque_hub' ? financeSubject.torqueHub.title : (unitDisplay || ""),
     buyer_name:    name,
     buyer_email:   email,
     buyer_phone:   phone,
