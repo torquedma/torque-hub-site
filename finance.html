@@ -241,6 +241,7 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
         <div id="submit-area">
           <p style="font-size:12px;color:#64748b;text-align:center;margin-top:4px">Phone required so a financing rep can move fast on your behalf.</p>
           <p style="color:#86efac;text-align:center;font-size:12px;font-style:italic;margin:6px 0 10px">Financing starts with a soft credit check that will not affect your credit score.</p>
+          <div id="phase-1-error" style="display:none; margin:0 0 10px; padding:12px 14px; border-radius:10px; border:1px solid rgba(248,113,113,0.35); background:rgba(248,113,113,0.10); color:#fca5a5; font-size:14px; text-align:center; line-height:1.5;"></div>
           <button class="btn-submit" id="submit-btn" onclick="submitFinance()">Continue to Business Details</button>
         </div>
         <p class="trust">Your information is secure and will only be used to match you with financing options.</p>
@@ -558,7 +559,10 @@ function formatPhone(raw) {
   if (pe) pe.addEventListener("input", function () { this.value = formatPhone(this.value); });
 })();
 
+let financeSubmitting = false;
+
 function submitFinance() {
+  if (financeSubmitting) return;
   const name = document.getElementById("f-name").value.trim();
   const phoneDigits = normalizePhoneDigits(document.getElementById("f-phone").value);
   const phone = formatPhone(phoneDigits);   // formatted "(XXX) XXX-XXXX" → customer_phone, buyer_phone, message, prefill
@@ -581,6 +585,10 @@ function submitFinance() {
   const btn = document.getElementById("submit-btn");
   btn.disabled = true;
   btn.textContent = "Submitting...";
+  financeSubmitting = true;
+  const errEl = document.getElementById("phase-1-error");
+  errEl.style.display = "none";
+  errEl.textContent = "";
 
   const downPayment = document.getElementById("f-down-payment").value;
   const timeframe = document.getElementById("f-timeframe").value;
@@ -622,25 +630,48 @@ function submitFinance() {
     business_name: business || null
   };
 
+  const handlePhase1Failure = () => {
+    financeSubmitting = false;
+    btn.disabled = false;
+    btn.textContent = "Continue to Business Details";
+    errEl.textContent = "We couldn't submit your application. Your information is still here — please try again.";
+    errEl.style.display = "block";
+    errEl.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
   fetch("/.netlify/functions/submit-lead", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
   }).then(async r => {
-    if (!r.ok) throw new Error("failed");
-    return r.json();
-  }).then(res => handleLeadCreated(res, canonical)).catch(() => {
-    const subject = encodeURIComponent("Finance Application - " + (unitDisplay || stock || "General"));
-    const body = encodeURIComponent("Name: " + name + "\nPhone: " + phone + "\nEmail: " + email + "\nCredit: " + credit + "\nBusiness: " + business + "\nRevenue: " + revenue + "\nUnit: " + unitDisplay + "\nStock: " + stock + "\nSource: " + src);
-    window.location.href = "mailto:leads@torquedma.com?subject=" + subject + "&body=" + body;
-    showSuccess();
+    if (!r.ok) { handlePhase1Failure(); return; }
+
+    // ★ ACCEPTANCE BOUNDARY CROSSED. A 2xx means the server accepted the POST and the
+    // lead may/does exist. financeSubmitting stays TRUE permanently for this submission.
+    // Nothing below may re-enable Phase 1 — a retry here would create a duplicate lead.
+
+    let res = null;
+    try { res = await r.json(); }
+    catch (e) { console.error("2xx response body unusable:", e); }
+
+    try {
+      handleLeadCreated(res, canonical);
+    } catch (e) {
+      console.error("handleLeadCreated failed after acceptance:", e);
+      try { showSuccess(); }
+      catch (successError) { console.error("showSuccess failed after acceptance:", successError); }
+    }
+  }, err => {
+    // fetch itself rejected — no HTTP response was ever observed.
+    console.error("Finance submission request failed:", err);
+    handlePhase1Failure();
   });
 }
 
 function showSuccess() {
   document.getElementById("form-inner").style.display = "none";
   document.getElementById("form-success").style.display = "block";
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  document.getElementById("form-success").scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
 function handleLeadCreated(res, canonical) {
