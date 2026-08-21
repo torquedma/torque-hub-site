@@ -588,7 +588,7 @@ document.getElementById("f-page-url").value = window.location.href;
 document.getElementById("f-lender").value = lender;
 document.getElementById("f-rep").value = rep;
 
-// Lender-agnostic, route_code-keyed config. submit-lead returns route_code on
+// Lender-agnostic, route_code-keyed config. submit-finance-lead returns route_code on
 // success; if it maps to an entry here, we reveal the lender's inline credit
 // app prefilled via URL params. Unmapped routes fall through to showSuccess().
 const LENDER_FORM_CONFIGS = {
@@ -953,7 +953,7 @@ function submitFinance() {
     errEl.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
-  fetch("/.netlify/functions/submit-lead", {
+  fetch("/.netlify/functions/submit-finance-lead", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
@@ -1039,7 +1039,7 @@ function submitBusinessInfo() {
 
   if (!pendingLender) { showSuccess(); return; }
 
-  fetch("/.netlify/functions/update-lead", {
+  fetch("/.netlify/functions/update-finance-lead", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -1053,7 +1053,7 @@ function submitBusinessInfo() {
       business_zip:     business_zip
     })
   }).then(r => {
-    if (!r.ok) throw new Error("update-lead failed");
+    if (!r.ok) throw new Error("update-finance-lead failed");
     pendingLender.business = { business_type, time_in_business, business_street, business_city, business_state, business_zip };
     revealLenderEmbed();
   }).catch(() => {
