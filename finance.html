@@ -857,6 +857,18 @@ function formatPhone(raw) {
 
 let financeSubmitting = false;
 
+// Submission-scoped Meta event id. One id per submission attempt.
+// Never generate it at page load or inside the tracking call.
+// If/when a server-side Conversions API event is added, this SAME id
+// must also be sent to the server for that submission so Meta can
+// deduplicate the browser and server events.
+function newEventId() {
+  try {
+    if (window.crypto && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+  } catch (e) {}
+  return 'e-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+}
+
 function submitFinance() {
   if (financeSubmitting) return;
   const name = document.getElementById("f-name").value.trim();
@@ -953,6 +965,11 @@ function submitFinance() {
     errEl.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
+  // One id per submission attempt. The financeSubmitting guard at the top
+  // of submitFinance() prevents re-entry after acceptance, so an accepted
+  // POST cannot emit two ids; a retry after a failed POST gets a new one.
+  const leadEventId = newEventId();
+
   fetch("/.netlify/functions/submit-finance-lead", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -963,6 +980,22 @@ function submitFinance() {
     // ★ ACCEPTANCE BOUNDARY CROSSED. A 2xx means the server accepted the POST and the
     // lead may/does exist. financeSubmitting stays TRUE permanently for this submission.
     // Nothing below may re-enable Phase 1 — a retry here would create a duplicate lead.
+
+    // Meta conversion event, fired at the acceptance fact. NOT at
+    // showSuccess(): that function is skipped entirely when a lead routes
+    // to a lender, so anchoring there would drop exactly the leads that
+    // routed. Telemetry is non-authoritative and must never alter
+    // buyer-visible state, so it may not throw into the acceptance path.
+    try {
+      if (typeof fbq === 'function') {
+        const p = { subject_mode: financeSubject.mode };
+        if (financeSubject.mode === 'torque_hub' && financeSubject.torqueHub.stock) {
+          p.content_type = 'product';
+          p.content_ids  = [String(financeSubject.torqueHub.stock)];
+        }
+        fbq('track', 'Lead', p, { eventID: leadEventId });
+      }
+    } catch (e) { console.warn('Meta Lead event failed:', e); }
 
     let res = null;
     try { res = await r.json(); }
@@ -1039,6 +1072,10 @@ function submitBusinessInfo() {
 
   if (!pendingLender) { showSuccess(); return; }
 
+  // One id per business-info attempt. The button stays disabled unless the
+  // .catch below re-enables it, so one acceptance emits exactly one id.
+  const applicationEventId = newEventId();
+
   fetch("/.netlify/functions/update-finance-lead", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -1054,6 +1091,21 @@ function submitBusinessInfo() {
     })
   }).then(r => {
     if (!r.ok) throw new Error("update-finance-lead failed");
+    // Phase 2 acceptance fact. Wrapped for a second reason beyond Phase 1:
+    // an exception here would be caught by the trailing .catch(), which
+    // re-enables the button and tells a buyer their saved application
+    // failed.
+    try {
+      if (typeof fbq === 'function') {
+        const p = { subject_mode: financeSubject.mode };
+        if (financeSubject.mode === 'torque_hub' && financeSubject.torqueHub.stock) {
+          p.content_type = 'product';
+          p.content_ids  = [String(financeSubject.torqueHub.stock)];
+        }
+        fbq('track', 'SubmitApplication', p, { eventID: applicationEventId });
+      }
+    } catch (e) { console.warn('Meta SubmitApplication event failed:', e); }
+
     pendingLender.business = { business_type, time_in_business, business_street, business_city, business_state, business_zip };
     revealLenderEmbed();
   }).catch(() => {
