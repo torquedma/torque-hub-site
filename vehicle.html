@@ -340,7 +340,7 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
       </a>
       <div class="nav-right">
         <a href="/inventory.html" class="nav-back">← All Inventory</a>
-        <a href="/finance.html?src=vdp_nav" class="nav-cta btn" style="min-height:auto;padding:9px 16px;border-radius:9px;font-size:13px">Get Financing</a>
+        <a href="/finance.html?src=vdp_nav" id="nav-finance" class="nav-cta btn" style="min-height:auto;padding:9px 16px;border-radius:9px;font-size:13px">Get Financing</a>
       </div>
     </nav>
   </div>
@@ -1057,11 +1057,18 @@ function render(unit, dealerKey) {
   if (mobileCall) { mobileCall.href = callHref; mobileCall.textContent = `📞 Call ${d.phone || 'Now'}`; }
   const mobileBar = el('mobile-bar'); if (mobileBar) mobileBar.style.display = 'flex';
 
-  // Finance URL (used by sticky mobile bar + mobile price strip)
+  // Carry the viewed unit into finance.html for automatic subject resolution.
+  // Before 5b-ii, stock-less entry points produced 34 real subject-less leads
+  // across three months. The picker now prevents that failure, but preserving
+  // stock here also prevents desktop buyers from having to re-identify the unit.
   const unitSlug = title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
   const priceNum = parseFloat(String(unit.price || '').replace(/[^0-9.]/g, '')) || '';
-  const financeUrl = `/finance.html?stock=${encodeURIComponent(unit.stock || '')}&unit=${encodeURIComponent(unitSlug)}&price=${priceNum}&src=listing`;
+  const financeBase = `/finance.html?stock=${encodeURIComponent(unit.stock || '')}&unit=${encodeURIComponent(unitSlug)}&price=${priceNum}`;
+  // Preserve src per entry point: this attribution exposed the desktop/mobile
+  // asymmetry and remains the instrument for measuring this fix.
+  const financeUrl = `${financeBase}&src=listing`;
   const mobileFinance = el('mobile-finance');if (mobileFinance) mobileFinance.href = financeUrl;
+  const navFinance = el('nav-finance'); if (navFinance) navFinance.href = `${financeBase}&src=vdp_nav`;
 
   // Dealer card
   const dName = el('d-name'); if (dName) dName.textContent = dealerKey || unit.dealer;
