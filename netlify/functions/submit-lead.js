@@ -2,31 +2,35 @@ const { Resend } = require('resend');
 const { createClient } = require('@supabase/supabase-js');
 
 // Raw source is stored in Supabase unchanged; this label appears in email subjects.
-// Add new explicit cases here; SEO and generic torque_hub_ variants are caught below.
+// This is the GENERIC lead endpoint. Finance sources are served by submit-finance-lead;
+// if one appears here it is stale traffic - persisted and warned, never finance-routed.
 function getSourceLabel(source) {
   switch (source) {
-    case 'finance_form':               return 'Finance Form';
-    case 'torque_hub_listing':         return 'Finance Form (VDP)';
-    case 'torque_hub_direct':          return 'Finance Form';
-    case 'torque_hub_homepage':        return 'Finance Form';
-    case 'torque_hub_qr':              return 'Finance Form (QR)';
-    case 'torque_hub_reel':            return 'Finance Form (Reel)';
-    case 'torque_hub_featured':        return 'Finance Form';
-    case 'torque_hub_nav':             return 'Finance Form (Site Nav)';
-    case 'torque_hub_vdp_nav':         return 'Finance Form (VDP Nav)';
-    case 'torque_hub_hero':            return 'Finance Form (Hero)';
-    case 'torque_hub_bottom':          return 'Finance Form (Bottom)';
-    case 'torque_hub_mobile':          return 'Finance Form (Mobile)';
-    case 'vehiclenetwork':              return 'Finance Form (Vehicle Network)';
-    case 'autoconnection210':          return 'Finance Form (Auto Connection 210)';
     case 'vdp':                        return 'Vehicle Inquiry';
     case 'lender_partner_application': return 'Lender Partner Inquiry';
     case 'dealer_partner_application': return 'Dealer Partner Inquiry';
-    default:
-      if (source && source.startsWith('torque_hub_seo_')) return 'Finance Form (SEO)';
-      if (source && source.startsWith('torque_hub_'))     return 'Finance Form';
-      return source || 'Finance Form';
+    default:                           return source || 'Lead';
   }
+}
+
+// Finance-shaped detection. Two independent signals: a finance source label, or the
+// presence of finance-only payload fields. Detection NEVER changes handling - the lead
+// still follows the generic persistence path. It only decides whether the warning fires.
+const FINANCE_FIELDS = ['credit_score', 'business_name', 'monthly_revenue', 'down_payment', 'timeframe'];
+
+function financeShapedSignals(payload, source) {
+  const signals = [];
+  const financeSource = source === 'finance_form'
+    || source === 'vehiclenetwork'
+    || source === 'autoconnection210'
+    || (typeof source === 'string' && source.startsWith('torque_hub_'));
+  if (financeSource) signals.push('source:' + source);
+  for (const f of FINANCE_FIELDS) {
+    if (Object.prototype.hasOwnProperty.call(payload, f)) {
+      signals.push('field:' + f);
+    }
+  }
+  return signals;
 }
 
 exports.handler = async (event) => {
@@ -52,17 +56,32 @@ exports.handler = async (event) => {
 
   const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
-  const source   = payload.source   || 'finance_form';
+  const source   = payload.source   || 'generic';
   const property = payload.property || 'Torque Hub';
 
-  let resolvedLender = payload.lender || null;
+  // Cutover debt, not a routing decision. A finance-shaped payload here means a stale
+  // client still posts to the generic endpoint. The request still follows the generic
+  // persistence path; this only makes the stale-client fact visible. Never throws into
+  // the save path.
+  const financeSignals = financeShapedSignals(payload, source);
+  if (financeSignals.length) {
+    console.warn('submit-lead: finance-shaped payload reached the generic endpoint -', financeSignals.join(', '));
+  }
+
+  // Seller matching runs only for inquiries on seller inventory. This is a POSITIVE
+  // eligibility test on purpose: the previous negative guard excluded one hardcoded
+  // placeholder ('Torque Hub Finance Lead') while the partner forms sent a different
+  // one ('Torque Hub Partner Lead'), slipping through into route lookup.
+  const SELLER_INVENTORY_SOURCES = new Set(['vdp']);
+  const sellerMatchEligible = SELLER_INVENTORY_SOURCES.has(source);
+
   let dealerEmail = null;
-  let lenderEmail = null;
   let dealerCode = null;
   let routeCode = null;
   let routeBasis = null;
   let stockRouteResolved = false;
-  if (payload.stock_number) {
+
+  if (sellerMatchEligible && payload.stock_number) {
     try {
       const { data: inv } = await supabase
         .from('inventory')
@@ -72,59 +91,50 @@ exports.handler = async (event) => {
       if (inv && inv.dealer) {
         const { data: route } = await supabase
           .from('finance_routes')
-          .select('lender_name, dealer_notification_email, lender_notification_email, dealer_code, code')
+          .select('dealer_notification_email, dealer_code, code')
           .eq('dealer_name', inv.dealer)
           .eq('status', 'active')
           .single();
         if (route) {
           stockRouteResolved = true;
-          if (route.lender_name) resolvedLender = route.lender_name;
           dealerEmail = route.dealer_notification_email || null;
-          lenderEmail = route.lender_notification_email || null;
-          dealerCode = route.dealer_code || null;
-          routeCode = route.code || null;
-          routeBasis = 'matched';
+          dealerCode  = route.dealer_code || null;
+          routeCode   = route.code || null;
+          routeBasis  = 'matched';
         }
       }
     } catch (e) {
       // attribution is best-effort; never block a lead from saving
-      console.error('finance_routes attribution lookup failed:', e);
+      console.error('seller route lookup by stock failed:', e);
     }
   }
-  if (!stockRouteResolved && payload.dealer_name && payload.dealer_name !== 'Torque Hub Finance Lead') {
+
+  if (sellerMatchEligible && !stockRouteResolved && payload.dealer_name) {
     try {
       const { data: routeByDealer } = await supabase
         .from('finance_routes')
-        .select('lender_name, dealer_notification_email, lender_notification_email, dealer_code, code')
+        .select('dealer_notification_email, dealer_code, code')
         .eq('dealer_name', payload.dealer_name)
         .eq('status', 'active')
         .single();
       if (routeByDealer) {
-        if (routeByDealer.lender_name) resolvedLender = routeByDealer.lender_name;
         dealerEmail = routeByDealer.dealer_notification_email || null;
-        lenderEmail = routeByDealer.lender_notification_email || null;
-        dealerCode = routeByDealer.dealer_code || null;
-        routeCode = routeByDealer.code || null;
-        routeBasis = 'matched';
+        dealerCode  = routeByDealer.dealer_code || null;
+        routeCode   = routeByDealer.code || null;
+        routeBasis  = 'matched';
       }
     } catch (e) {
-      console.error('dealer-name route attribution failed:', e);
+      console.error('seller route lookup by dealer_name failed:', e);
     }
   }
 
-  // BRANCH 3: platform-default lender route (fallback). Lender email only — never dealer email.
-  if (!routeCode) {
-    try {
-      const { data: def } = await supabase.from('finance_routes')
-        .select('lender_name, lender_notification_email, code')
-        .eq('is_default', true).eq('status', 'active').limit(1).single();
-      if (def) {
-        if (def.lender_name) resolvedLender = def.lender_name;
-        lenderEmail = def.lender_notification_email || null;   // lender only — do NOT set dealerEmail
-        routeCode   = def.code || null;
-        routeBasis  = 'default';
-      }
-    } catch (e) { console.error('default route lookup failed:', e); }
+  // Configuration gap, not cutover debt. A vehicle inquiry that resolves no seller
+  // delivery reaches Torque DMA internally and nobody else. Deliberately a different
+  // warning from the finance-shaped one: different defect, different remedy.
+  if (sellerMatchEligible && !dealerEmail) {
+    console.warn('submit-lead: vdp inquiry resolved no seller delivery -',
+      'dealer_name=' + (payload.dealer_name || 'none'),
+      'stock=' + (payload.stock_number || 'none'));
   }
 
   const { data: inserted, error } = await supabase.from('leads').insert([{
@@ -137,7 +147,6 @@ exports.handler = async (event) => {
     source_url:     payload.source_url     || null,
     message:        payload.message        || null,
     credit_score:   payload.credit_score   || null,
-    lender:         resolvedLender,
     rep:            payload.rep            || null,
     referrer:       payload.referrer       || null,
     dealer_code:    dealerCode,
@@ -201,46 +210,9 @@ exports.handler = async (event) => {
       console.error('Resend notification failed:', emailErr.message);
     }
 
-    // ── external forwards (dealer + lender, best-effort) ───────────────────
-    let lenderAttempted = false, lenderOk = false;
+    // ── seller forward (best-effort) ───────────────────────────────────────
     let dealerAttempted = false, dealerOk = false;
     const notifErrors = [];
-
-    if (lenderEmail) {
-      lenderAttempted = true;
-      try {
-        const lenderLines = [
-          `Finance Lead — ${property}`,
-          '',
-          `Name: ${customerName}`,
-          `Phone: ${customer_phone.trim()}`,
-          payload.customer_email ? `Email: ${payload.customer_email}`   : null,
-          `Source: ${formLabel}`,
-          `Source detail: ${source}`,
-          payload.dealer_name   ? `Dealer: ${payload.dealer_name}`      : null,
-          payload.listing_title ? `Unit: ${payload.listing_title}`      : null,
-          payload.stock_number  ? `Stock: ${payload.stock_number}`      : null,
-          payload.credit_score  ? `Credit: ${payload.credit_score}`     : null,
-          resolvedLender        ? `Lender: ${resolvedLender}`           : null,
-          payload.rep           ? `Rep: ${payload.rep}`                 : null,
-          payload.message       ? `Message: ${payload.message}`         : null,
-          payload.source_url    ? `Source URL: ${payload.source_url}`   : null,
-          payload.referrer      ? `Referrer: ${payload.referrer}`       : null,
-        ].filter(line => line !== null);
-        const lenderOpts = {
-          from:    'Torque Hub <finance@torquedma.com>',
-          to:      lenderEmail,
-          subject: `Finance Lead — ${customerName}`,
-          text:    lenderLines.join('\n'),
-        };
-        if (payload.customer_email) lenderOpts.replyTo = payload.customer_email;
-        await resend.emails.send(lenderOpts);
-        lenderOk = true;
-      } catch (e) {
-        console.error('Lender notification failed:', e.message);
-        notifErrors.push('lender: ' + e.message);
-      }
-    }
 
     if (dealerEmail) {
       dealerAttempted = true;
@@ -282,12 +254,10 @@ exports.handler = async (event) => {
 
     // ── notification_status ─────────────────────────────────────────────────
     let notifStatus;
-    if (!lenderAttempted && !dealerAttempted) {
+    if (!dealerAttempted) {
       notifStatus = 'not_configured';
-    } else if (lenderAttempted && lenderOk && dealerAttempted && dealerOk) {
+    } else if (dealerOk) {
       notifStatus = 'sent';
-    } else if ((lenderAttempted && lenderOk) || (dealerAttempted && dealerOk)) {
-      notifStatus = 'partial';
     } else {
       notifStatus = 'failed';
     }
