@@ -455,14 +455,37 @@ exports.handler = async (event) => {
     if (row.source_listing_id) existingByListingId.set(row.source_listing_id, row);
     existingByStock.set(row.stock, row);
   }
-  const lockedSubcat = new Set((existing || []).filter(u => u.subcategory_locked).map(u => u.stock));
-  const lockedModel  = new Set((existing || []).filter(u => u.model_locked).map(u => u.stock));
+
+  // D1: rows previously buried by a feed removal are ELIGIBLE for resurrection.
+  // The scope is deliberately narrow:
+  //   - this dealer only
+  //   - sold_type 'feed_removed' ONLY. Never 'dedup_hidden', never a genuine sale.
+  //   - matched by source_listing_id only, the stable marketplace identity.
+  // Presence in the CURRENT feed is the sole trigger: this map is consulted only
+  // for an item the current scrape actually returned, so a row absent from the
+  // feed is never read and never written.
+  const { data: buried } = await supabase
+    .from('inventory')
+    .select('stock,source_listing_id,subcategory_locked,model_locked,source_url,provenance')
+    .eq('dealer', dealer)
+    .eq('sold', true)
+    .eq('sold_type', 'feed_removed');
+
+  const buriedByListingId = new Map();
+  for (const row of (buried || [])) {
+    if (row.source_listing_id) buriedByListingId.set(String(row.source_listing_id), row);
+  }
+  if (buriedByListingId.size) {
+    console.log(`D1: ${buriedByListingId.size} feed_removed row(s) for ${dealer} are resurrection-eligible if this feed returns them`);
+  }
+  const lockedSubcat = new Set([...(existing || []), ...(buried || [])].filter(u => u.subcategory_locked).map(u => u.stock));
+  const lockedModel  = new Set([...(existing || []), ...(buried || [])].filter(u => u.model_locked).map(u => u.stock));
   const incomingStocks = new Set();
   const incomingListingIds = new Set();
   const incomingPlatforms = new Set();
   const incomingByPlatform = {};            // platform -> count of incoming items
   const incomingStocksByPlatform = {};      // platform -> Set of incoming stocks
-  let synced = 0, errors = 0;
+  let synced = 0, errors = 0, resurrected = 0;
 
   // Derive platform from a source URL, mirroring the source_type logic below.
   // Returns 'machinerytrader' | 'truckpaper' | 'tractorhouse' | 'other'.
@@ -588,7 +611,14 @@ exports.handler = async (event) => {
 
         // Determine upsert path: prefer (dealer, source_listing_id) when present, fall back to (dealer, stock)
         const incomingListingId = item.source_listing_id || null;
-        const matchedExistingRow = incomingListingId ? existingByListingId.get(incomingListingId) : null;
+        const liveMatchedRow = incomingListingId ? existingByListingId.get(incomingListingId) : null;
+        // D1: no live row matched, so this listing may be a unit the marketplace
+        // is advertising again after a previous feed removal.
+        const buriedMatchedRow = (!liveMatchedRow && incomingListingId)
+          ? buriedByListingId.get(String(incomingListingId))
+          : null;
+        const isResurrection = !!buriedMatchedRow;
+        const matchedExistingRow = liveMatchedRow || buriedMatchedRow || null;
         const matchedExistingStock = matchedExistingRow ? matchedExistingRow.stock : null;
         const isExisting = matchedExistingStock ? true : existingStocks.has(stock);
         const lookupStock = matchedExistingStock || stock;
@@ -634,12 +664,31 @@ exports.handler = async (event) => {
 
         let result;
         if (dryRun) {
-          const path = isExisting
-            ? (matchedExistingStock && incomingListingId ? 'update-by-listing-id' : 'update-by-stock')
-            : 'insert';
+          const path = isResurrection
+            ? 'resurrect'
+            : (isExisting
+              ? (matchedExistingStock && incomingListingId ? 'update-by-listing-id' : 'update-by-stock')
+              : 'insert');
           dryRunLog.push({ path, stock, dealer, unit });
+          if (isResurrection) resurrected++;
         } else if (isExisting) {
-          if (matchedExistingStock && incomingListingId) {
+          if (isResurrection) {
+            // D1 RESURRECTION. The unit is in the current feed and its row is
+            // sold_type='feed_removed'. Return THAT SAME ROW to live instead of
+            // inserting a second one, which UNIQUE (stock, dealer) rejects and the
+            // error path then silently swallows — the whole D1 defect.
+            // Guards, all four required together: the stable listing id, this
+            // dealer, sold=true, and sold_type='feed_removed'. A genuine sale or a
+            // 'dedup_hidden' row therefore cannot be revived by this path.
+            const revived = Object.assign({}, unit, { sold: false, sold_type: null });
+            result = await supabase.from('inventory').update(revived)
+              .eq('source_listing_id', incomingListingId)
+              .eq('dealer', dealer)
+              .eq('sold', true)
+              .eq('sold_type', 'feed_removed');
+            if (!(result && result.error)) resurrected++;
+            console.log(`D1 RESURRECT ${matchedExistingStock} listing_id=${incomingListingId} ${dealer}`);
+          } else if (matchedExistingStock && incomingListingId) {
             // Match by source_listing_id (stable Sandhills ID, robust against stock-derivation changes)
             result = await supabase.from('inventory').update(unit).eq('source_listing_id', incomingListingId).eq('dealer', dealer).eq('sold', false);
           } else {
@@ -709,7 +758,7 @@ exports.handler = async (event) => {
     markedSold++;
   }
 
-  const result = { synced, errors, markedSold, total: items.length, dealer };
+  const result = { synced, errors, resurrected, markedSold, total: items.length, dealer };
   if (dryRun) {
     result.dryRun = true;
     result.dryRunLog = dryRunLog;
