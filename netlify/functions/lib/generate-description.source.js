@@ -150,7 +150,6 @@ function usageFlag(factName, claim, unit) {
 }
 
 function buildPrompt(unit, dealer, normalized) {
-  const price = unit.price ? '$' + Number(unit.price).toLocaleString() : 'Call for Price';
 
   // Build UNIT INFO from non-empty fields only — sparse units get no blank labels.
   // Mileage/hours are gated by lib/usage-display's subcategory-level rule (single
@@ -164,7 +163,10 @@ function buildPrompt(unit, dealer, normalized) {
   // bare subcategory leakage (e.g. "Dump Truck") so the LLM can't invent a
   // generic taxonomy-shaped hook in place of the actual descriptor.
   const ct = cleanTrim(unit); if (ct) lines.push('Trim: ' + ct);
-  lines.push('Price: ' + price);
+  // DX PRICE DECOUPLING - price is deliberately NOT supplied to the model.
+  // Structured inventory.price is the single authoritative buyer-facing price.
+  // Feeding it here is how a price reaches the Overview prose despite the
+  // explicit no-prices instruction below, and prose cannot be kept in sync.
   {
     const mp = usageProvenance(unit, 'mileage');
     if (mp.mode === 'omit') { /* omit */ }
@@ -369,8 +371,10 @@ async function generateDescription(unit, dealer, apiKey) {
   if (unit.fuel)                   detailLines.push('- Fuel: ' + unit.fuel);
   if (unit.gvwr_class) detailLines.push('- GVWR: ' + unit.gvwr_class);
   if (unit.body_class) detailLines.push('- Body Class: ' + unit.body_class);
-  const priceNum = Number(String(unit.price).replace(/[^0-9.]/g, ''));
-  if (priceNum > 0)                detailLines.push('- Price: $' + priceNum.toLocaleString());
+  // DX PRICE DECOUPLING - no '- Price:' line in Key Details. A stored price is a
+  // second copy of a mutable fact: inventory.price updates, the description does
+  // not, and the buyer sees two different numbers. Price is rendered from the
+  // structured field wherever the product intends to show it.
   if (unit.vin)                    detailLines.push('- VIN: ' + unit.vin);
   if (unit.stock)                  detailLines.push('- Stock #: ' + unit.stock);
   // Stage 1b render contract - DELIBERATELY BORING. Preservation, not presentation.
