@@ -338,6 +338,23 @@ const DEALER_INFO_MAP = {
   'Mid-Atlantic Power & Equipment': { name: 'Mid-Atlantic Power & Equipment', phone: '910-889-9201', location: 'Dunn, NC' },
 };
 
+// 2026-09-04 INVENTORY AUTHORITY FREEZE. The marketplace-feed (and Mid-Atlantic
+// dealer-site) actors have been shown to return incomplete populations that the
+// existing 50% ratio gate cannot detect (a stable-incompleteness feed scores 1.00
+// against yesterday's already-truncated snapshot). Until dealer-site-authoritative
+// discovery with an external completeness invariant is in place, this file must
+// NOT mark rows sold_type='feed_removed' for these dealers, and MUST NOT
+// D1-resurrect for them either (the same untrusted feed drives both writes).
+// Ingestion of new listings and updates to existing live rows continue.
+// Remove entries only when their dealer's discovery is proven complete.
+const FROZEN_DEALERS = new Set([
+  'Mid-Atlantic Power & Equipment',
+  'DeBary Truck Sales',
+  'Impex Heavy Metal',
+  'Allied Truck & Trailer Sales',
+  "HGR's Truck and Trailer",
+]);
+
 // Use background function for longer timeout (15 minutes vs 10 seconds)
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method not allowed' };
@@ -614,9 +631,18 @@ exports.handler = async (event) => {
         const liveMatchedRow = incomingListingId ? existingByListingId.get(incomingListingId) : null;
         // D1: no live row matched, so this listing may be a unit the marketplace
         // is advertising again after a previous feed removal.
-        const buriedMatchedRow = (!liveMatchedRow && incomingListingId)
+        const buriedMatchedRowRaw = (!liveMatchedRow && incomingListingId)
           ? buriedByListingId.get(String(incomingListingId))
           : null;
+        // 2026-09-04 FREEZE: the same feed that mis-buried these rows drives resurrection.
+        // Do not revive from an untrusted source. Skip the whole item — do not fall through
+        // to insert (would collide on unique (dealer, stock)) and do not update the buried
+        // row silently. Log the identity so a later authoritative discovery pass can act.
+        if (buriedMatchedRowRaw && FROZEN_DEALERS.has(dealer)) {
+          console.log(`FREEZE ${dealer}: skip resurrection for listing_id=${incomingListingId} stock=${buriedMatchedRowRaw.stock}`);
+          return;
+        }
+        const buriedMatchedRow = buriedMatchedRowRaw;
         const isResurrection = !!buriedMatchedRow;
         const matchedExistingRow = liveMatchedRow || buriedMatchedRow || null;
         const matchedExistingStock = matchedExistingRow ? matchedExistingRow.stock : null;
@@ -738,7 +764,16 @@ exports.handler = async (event) => {
     }
   }
 
+  // 2026-09-04 FREEZE: entire mark-sold loop is a no-op for frozen dealers. The 50%
+  // ratio gate does not detect stable-incompleteness feeds — do not let this file
+  // write sold_type='feed_removed' for these dealers until authoritative discovery
+  // with an external completeness invariant is in place.
+  const freezeMarkSold = FROZEN_DEALERS.has(dealer);
+  if (freezeMarkSold) {
+    console.warn(`FREEZE ${dealer}: mark-sold loop skipped entirely (0 units mark-sold this run)`);
+  }
   for (const row of (existing || [])) {
+    if (freezeMarkSold) continue;
     // Manual entries (no feed origin) are never feed-removed.
     if (!row.source_url && !row.source_listing_id) continue;
     const rowPlatform = platformOf(row.source_url);
