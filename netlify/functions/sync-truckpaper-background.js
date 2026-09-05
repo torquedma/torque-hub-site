@@ -353,6 +353,14 @@ const FROZEN_DEALERS = new Set([
   'Impex Heavy Metal',
   'Allied Truck & Trailer Sales',
   "HGR's Truck and Trailer",
+  // Added 2026-09-04: dealer-site verified at 6 units, TH has 13 live (surplus of 7).
+  // Discovery currently returns 3, so the ratio is 3/13 = 0.23 and the 50% gate
+  // aborts mark-sold every run. Repointing discovery at the verified dealer site
+  // would put it at 6/13 = 0.46 -- still under the gate, but by one listing. One
+  // additional dealer-live identity above the verified six (7/13 = 0.54) clears
+  // the gate and re-arms mark-sold against the unreconciled surplus. Freeze
+  // before any discovery configuration change touches this dealer.
+  'The Trailer Source',
 ]);
 
 // Use background function for longer timeout (15 minutes vs 10 seconds)
