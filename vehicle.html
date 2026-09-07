@@ -215,6 +215,7 @@
     .sim-img img { width: 100%; height: 100%; object-fit: cover; }
     .sim-body { padding: 8px 10px; }
     .sim-title { font-size: 12px; font-weight: 700; line-height: 1.3; margin-bottom: 4px; }
+    .sim-sub { font-size: 11px; line-height: 1.3; color: var(--muted); margin-bottom: 4px; }
     .sim-price { font-size: 13px; font-weight: 700; color: #e2e8f0; }
 
     /* SIDEBAR */
@@ -952,17 +953,29 @@ function render(unit, dealerKey) {
   const isSold = unit.sold === true;
   const subcat = unit.subcategory || '';
 
-  // Create sold banner — content injected by edge function as #sold-banner-tpl
+  // Sold banner — built directly from isSold. Uses the edge-injected
+  // #sold-banner-tpl when present, otherwise constructs its own content
+  // so the client path is correct without SSR.
   if (isSold && !el('sold-banner')) {
+    const banner = document.createElement('div');
+    banner.id = 'sold-banner';
+    banner.className = 'sold-banner';
     const tpl = document.getElementById('sold-banner-tpl');
     if (tpl) {
-      const banner = document.createElement('div');
-      banner.id = 'sold-banner';
-      banner.className = 'sold-banner';
       banner.appendChild(tpl.content.cloneNode(true));
-      const vdpContainer = document.querySelector('#vdp > .container');
-      if (vdpContainer) vdpContainer.insertBefore(banner, vdpContainer.firstChild);
+    } else {
+      const wrap = document.createElement('div');
+      const t = document.createElement('div');
+      t.className = 'sold-banner-text';
+      t.textContent = 'SOLD — NO LONGER AVAILABLE';
+      const s = document.createElement('div');
+      s.className = 'sold-banner-sub';
+      s.textContent = 'Check out similar available units below.';
+      wrap.appendChild(t); wrap.appendChild(s);
+      banner.appendChild(wrap);
     }
+    const vdpContainer = document.querySelector('#vdp > .container');
+    if (vdpContainer) vdpContainer.insertBefore(banner, vdpContainer.firstChild);
   }
 
   // Derive city/state for SEO strings
@@ -1056,6 +1069,14 @@ function render(unit, dealerKey) {
   const mobileCall = el('mobile-call');
   if (mobileCall) { mobileCall.href = callHref; mobileCall.textContent = `📞 Call ${d.phone || 'Now'}`; }
   const mobileBar = el('mobile-bar'); if (mobileBar) mobileBar.style.display = 'flex';
+
+  // Sold gate — suppress buyer-action UI and active-price presentation.
+  // Every statement is inside this branch; isSold === false is unchanged.
+  if (isSold) {
+    if (hlPrice) hlPrice.textContent = price ? `Last Asking Price: ${price}` : '';
+    const leadCard = el('lead-form-card'); if (leadCard) leadCard.style.display = 'none';
+    if (mobileBar) mobileBar.style.display = 'none';
+  }
 
   // Carry the viewed unit into finance.html for automatic subject resolution.
   // Before 5b-ii, stock-less entry points produced 34 real subject-less leads
@@ -1154,10 +1175,26 @@ async function loadSimilar(currentUnit, dealerKey) {
       const photo = u.photos && u.photos.length ? (u.photos[0].url || u.photos[0].dataUrl || '') : '';
       const title = window.TITLE_HELPERS.buildDisplayTitle(u);
       const href = `vehicle.html?stock=${encodeURIComponent(u.stock)}`;
+
+      const descriptorRaw =
+        u.subcategory && u.subcategory !== 'Other'
+          ? u.subcategory
+          : (u.trim && u.trim !== 'Other' ? u.trim : '');
+
+      const descriptor = descriptorRaw
+        ? String(descriptorRaw)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;')
+        : '';
+
       return `<a class="sim-item" href="${href}">
         <div class="sim-img">${photo ? `<img src="${photo}" alt="${title}" loading="lazy">` : `<img src="/photos-coming-soon.png" alt="Photos coming soon" loading="lazy" style="width:100%;height:100%;object-fit:cover;">`}</div>
         <div class="sim-body">
           <div class="sim-title">${title}</div>
+          ${descriptor ? `<div class="sim-sub">${descriptor}</div>` : ''}
           <div class="sim-price">${formatPrice(u.price)}</div>
         </div>
       </a>`;
