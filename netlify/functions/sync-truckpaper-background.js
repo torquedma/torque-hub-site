@@ -349,7 +349,6 @@ const DEALER_INFO_MAP = {
 // Remove entries only when their dealer's discovery is proven complete.
 const FROZEN_DEALERS = new Set([
   'DeBary Truck Sales',
-  'Impex Heavy Metal',
   "HGR's Truck and Trailer",
   // 2026-09-12: The Trailer Source removed — dealer-owned discovery
   // authenticated complete (unscoped surface 6 of 6, identity-set equality
