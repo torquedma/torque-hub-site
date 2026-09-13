@@ -348,7 +348,6 @@ const DEALER_INFO_MAP = {
 // Ingestion of new listings and updates to existing live rows continue.
 // Remove entries only when their dealer's discovery is proven complete.
 const FROZEN_DEALERS = new Set([
-  'Mid-Atlantic Power & Equipment',
   'DeBary Truck Sales',
   'Impex Heavy Metal',
   'Allied Truck & Trailer Sales',
@@ -361,6 +360,22 @@ const FROZEN_DEALERS = new Set([
   // the gate and re-arms mark-sold against the unreconciled surplus. Freeze
   // before any discovery configuration change touches this dealer.
   'The Trailer Source',
+]);
+
+// 2026-09-12 PRESENTATION HOLD — identity-specific, adjudicated by hand.
+// DEALER-LIVE and correctly discovered, but deliberately withheld from the
+// buyer surface by a prior human ruling. Presence is accounted for BEFORE
+// the guard below, so mark-sold and the ratio gate still see these items as
+// present; only MUTATION is suppressed. Removing an entry hands the listing
+// back to ordinary ingestion.
+//   Mid-Atlantic 241311091 (MAP-311091): the dealer publishes it as
+//   Manufacturer UNKNOWN / Model 7 and disclaims the year in its own prose.
+//   year/make/model are deliberately blank. Without this guard the normal
+//   update path would write year='2010' and make='7' — a FALSE identity.
+//   Ruled 2026-09-06: hold; do not publish "Unit Available"; do not put the
+//   equipment type into model.
+const PRESENTATION_HELD_LISTINGS = new Set([
+  'Mid-Atlantic Power & Equipment|241311091',
 ]);
 
 // Use background function for longer timeout (15 minutes vs 10 seconds)
@@ -539,6 +554,16 @@ exports.handler = async (event) => {
           incomingByPlatform[_plat] = (incomingByPlatform[_plat] || 0) + 1;
           if (!incomingStocksByPlatform[_plat]) incomingStocksByPlatform[_plat] = new Set();
           incomingStocksByPlatform[_plat].add(stock);
+        }
+
+        // 2026-09-12 PRESENTATION HOLD: presence is already recorded above
+        // (incomingStocks / incomingListingIds / incomingByPlatform), so this item
+        // still counts as dealer-present for mark-sold and for the ratio gate.
+        // Suppress MUTATION ONLY — no resurrection, no update, no insert.
+        const presentationHoldKey = `${dealer}|${item.source_listing_id ? String(item.source_listing_id) : ''}`;
+        if (PRESENTATION_HELD_LISTINGS.has(presentationHoldKey)) {
+          console.log(`PRESENTATION HOLD ${dealer}: suppress writes for listing_id=${item.source_listing_id}`);
+          return;
         }
 
         let make = normalizeMake((item.make && item.make !== 'undefined') ? item.make : '') || '';
