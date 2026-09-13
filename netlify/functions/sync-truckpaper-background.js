@@ -362,20 +362,45 @@ const FROZEN_DEALERS = new Set([
   // account.
 ]);
 
-// 2026-09-12 PRESENTATION HOLD — identity-specific, adjudicated by hand.
-// DEALER-LIVE and correctly discovered, but deliberately withheld from the
-// buyer surface by a prior human ruling. Presence is accounted for BEFORE
-// the guard below, so mark-sold and the ratio gate still see these items as
-// present; only MUTATION is suppressed. Removing an entry hands the listing
-// back to ordinary ingestion.
-//   Mid-Atlantic 241311091 (MAP-311091): the dealer publishes it as
-//   Manufacturer UNKNOWN / Model 7 and disclaims the year in its own prose.
-//   year/make/model are deliberately blank. Without this guard the normal
-//   update path would write year='2010' and make='7' — a FALSE identity.
-//   Ruled 2026-09-06: hold; do not publish "Unit Available"; do not put the
-//   equipment type into model.
+// ADJUDICATED EXCLUSIONS — identity-specific, decided by hand, one reason
+// per entry. These identities are DEALER-LIVE and correctly discovered, but
+// are deliberately withheld from ordinary ingestion by a human ruling.
+// Presence is accounted for BEFORE the guard below, so mark-sold and the
+// ratio gate still count these items as dealer-present; only MUTATION is
+// suppressed — no resurrection, no update, AND NO INSERT. Removing an entry
+// hands that listing straight back to ordinary ingestion.
+// ★ ENTRIES DO NOT SHARE A REASON. Read the note before acting on one.
+//
+//   Mid-Atlantic 241311091 (MAP-311091) — PRESENTATION HOLD, ruled 2026-09-06.
+//   The dealer publishes it as Manufacturer UNKNOWN / Model 7 and disclaims
+//   the year in its own prose; year/make/model are deliberately blank.
+//   Without this guard the normal update path would write year='2010' and
+//   make='7' — a FALSE identity. Do not publish "Unit Available"; do not put
+//   the equipment type into model.
+//
+//   Allied 260299567 — DUPLICATE SUPPRESSION, ruled 2026-09-12.
+//   Same physical truck as keeper 260297441, VIN 5KKHAXDV4FPGE6184. The
+//   dealer lists it twice: Fassi F280SE-equipped (KEEPER) and as a bare cab
+//   & chassis (THIS ONE, whose own description states its lead photo is AI
+//   generated "of the truck without the boom"). Per the 2026-06-07 Allied
+//   precedent, the equipped configuration is canonical. Neither identity is
+//   in Torque Hub, so without this guard BOTH would insert and publish the
+//   same truck twice.
+//
+//   Allied 260301101 — CONDITION-VERIFICATION HOLD, ruled 2026-09-12.
+//   2017 IMT 16000SIII on Western Star 4700, VIN 5KKHAXDV6HPHV6614. Allied's
+//   own prior listings (249974841 / 249975205, now feed_removed) disclosed a
+//   hairline crack in the crane base and multiple hydraulic leaks, offered it
+//   "not as a working boom truck", and stated the odometer was inaccurate at
+//   ~250,000 actual miles. The current listing positively markets the crane
+//   configuration at 200,000 mi and discloses none of those prior conditions.
+//   HOLD until Allied confirms repair status and the mileage it stands behind.
+//   A successor listing identity does NOT erase unresolved adverse disclosures
+//   attached to the same VIN.
 const PRESENTATION_HELD_LISTINGS = new Set([
   'Mid-Atlantic Power & Equipment|241311091',
+  'Allied Truck & Trailer Sales|260299567',
+  'Allied Truck & Trailer Sales|260301101',
 ]);
 
 // Use background function for longer timeout (15 minutes vs 10 seconds)
