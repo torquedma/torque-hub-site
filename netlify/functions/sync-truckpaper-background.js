@@ -241,18 +241,18 @@ function deriveSubcategory(item) {
       [/[\/-]car-carrier-trucks?\b/, 'Car Carrier Truck'],
       [/[\/-]bucket-trucks?\b/, 'Bucket Truck'],
       [/[\/-]aerial-trucks?\b/, 'Bucket Truck'],
-      [/[\/-]boom-trucks?(?:[\/-]|$)/, 'Boom Truck'],
+      [/[\/-]boom-trucks?\b/, 'Boom Truck'],
       [/[\/-]garbage-trucks?\b/, 'Garbage Truck'],
       [/[\/-]refuse-trucks?\b/, 'Garbage Truck'],
       [/[\/-]mixer-trucks?\b/, 'Mixer Truck'],
       [/[\/-]tanker-trucks?\b/, 'Tanker Truck'],
       [/[\/-]fuel-trucks?\b/, 'Tanker Truck'],
-      [/[\/-]vacuum-trucks?(?:[\/-]|$)/, 'Vacuum Truck'],
-      [/[\/-]septic-trucks?(?:[\/-]|$)/, 'Vacuum Truck'],
-      [/[\/-]sewer-trucks?(?:[\/-]|$)/,  'Vacuum Truck'],
+      [/[\/-]vacuum-trucks?\b/, 'Vacuum Truck'],
+      [/[\/-]septic-trucks?\b/, 'Vacuum Truck'],
+      [/[\/-]sewer-trucks?\b/,  'Vacuum Truck'],
       [/knuckle-boom-cranes?\b|[\/-]mounted-cranes?\b|boom-cranes?\b/, 'Crane Truck'],
       [/[\/-]crane-trucks?\b/, 'Crane Truck'],
-      [/[\/-]landscape-trucks?(?:[\/-]|$)/, 'Landscape Truck'],
+      [/[\/-]landscape-trucks?\b/, 'Landscape Truck'],
       [/[\/-]cargo-vans?\b/, 'Cargo Van'],
       [/[\/-]passenger-vans?\b/, 'Passenger Van'],
       [/[\/-]pickup-trucks?\b/, 'Pickup Truck'],
@@ -268,14 +268,42 @@ function deriveSubcategory(item) {
       [/[\/-]flatbed-trailers?\b/, 'Flatbed Trailer'],
       [/[\/-]reefer-trailers?\b/, 'Reefer Trailer'],
       [/[\/-]refrigerated-trailers?\b/, 'Reefer Trailer'],
-      [/[\/-]conestoga-trailers?(?:[\/-]|$)/, 'Conestoga Trailer'],
-      [/[\/-]boom-mowers?(?:[\/-]|$)/, 'Boom Mower'],
-      [/[\/-]flail-mowers?(?:[\/-]|$)/, 'Boom Mower'],
-      [/[\/-]drum-mowers?(?:[\/-]|$)/, 'Drum Mower'],
+      [/[\/-]conestoga-trailers?\b/, 'Conestoga Trailer'],
+      [/[\/-]boom-mowers?\b/, 'Boom Mower'],
+      [/[\/-]flail-mowers?\b/, 'Boom Mower'],
+      [/[\/-]drum-mowers?\b/, 'Drum Mower'],
       [/[\/-]suvs?\b/, 'SUV'],
+      // 2026-09-13 — dealer-direct taxonomy slugs. The dealer states these
+      // explicitly in the listing URL; capturing them is ingestion, not
+      // inference. Missing entries left subcategory empty, which in turn
+      // made showHours()/showMileage() abstain: MAP-256361 held hours
+      // '5,805' that never reached a buyer because its class was unknown.
+      [/[\/-]motor-graders?\b/, 'Motor Grader'],
+      [/[\/-]motor-scrapers?\b/, 'Scraper'],
+      [/[\/-]wheel-excavators?\b/, 'Excavator'],
+      [/[\/-]crawler-loaders?\b/, 'Crawler Loader'],
+      [/[\/-]articulating-boom-lifts?\b/, 'Boom Lift'],
+      [/[\/-]telescopic-boom-lifts?\b/, 'Boom Lift'],
+      [/[\/-]walk-behind-lawn-mowers?\b/, 'Walk Behind Mower'],
+      [/[\/-]water-tank-trucks?\b/, 'Water Truck'],
+      [/[\/-]septic-tank-trucks?\b/, 'Vacuum Truck'],
+      [/[\/-]disks-tillage-equipment\b/, 'Disk'],
+      // HP-band tractor slugs encode a horsepower RANGE as a browse facet.
+      // They establish the machine class ONLY. The band must never populate
+      // horsepower — same trap as vPIC's 'Engine Brake (hp) From' (RC-7).
+      [/[\/-][0-9]+-hp-to-[0-9]+-hp-tractors?\b/, 'Tractor'],
     ];
     for (const [rx, label] of URL_SLUGS) {
-      if (rx.test(url)) return label;
+      if (rx.test(url)) {
+        // TAXONOMY FIREWALL. The URL path previously returned its label raw
+        // while the `direct` path below went through canonicalize(). That let
+        // non-canonical labels reach the database: 5 live rows hold
+        // 'Track Skid Steer' and 2 hold 'Crawler Excavator' (measured
+        // 2026-09-13), both of which are aliases, not canonical values.
+        // Both paths now resolve through the single source of truth.
+        const c = canonicalize(label);
+        if (c) return c;
+      }
     }
   }
 
