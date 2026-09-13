@@ -7,6 +7,31 @@ function extractTorque(raw) {
   return match ? match[1] : null;
 }
 
+// 2026-09-13 RC-7 — ABSTAIN ON RANGES.
+// vPIC publishes engine output as a PAIR: "Engine Brake (hp) From" and
+// "Engine Brake (hp) To". Reading only From and writing it to the flat
+// horsepower column published the FLOOR of a range as though it were the
+// unit's rating. Measured 2026-09-13: 8 buyer-live rows affected, worst
+// case a 2017 Kenworth K270 and a 2018 Peterbilt 337 shown at 200 HP
+// against a vPIC range of 200-360 — understating the possible rating by
+// 160 HP. Six of the eight were heavy trucks, where the figure matters most.
+//
+// R30 (Joe's closeout): NORMALIZATION MUST NOT REMOVE UNCERTAINTY. Where
+// vPIC gives a range we do not manufacture a single number. We abstain,
+// and the column stays empty for a human or a dealer feed to fill.
+// A single rating (To empty, or To equal to From) is still returned.
+//
+// NOT a range-rendering change: emitting "235-334 HP" into the flat column
+// would introduce a value shape whose consumers (DX generator, VDP spec
+// table, anything parsing the number) are NOT established. Revisit only
+// after those are verified.
+function hpSingleRating(from, to) {
+  if (!from) return null;
+  if (!to) return from;
+  if (String(from).trim() === String(to).trim()) return from;
+  return null;   // genuine range -> abstain
+}
+
 // Returns null on invalid VIN or API failure (best-effort — never blocks DX generation)
 async function decodeVin(vin) {
   if (!vin) return null;
@@ -44,7 +69,7 @@ async function decodeVin(vin) {
     gvwrClass:          val('Gross Vehicle Weight Rating From'),
     bodyClass:          val('Body Class'),
     driveType:          val('Drive Type'),
-    horsepower:         val('Engine Brake (hp) From'),
+    horsepower:         hpSingleRating(val('Engine Brake (hp) From'), val('Engine Brake (hp) To')),
     torque:             extractTorque(val('Other Engine Info')),
   };
 }
