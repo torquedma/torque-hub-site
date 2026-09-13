@@ -307,7 +307,7 @@ async function generateDescription(unit, dealer, apiKey) {
   // name. Gated on hasRawEvidence (computed at the top of this function): a unit that passed
   // the identity gate on canonical fields alone has no raw text to normalize.
   // normalizeTrailerSpecs returns null when category !== 'Trailers'; that gate is its own.
-  const normalized = hasRawEvidence
+  const normalized = STAGE1B_ENABLED && hasRawEvidence
     ? normalizeTrailerSpecs(unit.raw_description, unit.category)
     : null;
 
