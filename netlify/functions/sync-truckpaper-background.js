@@ -755,7 +755,7 @@ exports.handler = async (event) => {
 
         if (anthropicKey) {
           try {
-            const desc = await generateDescription(unit, dealerInfo, anthropicKey);
+            const desc = await generateDescription(unit, anthropicKey);
             if (desc) unit.description = desc;
           } catch (e) {
             if (e.code === 'INSUFFICIENT_EVIDENCE') {

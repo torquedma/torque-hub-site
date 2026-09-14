@@ -9,20 +9,6 @@ exports.handler = async (event) => {
 
   const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
-  // ── (a) Fetch dealer contact info from Supabase at handler start ─────────
-  const { data: dealerRows, error: dealerFetchError } = await supabase
-    .from('dealers')
-    .select('name, phone, city, state, website, site_url, address');
-  if (dealerFetchError) {
-    console.error('Failed to fetch dealers table:', dealerFetchError.message);
-    return { statusCode: 500, body: JSON.stringify({ error: 'dealers fetch failed: ' + dealerFetchError.message }) };
-  }
-  const dealerMap = {};
-  for (const d of (dealerRows || [])) {
-    const location = [d.city, d.state].filter(Boolean).join(', ') || d.address || '';
-    dealerMap[d.name] = { name: d.name, phone: d.phone || '', location };
-  }
-
   // Parse limit: default 5 (safe test batch), 0 or 'all' = no limit, null qs = scheduled = unlimited
   const qs = event.queryStringParameters;
   const isAutomated = !qs;   // scheduled invocations pass null query params
@@ -120,7 +106,7 @@ exports.handler = async (event) => {
 
   console.log(`generate-dx-background: ${(rows || []).length} total fetched, ${total_candidates} candidates, processing ${candidates.length} (limit=${stocksList ? 'n/a (stocks mode)' : (limit ?? 'none')})`);
 
-  let processed = 0, skipped_no_contact = 0, skipped_error = 0;
+  let processed = 0, skipped_error = 0;
   let skipped_insufficient_evidence = 0;
 
   if (dryRun) {
@@ -148,20 +134,12 @@ exports.handler = async (event) => {
   }
 
   for (const unit of candidates) {
-    // ── (b) dealerMap replaces DEALER_CONTACT lookup ─────────────────────
-    const dealerContact = dealerMap[unit.dealer];
-    if (!dealerContact || !dealerContact.phone) {
-      console.warn(`[SKIP-NO-CONTACT] "${unit.dealer}" missing from dealers table or has no phone — ${unit.stock}`);
-      skipped_no_contact++;
-      continue;
-    }
-
     try {
       // VIN decoding lives in decode-vin-background.js (T1.3). This function
       // READS decoded facts (engine/fuel/drivetrain/gvwr_class/body_class/
       // horsepower on the row, plus provenance for T1.2-A usage rendering) but
       // no longer performs decoding.
-      const text = await generateDescription(unit, dealerContact, anthropicKey);
+      const text = await generateDescription(unit, anthropicKey);
 
       if (!text || !text.trim()) {
         console.warn(`[SKIP-EMPTY] Empty description returned for ${unit.stock}`);
@@ -188,7 +166,7 @@ exports.handler = async (event) => {
       }
     } catch (err) {
       if (err.code === 'INSUFFICIENT_EVIDENCE') {
-        console.log(`[SKIP-INSUFFICIENT-EVIDENCE] ${unit.stock} (${unit.dealer}) — no source evidence and insufficient canonical identity; existing description left unchanged`);
+        console.log(`[SKIP-INSUFFICIENT-EVIDENCE] ${unit.stock} (${unit.dealer}) — ${err.message} Existing description left unchanged.`);
         skipped_insufficient_evidence++;
       } else {
         console.error(`[SKIP-ERROR] ${unit.stock} (${unit.dealer}):`, err.message);
@@ -197,7 +175,7 @@ exports.handler = async (event) => {
     }
   }
 
-  const summary = { total_candidates, processed, skipped_no_contact, skipped_error, skipped_insufficient_evidence, limit_applied: stocksList ? 'n/a (stocks mode)' : (limit ?? 'none'), stocks_requested: stocksList ? stocksList.length : null, stock_filter: stocksList ? stocksList : stockParam, force: forceAll };
+  const summary = { total_candidates, processed, skipped_error, skipped_insufficient_evidence, limit_applied: stocksList ? 'n/a (stocks mode)' : (limit ?? 'none'), stocks_requested: stocksList ? stocksList.length : null, stock_filter: stocksList ? stocksList : stockParam, force: forceAll };
   console.log('generate-dx-background complete:', JSON.stringify(summary));
   return { statusCode: 200, body: JSON.stringify(summary) };
 };
