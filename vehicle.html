@@ -1095,7 +1095,9 @@ function render(unit, dealerKey) {
   const dName = el('d-name'); if (dName) dName.textContent = dealerKey || unit.dealer;
   const dAddr = el('d-addr'); if (dAddr) dAddr.textContent = d.address || '';
   const dCall = el('d-call'); if (dCall) { dCall.href = callHref; dCall.textContent = d.phone ? `Call ${d.phone}` : 'Call'; }
-  const dDir  = el('d-directions'); if (dDir) dDir.href = d.mapsUrl || '#';
+  const dDir  = el('d-directions');
+  if (dDir) dDir.href = d.mapsUrl
+    || (d.address ? 'https://maps.google.com/?q=' + encodeURIComponent(d.address) : '#');
 
   // Description
   if (unit.description) {
