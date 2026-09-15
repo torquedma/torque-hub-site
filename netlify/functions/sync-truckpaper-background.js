@@ -782,6 +782,8 @@ exports.handler = async (event) => {
           dryRunLog.push({ path, stock, dealer, unit });
           if (isResurrection) resurrected++;
         } else if (isExisting) {
+          if (unit.fuel == null || unit.fuel === '') delete unit.fuel;
+          if (unit.condition == null || unit.condition === '') delete unit.condition;
           if (isResurrection) {
             // D1 RESURRECTION. The unit is in the current feed and its row is
             // sold_type='feed_removed'. Return THAT SAME ROW to live instead of
