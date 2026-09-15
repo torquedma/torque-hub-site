@@ -37,7 +37,7 @@ exports.handler = async (event) => {
     //   served internal fields (notes, raw_description, description_source,
     //   dx_locked, sold_type, provenance, etc.) to the public payload.
     //   Withdrawal tombstones in `notes` were reaching buyers.
-    const PUBLIC_COLUMNS = 'id, stock, dealer, year, make, model, trim, price, photos, category, subcategory, mileage, engine, horsepower, hours, fuel, condition, transmission, drivetrain, description, sold, vin, buyer_intelligence';
+    const PUBLIC_COLUMNS = 'id, stock, dealer, year, make, model, trim, price, photos, category, subcategory, mileage, engine, horsepower, hours, fuel, condition, transmission, drivetrain, description, sold, vin, buyer_intelligence, contact_phone';
 
     // Pass 1: dealer-scoped if dealer provided
     if (dealerRaw) {
@@ -68,14 +68,19 @@ exports.handler = async (event) => {
       return { statusCode: 404, headers, body: JSON.stringify({ error: 'not found', stock: stockRaw, dealer: dealerRaw, variants }) };
     }
 
+    let dealerRow = null;
     try {
-      const { data: dealerRow } = await supabase
+      const res = await supabase
         .from('dealers')
         .select('name, phone, address')
         .eq('name', unit.dealer)
         .maybeSingle();
-      if (dealerRow) unit._dealer = { phone: dealerRow.phone, address: dealerRow.address };
+      dealerRow = res.data;
     } catch (_) {}
+    unit._dealer = {
+      phone: unit.contact_phone || dealerRow?.phone || '',
+      address: dealerRow?.address || ''
+    };
 
     return { statusCode: 200, headers, body: JSON.stringify(unit) };
   } catch (e) {

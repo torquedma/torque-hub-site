@@ -185,7 +185,7 @@ async function fetchUnit(stock, dealer, log) {
   console.log('[vehicle edge] fetchUnit variants:', variants, '| dealer:', dealer);
 
   const sbFetch = async (sv, dealerFilter) => {
-    const DETAIL_SELECT = 'stock,year,make,model,trim,price,photos,dealer,category,subcategory,mileage,engine,horsepower,hours,fuel,condition,transmission,drivetrain,description,sold,vin,buyer_intelligence';
+    const DETAIL_SELECT = 'stock,year,make,model,trim,price,photos,dealer,category,subcategory,mileage,engine,horsepower,hours,fuel,condition,transmission,drivetrain,description,sold,vin,buyer_intelligence,contact_phone';
     const q = dealerFilter
       ? `stock=eq.${encodeURIComponent(sv)}&dealer=eq.${encodeURIComponent(dealerFilter)}&select=${DETAIL_SELECT}&limit=1`
       : `stock=eq.${encodeURIComponent(sv)}&select=${DETAIL_SELECT}&limit=1`;
@@ -486,7 +486,7 @@ export default async function handler(request, context) {
       ...unit,
       photos,
       _dealer: {
-        phone: d.phone || '',
+        phone: unit.contact_phone || d.phone || '',
         address: d.address || ''
       }
     };
