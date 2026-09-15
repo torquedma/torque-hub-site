@@ -13,11 +13,14 @@ exports.handler = async (event) => {
   try {
     const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
+    // ★ 2026-09-14 — status='published' is the buyer-visibility boundary.
+    //   Drafts must not leak into external syndication.
     const { data, error } = await supabase
       .from('inventory')
       .select('stock,dealer,year,make,model,trim,price,subcategory,category,mileage,engine,hours,horsepower,search_pills,first_photo:photos->0')
       .eq('dealer', 'Impex Heavy Metal')
       .eq('sold', false)
+      .eq('status', 'published')
       .order('year', { ascending: false });
 
     if (error) throw error;

@@ -35,7 +35,7 @@ exports.handler = async (event) => {
   // dx_locked=false guard is always applied — locked units are excluded even if listed in ?stocks.
   let query = supabase
     .from('inventory')
-    .select('stock, dealer, year, make, model, trim, category, subcategory, price, mileage, hours, engine, horsepower, transmission, drivetrain, fuel, condition, vin, raw_description, description, description_source, provenance, gvwr_class, body_class, vin_decoded_at, created_at')
+    .select('stock, dealer, year, make, model, trim, category, subcategory, price, mileage, hours, engine, horsepower, transmission, drivetrain, fuel, condition, vin, raw_description, description, description_source, status, provenance, gvwr_class, body_class, vin_decoded_at, created_at')
     .eq('sold', false)
     .eq('dx_locked', false);
   if (stocksList)      query = query.in('stock', stocksList);
@@ -147,13 +147,22 @@ exports.handler = async (event) => {
         continue;
       }
 
+      // 2026-09-14 DRAFT → PUBLISHED PROMOTION. status is set in the payload
+      // ONLY when the row is currently draft, so this write is a no-op on the
+      // status column for published rows (preserves existing operator
+      // regeneration semantics) and promotes draft rows on success. NOT
+      // placed on the WHERE clause because that would silently no-op the
+      // whole update on published-row regeneration — see Phase 3 report.
+      const payload = {
+        description: text,
+        description_source: 'torque_hub_dx',
+        description_generated_at: new Date().toISOString(),
+      };
+      if (unit.status === 'draft') payload.status = 'published';
+
       const { error: writeError } = await supabase
         .from('inventory')
-        .update({
-          description: text,
-          description_source: 'torque_hub_dx',
-          description_generated_at: new Date().toISOString(),
-        })
+        .update(payload)
         .eq('stock', unit.stock)
         .eq('sold', false);
 

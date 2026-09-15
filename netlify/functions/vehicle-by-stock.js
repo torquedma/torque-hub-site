@@ -31,11 +31,20 @@ exports.handler = async (event) => {
 
     let unit = null;
 
+    // Public projection. Matches inventory_public_detail's column set plus
+    // buyer_intelligence (which the VDP page reads at vehicle.html:1110).
+    // ★ 2026-09-14 — do NOT restore select('*'). select('*') previously
+    //   served internal fields (notes, raw_description, description_source,
+    //   dx_locked, sold_type, provenance, etc.) to the public payload.
+    //   Withdrawal tombstones in `notes` were reaching buyers.
+    const PUBLIC_COLUMNS = 'id, stock, dealer, year, make, model, trim, price, photos, category, subcategory, mileage, engine, horsepower, hours, fuel, condition, transmission, drivetrain, description, sold, vin, buyer_intelligence';
+
     // Pass 1: dealer-scoped if dealer provided
     if (dealerRaw) {
       const { data: pass1, error: pass1err } = await supabase
         .from('inventory')
-        .select('*')
+        .select(PUBLIC_COLUMNS)
+        .eq('status', 'published')
         .eq('dealer', dealerRaw)
         .in('stock', variants)
         .limit(1);
@@ -47,7 +56,8 @@ exports.handler = async (event) => {
     if (!unit) {
       const { data: pass2, error: pass2err } = await supabase
         .from('inventory')
-        .select('*')
+        .select(PUBLIC_COLUMNS)
+        .eq('status', 'published')
         .in('stock', variants)
         .limit(1);
       if (pass2err) throw pass2err;
