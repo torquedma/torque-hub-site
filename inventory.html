@@ -357,12 +357,14 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
     function initDealerFilter() {
       var sel = document.getElementById('dealer-filter');
       if (!sel) return;
-      InventoryEngine.DEALERS.slice().sort(function(a, b) {
-        return a.name.localeCompare(b.name);
-      }).forEach(function(d) {
+      var seen = {};
+      (InventoryEngine.ALL_INV || []).forEach(function(u) {
+        if (u.dealer) seen[u.dealer] = true;
+      });
+      Object.keys(seen).sort(function(a, b) { return a.localeCompare(b); }).forEach(function(name) {
         var opt = document.createElement('option');
-        opt.value = d.key;
-        opt.textContent = d.name;
+        opt.value = name;
+        opt.textContent = name;
         sel.appendChild(opt);
       });
     }
@@ -387,8 +389,6 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
     var q         = params.get('q');
     var condition = params.get('condition');
     var sort      = params.get('sort');
-
-    initDealerFilter();
 
     // ── Scroll restoration on return from VDP ──────────────────────────────
     var INV_SIG = location.search || '';
@@ -416,6 +416,7 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
     });
 
     InventoryEngine.loadAll().then(function() {
+      initDealerFilter();
       if (q)         document.getElementById('inv-search').value = q;
       if (condition) document.getElementById('condition-filter').value = condition;
       if (sort)      document.getElementById('sort-filter').value = sort;

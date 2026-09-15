@@ -1325,12 +1325,14 @@ function buildInventoryURL() {
 function initDealerFilter() {
   var sel = document.getElementById('dealer-filter');
   if (!sel) return;
-  InventoryEngine.DEALERS.slice().sort(function(a, b) {
-    return a.name.localeCompare(b.name);
-  }).forEach(function(d) {
+  var seen = {};
+  (InventoryEngine.ALL_INV || []).forEach(function(u) {
+    if (u.dealer) seen[u.dealer] = true;
+  });
+  Object.keys(seen).sort(function(a, b) { return a.localeCompare(b); }).forEach(function(name) {
     var opt = document.createElement('option');
-    opt.value = d.key;
-    opt.textContent = d.name;
+    opt.value = name;
+    opt.textContent = name;
     sel.appendChild(opt);
   });
 }
@@ -1493,12 +1495,12 @@ InventoryEngine.init({
     var dealerEl = document.getElementById('trust-dealer-count');
     if (countEl)  countEl.textContent  = listingFloor.toLocaleString('en-US') + '+';
     if (dealerEl) dealerEl.textContent = dealerCount + '+';
+    initDealerFilter();
     renderDealers();
     renderCategoryDiscovery();
   }
 });
 
-initDealerFilter();
 InventoryEngine.loadAll();
 
 function _initTypeahead(inputId, dropdownId, onSelect, onEnterFallback) {

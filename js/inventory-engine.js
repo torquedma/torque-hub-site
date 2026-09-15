@@ -316,36 +316,18 @@ window.InventoryEngine = (function () {
       { headers: SB_HDRS }
     ).then(function(r) { return r.json(); }).catch(function() { return []; });
 
-    var feedPromises = DEALERS.filter(function(d) { return d.feedUrl; }).map(function(d) {
-      return fetch(d.feedUrl).then(function(r) { return r.json(); }).then(function(items) {
-        return items.filter(function(u) { return !u.sold; }).map(function(u) {
-          if (d.key === "HGR's Truck and Trailer" && u.stock && !u.stock.includes('-'))
-            u = Object.assign({}, u, { stock: u.stock.slice(0, 3) + '-' + u.stock.slice(3) });
-          return Object.assign({}, u, { _dealer: d });
+    var cols = 'id,stock,vin,year,make,model,trim,subcategory,category,dealer,price,mileage,engine,horsepower,hours,fuel,condition,photos,featured,search_pills,created_at,updated_at';
+    var invP = fetch(
+      SB_URL + '/rest/v1/inventory_cards?select=' + cols + '&sold=eq.false&limit=1000',
+      { headers: SB_HDRS }
+    ).then(function(r) { return r.json(); }).then(function(items) {
+      return (items || []).map(function(u) {
+        return Object.assign({}, u, {
+          _dealer: DEALERS.find(function(x) { return x.key === u.dealer; })
         });
-      }).catch(function() { return []; });
-    });
+      });
+    }).catch(function() { return []; });
 
-    var sbPromises = DEALERS.filter(function(d) { return !d.feedUrl; }).map(function(d) {
-      // Trimmed select: only fields the card render + filters + sort actually consume.
-      // photos->0 returns the first photo as a single object (huge payload cut vs full array).
-      // We re-wrap it back to a one-element array in .then() so the consumer code at line ~333
-      // (u.photos && u.photos.length ? u.photos[0].url : '...) keeps working identically for
-      // both Supabase-direct dealers (now thin) and push-dealer feeds (still full arrays).
-      var cols = 'id,stock,vin,year,make,model,trim,subcategory,category,dealer,price,mileage,engine,horsepower,hours,fuel,condition,photos->0,created_at,updated_at';
-      return fetch(
-        SB_URL + '/rest/v1/inventory_cards?select=' + cols + '&dealer=eq.' + encodeURIComponent(d.key) + '&sold=eq.false&limit=1000',
-        { headers: SB_HDRS }
-      ).then(function(r) { return r.json(); }).then(function(items) {
-        return (items || []).map(function(u) {
-          // photos->0 returns either a single {url,name} object or null. Re-wrap to array shape.
-          var photosArr = (u.photos && typeof u.photos === 'object' && !Array.isArray(u.photos)) ? [u.photos] : (Array.isArray(u.photos) ? u.photos : []);
-          return Object.assign({}, u, { photos: photosArr, _dealer: d });
-        });
-      }).catch(function() { return []; });
-    });
-
-    var results = await Promise.allSettled([].concat(feedPromises, sbPromises));
     try {
       var dealerRows = await dealersP;
       if (Array.isArray(dealerRows)) {
@@ -358,7 +340,7 @@ window.InventoryEngine = (function () {
         });
       }
     } catch (_) {}
-    ALL_INV = results.flatMap(function(r) { return r.status === 'fulfilled' ? r.value : []; });
+    ALL_INV = await invP;
 
     if (typeof _cfg.onLoad === 'function') _cfg.onLoad(ALL_INV);
     applyFilters();
