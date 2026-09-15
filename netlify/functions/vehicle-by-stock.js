@@ -37,7 +37,7 @@ exports.handler = async (event) => {
     //   served internal fields (notes, raw_description, description_source,
     //   dx_locked, sold_type, provenance, etc.) to the public payload.
     //   Withdrawal tombstones in `notes` were reaching buyers.
-    const PUBLIC_COLUMNS = 'id, stock, dealer, year, make, model, trim, price, photos, category, subcategory, mileage, engine, horsepower, hours, fuel, condition, transmission, drivetrain, description, sold, vin, buyer_intelligence, contact_phone';
+    const PUBLIC_COLUMNS = 'id, stock, dealer, year, make, model, trim, price, photos, category, subcategory, mileage, engine, horsepower, hours, fuel, condition, transmission, drivetrain, description, sold, vin, buyer_intelligence, contact_phone, contact_location';
 
     // Pass 1: dealer-scoped if dealer provided
     if (dealerRaw) {
@@ -79,7 +79,7 @@ exports.handler = async (event) => {
     } catch (_) {}
     unit._dealer = {
       phone: unit.contact_phone || dealerRow?.phone || '',
-      address: dealerRow?.address || ''
+      address: unit.contact_location || dealerRow?.address || ''
     };
 
     return { statusCode: 200, headers, body: JSON.stringify(unit) };

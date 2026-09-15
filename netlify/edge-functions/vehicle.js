@@ -185,7 +185,7 @@ async function fetchUnit(stock, dealer, log) {
   console.log('[vehicle edge] fetchUnit variants:', variants, '| dealer:', dealer);
 
   const sbFetch = async (sv, dealerFilter) => {
-    const DETAIL_SELECT = 'stock,year,make,model,trim,price,photos,dealer,category,subcategory,mileage,engine,horsepower,hours,fuel,condition,transmission,drivetrain,description,sold,vin,buyer_intelligence,contact_phone';
+    const DETAIL_SELECT = 'stock,year,make,model,trim,price,photos,dealer,category,subcategory,mileage,engine,horsepower,hours,fuel,condition,transmission,drivetrain,description,sold,vin,buyer_intelligence,contact_phone,contact_location';
     const q = dealerFilter
       ? `stock=eq.${encodeURIComponent(sv)}&dealer=eq.${encodeURIComponent(dealerFilter)}&select=${DETAIL_SELECT}&limit=1`
       : `stock=eq.${encodeURIComponent(sv)}&select=${DETAIL_SELECT}&limit=1`;
@@ -452,6 +452,9 @@ export default async function handler(request, context) {
         }
       }
     } catch (_) {}
+
+    const resolvedAddress = unit.contact_location || d.address || '';
+    d.address = resolvedAddress;
 
     console.log(`[vehicle edge] photos raw — type:${typeof unit.photos} isArray:${Array.isArray(unit.photos)} sample:${JSON.stringify(unit.photos)?.slice(0, 150)}`);
 
