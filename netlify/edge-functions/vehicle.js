@@ -482,7 +482,14 @@ export default async function handler(request, context) {
     const descHtml  = buildDescHtml(unit.description);
     const schema    = buildSchema(unit, d, pageUrl, dealerKey);
 
-    const unitForClient = { ...unit, photos };
+    const unitForClient = {
+      ...unit,
+      photos,
+      _dealer: {
+        phone: d.phone || '',
+        address: d.address || ''
+      }
+    };
     console.log(`[vehicle edge] injecting __VDP_UNIT__ photos count:${photos.length} first url:${photos[0]?.url ?? 'none'}`);
     const dataScript = `<script>window.__VDP_UNIT__=${safeJson(unitForClient)};window.__VDP_DEALER_KEY__=${safeJson(dealerKey)};</script>`;
 
