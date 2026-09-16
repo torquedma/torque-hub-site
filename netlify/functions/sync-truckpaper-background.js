@@ -754,6 +754,15 @@ exports.handler = async (event) => {
           dryRunLog.push({ path, stock, dealer, unit });
           if (isResurrection) resurrected++;
         } else if (isExisting) {
+          // 2026-09-16 IDENTITY GUARD. Once a row exists and is recognized as that row
+          // (by source_listing_id, by stock, or as a feed_removed resurrection), routine
+          // sync does not own the right to change its Torque Hub `stock` identity. Scraped
+          // stock determines identity at INSERT only; changing it afterward is an explicit
+          // migration/adjudication, never a side effect of a better scrape. Covers all three
+          // existing-row paths below because resurrection builds from this same `unit`.
+          // NOTE: dryRun returns before this branch, so dry-run logs still show the incoming
+          // normalized stock; the real PATCH never carries it.
+          delete unit.stock;
           if (unit.fuel == null || unit.fuel === '') delete unit.fuel;
           if (unit.condition == null || unit.condition === '') delete unit.condition;
           if (isResurrection) {
