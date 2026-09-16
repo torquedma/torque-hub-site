@@ -105,12 +105,40 @@ function repairMultiWordMake(make, model) {
 }
 
 function normalizeModel(model) {
-  // 2026-09-16 WRITER REPAIR: preserve source model casing. Manufacturer
-  // designations are case-significant (VNL64T300, F450 SD, DVLSHPC, M8 55.3 NX);
-  // the former title-case branch turned all-caps letter words into Dvlshpc / Nx.
-  // Trim only. No other normalization of model happens on this path.
   if (!model) return '';
-  return String(model).trim();
+  const s = String(model).trim();
+  if (!s) return '';
+
+  const letters = s.replace(/[^A-Za-z]/g, '');
+  if (letters && letters !== letters.toUpperCase()) return s;
+
+  const KEEP_UPPER = new Set([
+    'GMC','RAM','BMW','KTM','ASV','CAT','JLG','GM','PJ','LLC','INC','CO',
+    'HD','XL','XLT','SE','LE','LT','LTZ','SS','GT','GTS','RS','SR',
+    'SXT','RT','EX','LX','DX','EXL','EXR','SEL','TRD','AWD','4WD',
+    'RWD','FWD','M2','M3','M5','MX','SRT','XLE','XSE','XS',
+    'II','III','IV','VI','VII','VIII','IX','X','XI','XII',
+    'SD','NPR','NQR','NRR','FRR','FTR','FXR',
+    'CXU','CHU','CXP','CHP','CXN',
+    'DT','ISC','ISL','ISM','ISX',
+    'HX','RD','RH','MR','MK',
+    'PB','KW','FL','IH','IHC',
+    'GVW','GVWR','DOT','EPA','EGR','DPF','DEF',
+    'ACERT','MBE',
+    'TT','BT','ST','MT','NT',
+    'SLT','MV'
+  ]);
+
+  return s.split(/\s+/).map(word => {
+    if (!word) return word;
+    if (/^\d+$/.test(word)) return word;
+    const alphaOnly = word.replace(/[^A-Za-z]/g, '');
+    if (alphaOnly && KEEP_UPPER.has(alphaOnly.toUpperCase())) {
+      return word.toUpperCase();
+    }
+    if (/\d/.test(word)) return word.toUpperCase();
+    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+  }).join(' ');
 }
 
 const DEALER_PREFIXES = {
