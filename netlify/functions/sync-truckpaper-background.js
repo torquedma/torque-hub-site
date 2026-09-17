@@ -174,10 +174,15 @@ function stripSandhillsJunkPhotos(photos) {
 
 function reorderDbtPhotos(photos, dealer, sourceUrl) {
   if (dealer !== 'DeBary Truck Sales') return photos;
-  // 2026-09-16: this positional fix exists for TruckPaper-era DeBary galleries. The Overfuel
-  // direct source (debarytrucksales.com) supplies explicit sortorder, which the adapter preserves;
-  // never reorder that source. Every other path keeps the pre-existing behavior unchanged.
-  if (sourceUrl && /debarytrucksales\.com/i.test(String(sourceUrl))) return photos;
+  // 2026-09-17 (Foreman PHOTO ruling, Ryan): Overfuel source photo #1 is DeBary's branded overlay frame
+  // (SOLD banner / phone number) — presentation junk that must never enter Torque Hub's persisted photo
+  // array. Drop it; former #3 remains hero, everything else keeps source order: A B C D E -> C B D E.
+  // Galleries of 2 keep only B; galleries of 0-1 are left untouched (never delete a unit's only image).
+  if (sourceUrl && /debarytrucksales\.com/i.test(String(sourceUrl))) {
+    if (!Array.isArray(photos) || photos.length < 2) return photos;
+    if (photos.length === 2) return photos.slice(1);
+    return [photos[2], photos[1]].concat(photos.slice(3));
+  }
   if (!Array.isArray(photos) || photos.length < 3) return photos;
   const originalFirst = photos[0];
   const third = photos[2];
