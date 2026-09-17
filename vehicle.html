@@ -306,6 +306,7 @@
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
   gtag('config', 'G-X9LG1DZKDP');
+  gtag('config', 'AW-18456519938');
 </script>
 <!-- Meta Pixel Code -->
 <script>
@@ -1239,6 +1240,14 @@ function submitLead() {
     })
   }).then(r => {
     if (!r.ok) throw new Error('Submit failed: ' + r.status);
+    // Count only a server-accepted contact request, never a page view or mailto fallback.
+    if (typeof gtag === 'function') {
+      gtag('event', 'conversion', {
+        send_to: 'AW-18456519938/11B6CPb_tvocEILK4OBE',
+        value: 1.0,
+        currency: 'USD'
+      });
+    }
     document.getElementById('form-inner').style.display = 'none';
     document.getElementById('form-success').style.display = 'block';
   }).catch(err => {

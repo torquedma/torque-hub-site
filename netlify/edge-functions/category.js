@@ -154,6 +154,7 @@ const SHELL = `<!DOCTYPE html>
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
     gtag('config', 'G-X9LG1DZKDP');
+  gtag('config', 'AW-18456519938');
   </script>
   <!-- Meta Pixel Code -->
   <script>
