@@ -870,6 +870,10 @@ exports.handler = async (event) => {
             result = await supabase.from('inventory').update(unit).eq('stock', stock).eq('dealer', dealer).eq('sold', false);
           }
         } else {
+          // 2026-09-17 (Foreman F2 FIX-FORWARD): a placeholder VIN from the source ("003", "000", a stock number,
+          // a pasted digit string) is not a VIN. On INSERT store NULL rather than the placeholder; the UPDATE path
+          // already refuses to overwrite a valid stored VIN with an invalid incoming one (guard above).
+          if (unit.vin !== undefined && unit.vin !== null && !isValidVin(unit.vin)) unit.vin = null;
           result = await supabase.from('inventory').insert([unit]);
         }
         const { error } = result || {};
