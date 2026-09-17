@@ -318,6 +318,12 @@ function deriveSubcategory(item) {
     if (c) return c;
   }
 
+  // 2026-09-17 (Foreman F5 FIX — source-aware abstention). If the source supplied an explicit body/type label
+  // (item.body) and the adapter could not map it to the canonical taxonomy, that abstention survives ingestion:
+  // known-unmapped is not unknown. Generic description prose must never overrule it — DeBary's site boilerplate
+  // ("...hooklift trucks, roll-off trucks, bucket trucks...") classified six unrelated units as Roll-Off.
+  if (typeof item.body === 'string' && item.body.trim()) return '';
+
   const haystack = `${item.title || ''} ${item.description || ''} ${item.model || ''}`.toLowerCase();
   if (!haystack.trim()) return '';
 
