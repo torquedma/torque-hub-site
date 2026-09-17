@@ -33,11 +33,18 @@ function hpSingleRating(from, to) {
 }
 
 // Returns null on invalid VIN or API failure (best-effort — never blocks DX generation)
+// VIN validation: exactly 17 chars, alphanumeric, no I/O/Q. Single definition shared with the
+// sync receiver's existing-row VIN identity guard (2026-09-16) so both use the same rule.
+function isValidVin(vin) {
+  if (!vin) return false;
+  const clean = String(vin).trim().toUpperCase();
+  return clean.length === 17 && !/[IOQ]/.test(clean) && /^[A-Z0-9]+$/.test(clean);
+}
+
 async function decodeVin(vin) {
   if (!vin) return null;
   const clean = String(vin).trim().toUpperCase();
-  // VIN validation: exactly 17 chars, alphanumeric, no I/O/Q
-  if (clean.length !== 17 || /[IOQ]/.test(clean) || !/^[A-Z0-9]+$/.test(clean)) return null;
+  if (!isValidVin(clean)) return null;
 
   let data;
   try {
@@ -74,4 +81,4 @@ async function decodeVin(vin) {
   };
 }
 
-module.exports = { decodeVin };
+module.exports = { decodeVin, isValidVin };

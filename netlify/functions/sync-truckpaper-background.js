@@ -4,6 +4,7 @@ const { CANONICAL_SUBCATEGORIES, SUBCATEGORY_ALIASES, canonicalize } = require('
 const { isPhantom } = require('./lib/phantom-fields');
 const { isKnownSuppressMileage, isKnownSuppressHours } = require('./lib/usage-display.generated.js');
 const { stampFacts } = require('./lib/provenance');
+const { isValidVin } = require('./lib/vin-decode');
 
 // Strip marketing filler after a dash/em-dash separator, e.g.
 // "Cummins ISB 6.7L - Powerful and efficient" → "Cummins ISB 6.7L"
@@ -171,8 +172,12 @@ function stripSandhillsJunkPhotos(photos) {
   });
 }
 
-function reorderDbtPhotos(photos, dealer) {
+function reorderDbtPhotos(photos, dealer, sourceUrl) {
   if (dealer !== 'DeBary Truck Sales') return photos;
+  // 2026-09-16: this positional fix exists for TruckPaper-era DeBary galleries. The Overfuel
+  // direct source (debarytrucksales.com) supplies explicit sortorder, which the adapter preserves;
+  // never reorder that source. Every other path keeps the pre-existing behavior unchanged.
+  if (sourceUrl && /debarytrucksales\.com/i.test(String(sourceUrl))) return photos;
   if (!Array.isArray(photos) || photos.length < 3) return photos;
   const originalFirst = photos[0];
   const third = photos[2];
@@ -427,6 +432,31 @@ const PRESENTATION_HELD_LISTINGS = new Set([
   'Mid-Atlantic Power & Equipment|241311091',
   'Allied Truck & Trailer Sales|260299567',
   'Allied Truck & Trailer Sales|260301101',
+  // ── DeBary Truck Sales — Overfuel cutover controlled run (Foreman rulings 2026-09-16/17). Two classes, different acceptance:
+  // CLASS A — SOURCE/INSERT HOLDS (10): outside the frozen 129 crosswalk; NO inventory row may exist after the controlled run.
+  'DeBary Truck Sales|1070853',   // 0004 — B-3: manufacturer not established; make/model are type descriptors
+  'DeBary Truck Sales|1070866',   // 0005 — B-3
+  'DeBary Truck Sales|1070854',   // 0006 — B-3
+  'DeBary Truck Sales|1070867',   // 0007 — B-3
+  'DeBary Truck Sales|840629',    // 1111 — B-3
+  'DeBary Truck Sales|840656',    // LG6964 — B-3
+  'DeBary Truck Sales|1174508',   // DB7691 — internal stock identity conflict (stocknumber DB7691 vs placeholder VIN + URL slug DB7651)
+  'DeBary Truck Sales|840651',    // DP6469 — model Dump contradicts body Flatbed truck body
+  'DeBary Truck Sales|2008312',   // 7924 — composite make Chevrolet/ ISUZU
+  'DeBary Truck Sales|1959096',   // DB7906 — 2027 MY + placeholder VIN + type-like model; whole row held
+  // CLASS B — EXISTING-ROW UPDATE HOLDS (12): bridged, live after M2, counted in the expected 170; this run must NOT mutate them.
+  'DeBary Truck Sales|1530241',   // DBT-7806 — Altec AT37G identity vs Ford chassis identity
+  'DeBary Truck Sales|1722941',   // DBT-7844 — Altec AT37G identity vs Ford chassis identity
+  'DeBary Truck Sales|1752305',   // DBT-7853 — Axionlift vs Chevrolet chassis + 2023→2022 year
+  'DeBary Truck Sales|1752361',   // DBT-7854 — Axionlift vs Chevrolet chassis + 2023→2022 year
+  'DeBary Truck Sales|840672',    // DBT-7549 — Express 3500 → Savana model conflict
+  'DeBary Truck Sales|840739',    // DBT-7445 — Sprinter 3500 → 3500 Refrigerated Cargo Van model conflict
+  'DeBary Truck Sales|1747646',   // DBT-7851 — Chevrolet → Chevrolet/ ISUZU composite make
+  'DeBary Truck Sales|1862800',   // DBT-DB7880 — 2019 → 2020 year conflict
+  'DeBary Truck Sales|840677',    // DBT-7531 — 8x6 → 6X4 drivetrain conflict
+  'DeBary Truck Sales|1204514',   // DBT-7700 — 8x4 → 6X4 drivetrain conflict (model protected by M4; drivetrain is not)
+  'DeBary Truck Sales|1910079',   // DBT-7892 — Paccar PX7 → PX-6 engine-family conflict — HOLD
+  'DeBary Truck Sales|1881583',   // DBT-7887 — PRESERVE NQR (incoming model field carries make value "Isuzu")
 ]);
 
 // Use background function for longer timeout (15 minutes vs 10 seconds)
@@ -535,7 +565,7 @@ exports.handler = async (event) => {
   // Get existing rows (stock + source_listing_id for dual-key upsert)
   const { data: existing } = await supabase
     .from('inventory')
-    .select('stock,source_listing_id,subcategory_locked,model_locked,source_url,provenance')
+    .select('stock,source_listing_id,subcategory_locked,model_locked,source_url,provenance,vin,condition')
     .eq('dealer', dealer)
     .eq('sold', false);
 
@@ -557,7 +587,7 @@ exports.handler = async (event) => {
   // feed is never read and never written.
   const { data: buried } = await supabase
     .from('inventory')
-    .select('stock,source_listing_id,subcategory_locked,model_locked,source_url,provenance')
+    .select('stock,source_listing_id,subcategory_locked,model_locked,source_url,provenance,vin,condition')
     .eq('dealer', dealer)
     .eq('sold', true)
     .eq('sold_type', 'feed_removed');
@@ -708,7 +738,7 @@ exports.handler = async (event) => {
         if (unit.mileage && isKnownSuppressMileage(unit)) unit.mileage = '';
 
         unit.photos = stripSandhillsJunkPhotos(unit.photos);
-        unit.photos = reorderDbtPhotos(unit.photos, dealer);
+        unit.photos = reorderDbtPhotos(unit.photos, dealer, item.source_url);
 
         // Determine upsert path: prefer (dealer, source_listing_id) when present, fall back to (dealer, stock)
         const incomingListingId = item.source_listing_id || null;
@@ -793,6 +823,29 @@ exports.handler = async (event) => {
           delete unit.stock;
           if (unit.fuel == null || unit.fuel === '') delete unit.fuel;
           if (unit.condition == null || unit.condition === '') delete unit.condition;
+
+          // 2026-09-16 EXISTING-ROW ABSENCE PRESERVATION. Missing incoming evidence is not
+          // evidence that an established value became blank. On an existing row, an empty
+          // incoming scalar never overwrites a stored value. Same doctrine as the fuel/condition
+          // drops above; extended to the structured fields a source may simply not carry.
+          // Price is deliberately NOT here: a source that publishes no price has withdrawn it.
+          for (const f of ['horsepower', 'transmission', 'mileage', 'drivetrain', 'engine', 'year', 'vin', 'trim']) {
+            if (unit[f] == null || unit[f] === '') delete unit[f];
+          }
+
+          // 2026-09-16 CONDITION: an absent incoming condition must not become 'Used' on UPDATE.
+          // The 'Used' default (unit construction) remains for INSERT only until its consumers
+          // are established. Missing condition means missing evidence.
+          if (!item.condition) delete unit.condition;
+
+          const priorRow = existingRowForProv;
+          // 2026-09-16 SALVAGE DISCLOSURE GUARD. An adjudicated Salvaged condition cannot be
+          // downgraded to Used by routine synchronization; that is a disclosure, not a preference.
+          if (priorRow && priorRow.condition === 'Salvaged' && unit.condition === 'Used') delete unit.condition;
+          // 2026-09-16 VIN IDENTITY GUARD. A stored valid 17-character VIN is never replaced by
+          // an incoming value that is not itself a valid VIN (placeholders like '123', 'BOXBODY1').
+          if (priorRow && isValidVin(priorRow.vin) && unit.vin !== undefined && !isValidVin(unit.vin)) delete unit.vin;
+
           if (isResurrection) {
             // D1 RESURRECTION. The unit is in the current feed and its row is
             // sold_type='feed_removed'. Return THAT SAME ROW to live instead of
