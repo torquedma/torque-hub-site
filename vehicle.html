@@ -43,6 +43,12 @@
       --orange-2: #ea6f0f;
       --green: #365943;
       --shadow: 0 20px 50px rgba(0,0,0,0.35);
+      /* Walkaround cards — light cards on the dark page (Foreman design ruling 2026-09-18) */
+      --wa-card-bg: #f3efe6;              /* warm off-white, not #fff */
+      --wa-card-ink: #111827;             /* deep Torque navy body text (== --panel) */
+      --wa-card-ink-strong: #0a0f1a;      /* headings (== --bg) */
+      --wa-card-line: rgba(17,24,39,0.16);/* cool navy-tinted border/divider */
+      --wa-card-bullet: #334155;          /* dark blue bullets (== CALL button slate) */
       --radius: 16px;
       --max: 1180px;
     }
@@ -182,7 +188,11 @@
     .wa-section { margin-top: 20px; }
     .wa-track { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; scroll-behavior: smooth; }
     .wa-track::-webkit-scrollbar { display: none; }
-    .wa-card { flex: 0 0 100%; scroll-snap-align: start; scroll-snap-stop: always; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+    .wa-card { flex: 0 0 100%; scroll-snap-align: start; scroll-snap-stop: always; background: var(--wa-card-bg); border: 1px solid var(--wa-card-line); border-radius: var(--radius); overflow: hidden; color: var(--wa-card-ink); }
+    .wa-card .card-head { color: var(--wa-card-ink-strong); border-bottom-color: var(--wa-card-line); }
+    .wa-card .desc-heading { color: var(--wa-card-ink-strong); }
+    .wa-card .desc-para, .wa-card .desc-list li { color: var(--wa-card-ink); }
+    .wa-card .desc-list li::before { color: var(--wa-card-bullet); }
     .wa-track.has-more .wa-card { flex-basis: calc(100% - 36px); }
     .wa-card .desc-body { padding: 14px 18px; }
     .wa-card .desc-para { font-size: 13px; line-height: 1.55; margin-bottom: 6px; }
