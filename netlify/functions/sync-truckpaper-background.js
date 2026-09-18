@@ -973,7 +973,11 @@ exports.handler = async (event) => {
   // ratio gate does not detect stable-incompleteness feeds — do not let this file
   // write sold_type='feed_removed' for these dealers until authoritative discovery
   // with an external completeness invariant is in place.
-  const freezeMarkSold = FROZEN_DEALERS.has(dealer);
+  // 2026-09-18 IMPEX STOCK RECONCILIATION: an armed stock-identity reconciliation has no
+  // business making a lifecycle decision. When (and only when) this run is armed via
+  // body.stockReconcileDealer, the mark-sold loop is skipped entirely, exactly as it is for a
+  // frozen dealer. Unarmed runs — every Scheduler run, every other dealer — are unaffected.
+  const freezeMarkSold = FROZEN_DEALERS.has(dealer) || !!stockReconcileDealer;
   if (freezeMarkSold) {
     console.warn(`FREEZE ${dealer}: mark-sold loop skipped entirely (0 units mark-sold this run)`);
   }
