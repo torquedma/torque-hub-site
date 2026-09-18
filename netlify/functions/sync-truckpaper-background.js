@@ -581,6 +581,17 @@ exports.handler = async (event) => {
     .eq('sold', false);
 
   const existingStocks = new Set((existing || []).map(u => u.stock));
+  // 2026-09-18 IMPEX STOCK RECONCILIATION (Foreman-gated, see identity guard below): the
+  // UNIQUE (stock, dealer) index spans SOLD rows too, so a collision check must see every
+  // stock this dealer has ever used, not only the live set above.
+  const stockReconcileDealer = (body && body.stockReconcileDealer === 'Impex Heavy Metal' && dealer === 'Impex Heavy Metal')
+    ? 'Impex Heavy Metal' : null;
+  let allDealerStocks = null;
+  if (stockReconcileDealer) {
+    const { data: allRows } = await supabase.from('inventory').select('stock').eq('dealer', dealer);
+    allDealerStocks = new Set((allRows || []).map(u => u.stock));
+    console.log(`[STOCK-RECONCILE] armed for ${dealer}; ${allDealerStocks.size} stocks (live+sold) loaded for collision check`);
+  }
   const existingByListingId = new Map();
   const existingByStock = new Map();
   for (const row of (existing || [])) {
@@ -831,7 +842,38 @@ exports.handler = async (event) => {
           // existing-row paths below because resurrection builds from this same `unit`.
           // NOTE: dryRun returns before this branch, so dry-run logs still show the incoming
           // normalized stock; the real PATCH never carries it.
-          delete unit.stock;
+          //
+          // 2026-09-18 IMPEX STOCK RECONCILIATION — the ONE narrow exception to the guard above.
+          // Restores a dealer-form stock onto a row that only ever held a listing-id fallback
+          // identity. Every condition must hold, or the guard applies exactly as before:
+          //   (a) the caller armed it: body.stockReconcileDealer === 'Impex Heavy Metal'
+          //       (the Apify webhook never sends this; only an explicit operator POST does);
+          //   (b) this dealer is Impex Heavy Metal;
+          //   (c) the existing Torque stock is fallback-shaped MPX-######;
+          //   (d) the incoming normalized stock is dealer-form: MPX- prefixed and NOT the
+          //       listing-id fallback (neither six digits nor equal to MPX-<last6 of listing id>);
+          //   (e) the row was matched by source_listing_id on the LIVE set (not by stock, not D1);
+          //   (f) no row of this dealer — live or sold — already holds the incoming stock.
+          // Nothing else changes: locks, absence preservation, salvage/VIN guards, DX, sold state.
+          const incomingStockForReconcile = unit.stock;
+          const reconcileStock = !!(
+            stockReconcileDealer &&
+            liveMatchedRow && !isResurrection && incomingListingId &&
+            priorRow && /^MPX-\d{6}$/.test(String(priorRow.stock || '')) &&
+            incomingStockForReconcile &&
+            /^MPX-/.test(incomingStockForReconcile) &&
+            !/^MPX-\d{6}$/.test(incomingStockForReconcile) &&
+            incomingStockForReconcile !== `MPX-${String(incomingListingId).slice(-6)}` &&
+            allDealerStocks && !allDealerStocks.has(incomingStockForReconcile)
+          );
+          if (reconcileStock) {
+            console.log(`[STOCK-RECONCILE] ${priorRow.stock} -> ${incomingStockForReconcile} listing_id=${incomingListingId}`);
+          } else {
+            if (stockReconcileDealer && priorRow && /^MPX-\d{6}$/.test(String(priorRow.stock || ''))) {
+              console.log(`[STOCK-RECONCILE-HOLD] ${priorRow.stock} incoming=${incomingStockForReconcile || ''} listing_id=${incomingListingId || ''} live=${!!liveMatchedRow} resurrection=${isResurrection} collision=${!!(allDealerStocks && incomingStockForReconcile && allDealerStocks.has(incomingStockForReconcile))}`);
+            }
+            delete unit.stock;
+          }
           if (unit.fuel == null || unit.fuel === '') delete unit.fuel;
           if (unit.condition == null || unit.condition === '') delete unit.condition;
 
