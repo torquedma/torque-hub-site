@@ -1068,7 +1068,7 @@ function render(unit, dealerKey) {
   // CTAs (sticky mobile bar only — in-scroll price card + finance card removed)
   const callHref = `tel:${d.tel || ''}`;
   const mobileCall = el('mobile-call');
-  if (mobileCall) { mobileCall.href = callHref; mobileCall.textContent = `📞 Call ${d.phone || 'Now'}`; }
+  if (mobileCall) { mobileCall.href = callHref; mobileCall.textContent = `📞 Call ${d.phone || 'Now'}`; wirePhoneCta(mobileCall, 'mobile_sticky'); }
   const mobileBar = el('mobile-bar'); if (mobileBar) mobileBar.style.display = 'flex';
 
   // Sold gate — suppress buyer-action UI and active-price presentation.
@@ -1095,7 +1095,7 @@ function render(unit, dealerKey) {
   // Dealer card
   const dName = el('d-name'); if (dName) dName.textContent = dealerKey || unit.dealer;
   const dAddr = el('d-addr'); if (dAddr) dAddr.textContent = d.address || '';
-  const dCall = el('d-call'); if (dCall) { dCall.href = callHref; dCall.textContent = d.phone ? `Call ${d.phone}` : 'Call'; }
+  const dCall = el('d-call'); if (dCall) { dCall.href = callHref; dCall.textContent = d.phone ? `Call ${d.phone}` : 'Call'; wirePhoneCta(dCall, 'dealer_card'); }
   const dDir  = el('d-directions');
   if (dDir) dDir.href = d.mapsUrl
     || (d.address ? 'https://maps.google.com/?q=' + encodeURIComponent(d.address) : '#');
@@ -1205,8 +1205,37 @@ async function loadSimilar(currentUnit, dealerKey) {
   } catch (e) { console.warn('Similar units error:', e.message); }
 }
 
+// ─── PHONE CTA MEASUREMENT (Measurement Model v1) ───────────────────────────
+// phone_cta_click records that a buyer activated a VDP phone CTA from this web
+// journey. It is NOT a call, a connected call, or a lead. Retreaver remains
+// authoritative for whether a call actually happened. Never fires when the
+// resolved target is an empty/bare tel:.
+function wirePhoneCta(elm, ctaLocation) {
+  if (!elm || elm.dataset.phoneCtaWired === '1') return;
+  elm.dataset.phoneCtaWired = '1';
+  elm.addEventListener('click', function () {
+    try {
+      const href = elm.getAttribute('href') || '';
+      if (href.slice(0, 4) !== 'tel:') return;
+      if (!href.slice(4).trim()) return;
+      if (typeof gtag !== 'function') return;
+      const stockEl = document.getElementById('f-stock');
+      gtag('event', 'phone_cta_click', {
+        stock: stockEl ? stockEl.value : '',
+        cta_location: ctaLocation
+      });
+    } catch (e) { console.warn('phone_cta_click failed:', e); }
+  });
+}
+
 // ─── LEAD FORM ──────────────────────────────────────────────────────────────
+// Single-flight guard: one buyer action must issue exactly one submit-lead POST.
+// Without it each repeated click issued its own fetch and re-fired the Ads
+// conversion. Both terminal paths below hide the form, so this is never reset.
+let leadSubmitting = false;
+
 function submitLead() {
+  if (leadSubmitting) return;
   const name = document.getElementById('f-name').value.trim();
   const phone = document.getElementById('f-phone').value.trim();
   const email = document.getElementById('f-email').value.trim();
@@ -1221,6 +1250,8 @@ function submitLead() {
     alert('Please enter your name and phone number.');
     return;
   }
+
+  leadSubmitting = true;
 
   fetch('/.netlify/functions/submit-lead', {
     method: 'POST',
@@ -1248,6 +1279,15 @@ function submitLead() {
         currency: 'USD'
       });
     }
+    // GA4 buyer-outcome measurement (Measurement Model v1). Additive and
+    // independent of the Ads conversion above, which is unchanged. Telemetry
+    // must never throw into the buyer-visible success path.
+    try {
+      if (typeof gtag === 'function') {
+        gtag('event', 'generate_lead', { lead_type: 'contact', stock: stock });
+      }
+    } catch (e) { console.warn('GA4 generate_lead failed:', e); }
+
     document.getElementById('form-inner').style.display = 'none';
     document.getElementById('form-success').style.display = 'block';
   }).catch(err => {

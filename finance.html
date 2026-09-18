@@ -998,6 +998,19 @@ function submitFinance() {
       }
     } catch (e) { console.warn('Meta Lead event failed:', e); }
 
+    // GA4 buyer-outcome measurement (Measurement Model v1). Phase 1 acceptance
+    // ONLY — Phase 2 enriches an existing lead and is not a second generated
+    // lead. Additive and independent of the Meta events, which are unchanged.
+    try {
+      if (typeof gtag === 'function') {
+        const g = { lead_type: 'finance' };
+        if (financeSubject.mode === 'torque_hub' && financeSubject.torqueHub.stock) {
+          g.stock = String(financeSubject.torqueHub.stock);
+        }
+        gtag('event', 'generate_lead', g);
+      }
+    } catch (e) { console.warn('GA4 generate_lead failed:', e); }
+
     let res = null;
     try { res = await r.json(); }
     catch (e) { console.error("2xx response body unusable:", e); }
