@@ -16,6 +16,10 @@
   schedule = "0 7,19 * * *"
 
 [[edge_functions]]
+  path = "/inventory"
+  function = "inventory"
+
+[[edge_functions]]
   path = "/inventory.html"
   function = "inventory"
 
