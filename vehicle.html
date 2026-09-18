@@ -48,7 +48,6 @@
       --wa-blue: #2563A8;                 /* Torque blue: card border, bullets, active dot */
       --wa-card-bg: #FAFBFC;              /* bright cool-white (not beige, not stark #fff) */
       --wa-card-ink: #111827;             /* deep navy body text */
-      --wa-card-ink-strong: #0A0F1A;      /* card headings + OVERVIEW heading */
       --wa-card-line: rgba(37,99,168,0.22);/* blue-tinted heading divider */
       --radius: 16px;
       --max: 1180px;
@@ -193,8 +192,8 @@
     .wa-track { display: flex; align-items: flex-start; gap: 12px; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scrollbar-width: none; scroll-behavior: smooth; transition: height 0.25s ease; }
     .wa-track::-webkit-scrollbar { display: none; }
     .wa-card { flex: 0 0 100%; scroll-snap-align: start; scroll-snap-stop: always; background: var(--wa-card-bg); border: 2px solid var(--wa-blue); border-radius: var(--radius); overflow: hidden; color: var(--wa-card-ink); }
-    .wa-card .card-head { color: var(--wa-card-ink-strong); border-bottom-color: var(--wa-card-line); }
-    .wa-card .desc-heading { color: var(--wa-card-ink-strong); }
+    .wa-card .card-head { color: var(--wa-blue); border-bottom-color: var(--wa-card-line); }
+    .wa-card .desc-heading { color: var(--wa-blue); }
     .wa-card .desc-para, .wa-card .desc-list li { color: var(--wa-card-ink); }
     .wa-card .desc-list li::before { color: var(--wa-blue); }
     .wa-track.has-more .wa-card { flex-basis: calc(100% - 36px); }
