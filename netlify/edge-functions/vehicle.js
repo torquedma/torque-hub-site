@@ -4,6 +4,7 @@
 // listing data instead of the client-side loading state.
 
 import { buildDisplayTitle, buildSeoTitle } from './lib/title-helpers.js';
+import { buildKeyDetailsCardHtml } from './lib/desc-render.js';
 import { showMileage, showHours } from './lib/usage-display.esm.js';
 
 const SUPABASE_URL = 'https://bxsikkmqasydosmblzov.supabase.co';
@@ -99,35 +100,6 @@ function buildSpecsHtml(unit) {
   ].filter(Boolean).map(([l, v]) =>
     `<div class="spec-row"><div class="spec-label">${esc(l)}</div><div class="spec-val">${esc(String(v))}</div></div>`
   ).join('');
-}
-
-function buildDescHtml(text) {
-  if (!text) return '';
-  const HEADINGS = new Set(['Key Details', 'Overview', 'Interested In This Unit?']);
-  const parts = [];
-  let bullets = [];
-
-  const flushBullets = () => {
-    if (!bullets.length) return;
-    parts.push('<ul class="desc-list">' + bullets.map(b => `<li>${esc(b)}</li>`).join('') + '</ul>');
-    bullets = [];
-  };
-
-  for (const raw of text.split('\n')) {
-    const line = raw.trimEnd();
-    if (!line.trim()) { flushBullets(); continue; }
-    if (HEADINGS.has(line.trim())) {
-      flushBullets();
-      parts.push(`<div class="desc-heading">${esc(line.trim())}</div>`);
-    } else if (/^[-•]\s+/.test(line.trim())) {
-      bullets.push(line.trim().replace(/^[-•]\s+/, ''));
-    } else {
-      flushBullets();
-      parts.push(`<p class="desc-para">${esc(line)}</p>`);
-    }
-  }
-  flushBullets();
-  return parts.join('');
 }
 
 function buildSchema(unit, d, pageUrl, dealerKey) {
@@ -482,7 +454,7 @@ export default async function handler(request, context) {
     const seoLine   = seoCore + ' for Sale' + (cityState ? ' in ' + cityState : '');
     const pageDesc  = `${seoCore} for sale${cityState ? ' in ' + cityState : ''}. ${price}. Call ${d.phone || 'the seller'} or apply for financing online. Torque Hub.`;
 
-    const descHtml  = buildDescHtml(unit.description);
+    const descHtml  = buildKeyDetailsCardHtml(unit.description);
     const schema    = buildSchema(unit, d, pageUrl, dealerKey);
 
     const unitForClient = {
