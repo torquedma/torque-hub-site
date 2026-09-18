@@ -1003,7 +1003,7 @@ function submitFinance() {
     // lead. Additive and independent of the Meta events, which are unchanged.
     try {
       if (typeof gtag === 'function') {
-        const g = { lead_type: 'finance' };
+        const g = { send_to: 'G-X9LG1DZKDP', lead_type: 'finance' };
         if (financeSubject.mode === 'torque_hub' && financeSubject.torqueHub.stock) {
           g.stock = String(financeSubject.torqueHub.stock);
         }

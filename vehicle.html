@@ -1090,6 +1090,7 @@ function wirePhoneCta(elm, ctaLocation) {
       if (typeof gtag !== 'function') return;
       const stockEl = document.getElementById('f-stock');
       gtag('event', 'phone_cta_click', {
+        send_to: 'G-X9LG1DZKDP',
         stock: stockEl ? stockEl.value : '',
         cta_location: ctaLocation
       });
@@ -1153,7 +1154,7 @@ function submitLead() {
     // must never throw into the buyer-visible success path.
     try {
       if (typeof gtag === 'function') {
-        gtag('event', 'generate_lead', { lead_type: 'contact', stock: stock });
+        gtag('event', 'generate_lead', { send_to: 'G-X9LG1DZKDP', lead_type: 'contact', stock: stock });
       }
     } catch (e) { console.warn('GA4 generate_lead failed:', e); }
 
