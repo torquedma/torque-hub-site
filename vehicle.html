@@ -43,12 +43,13 @@
       --orange-2: #ea6f0f;
       --green: #365943;
       --shadow: 0 20px 50px rgba(0,0,0,0.35);
-      /* Walkaround cards — light cards on the dark page (Foreman design ruling 2026-09-18) */
-      --wa-card-bg: #f3efe6;              /* warm off-white, not #fff */
-      --wa-card-ink: #111827;             /* deep Torque navy body text (== --panel) */
-      --wa-card-ink-strong: #0a0f1a;      /* headings (== --bg) */
-      --wa-card-line: rgba(17,24,39,0.16);/* cool navy-tinted border/divider */
-      --wa-card-bullet: #334155;          /* dark blue bullets (== CALL button slate) */
+      /* Walkaround cards — bright cool-white cards with a Torque-blue edge on the dark page
+         (Foreman visual contract 2026-09-18, matching Ryan's approved mobile direction) */
+      --wa-blue: #2563A8;                 /* Torque blue: card border, bullets, active dot */
+      --wa-card-bg: #FAFBFC;              /* bright cool-white (not beige, not stark #fff) */
+      --wa-card-ink: #111827;             /* deep navy body text */
+      --wa-card-ink-strong: #0A0F1A;      /* card headings + OVERVIEW heading */
+      --wa-card-line: rgba(37,99,168,0.22);/* blue-tinted heading divider */
       --radius: 16px;
       --max: 1180px;
     }
@@ -186,13 +187,16 @@
        hidden, dots driven by a scroll listener (see initWalkaround). Card 1 (Key Details) is in
        the static template so SSR fills it; intelligence cards are appended client-side. */
     .wa-section { margin-top: 20px; }
-    .wa-track { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; scroll-behavior: smooth; }
+    /* align-items: flex-start = every card keeps its own natural content height (no equal-height
+       stretch). initWalkaround sets the track's height to the ACTIVE card's measured height so the
+       viewport follows the card the buyer is on; overflow-y hidden clips a taller neighbour's peek. */
+    .wa-track { display: flex; align-items: flex-start; gap: 12px; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scrollbar-width: none; scroll-behavior: smooth; transition: height 0.25s ease; }
     .wa-track::-webkit-scrollbar { display: none; }
-    .wa-card { flex: 0 0 100%; scroll-snap-align: start; scroll-snap-stop: always; background: var(--wa-card-bg); border: 1px solid var(--wa-card-line); border-radius: var(--radius); overflow: hidden; color: var(--wa-card-ink); }
+    .wa-card { flex: 0 0 100%; scroll-snap-align: start; scroll-snap-stop: always; background: var(--wa-card-bg); border: 2px solid var(--wa-blue); border-radius: var(--radius); overflow: hidden; color: var(--wa-card-ink); }
     .wa-card .card-head { color: var(--wa-card-ink-strong); border-bottom-color: var(--wa-card-line); }
     .wa-card .desc-heading { color: var(--wa-card-ink-strong); }
     .wa-card .desc-para, .wa-card .desc-list li { color: var(--wa-card-ink); }
-    .wa-card .desc-list li::before { color: var(--wa-card-bullet); }
+    .wa-card .desc-list li::before { color: var(--wa-blue); }
     .wa-track.has-more .wa-card { flex-basis: calc(100% - 36px); }
     .wa-card .desc-body { padding: 14px 18px; }
     .wa-card .desc-para { font-size: 13px; line-height: 1.55; margin-bottom: 6px; }
@@ -201,7 +205,7 @@
     .wa-card .desc-list li { font-size: 13px; line-height: 1.5; }
     .wa-dots { display: flex; justify-content: center; gap: 6px; padding: 12px 0 4px; }
     .wa-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--line); border: none; padding: 0; cursor: pointer; transition: background 0.2s; }
-    .wa-dot.active { background: var(--text); }
+    .wa-dot.active { background: var(--wa-blue); }
 
     /* SIMILAR */
     .similar-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin-top: 20px; }
@@ -866,11 +870,27 @@ function initWalkaround() {
     return firstCard.offsetWidth + gap;
   }
 
+  // The track's height follows the ACTIVE card's natural rendered height, so a short
+  // Torque Take doesn't sit above the blank space of a tall Key Details card.
+  // Recalculated after hydration, on active-card change, on resize/orientation, and
+  // once fonts have loaded (measured height can change when webfonts arrive).
+  function syncHeight() {
+    const card = cards[activeIdx];
+    if (!card) return;
+    const h = card.offsetHeight;
+    if (h > 0) track.style.height = h + 'px';
+  }
+
   function setActive(i) {
     if (i === activeIdx) return;
     activeIdx = i;
     dots.forEach((d, j) => d.classList.toggle('active', j === i));
+    syncHeight();
   }
+
+  syncHeight();
+  window.addEventListener('resize', syncHeight, { passive: true });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(syncHeight);
 
   track.addEventListener('scroll', () => {
     if (programmatic) return;
