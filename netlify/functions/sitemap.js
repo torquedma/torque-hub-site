@@ -1,29 +1,38 @@
-// DEALERS config is intentionally duplicated from /js/inventory-engine.js.
-// The engine is a browser-side IIFE and cannot be imported in Node.
-// If a dealer is added or removed, update BOTH files.
-
 const BASE    = 'https://hub.torquedma.com';
-const SB_URL  = 'https://bxsikkmqasydosmblzov.supabase.co'; // non-sensitive endpoint
-// Requires SUPABASE_ANON_KEY in Netlify env vars: Site Settings → Environment Variables
+const SB_URL  = 'https://bxsikkmqasydosmblzov.supabase.co';
 const SB_ANON = process.env.SUPABASE_ANON_KEY;
+const PAGE_SIZE = 1000;
 
-const DEALERS = [
-  { key: "Davenport Motors",               feedUrl: "https://davenportmotors.net/.netlify/functions/inventory" },
-  { key: "Fat Daddy's Truck Sales",        feedUrl: "https://fatdaddystrucksales.netlify.app/.netlify/functions/inventory" },
-  { key: "Wilson Trailer Sales & Service", feedUrl: "https://wilson-trailer-sales.netlify.app/.netlify/functions/inventory" },
-  { key: "HGR's Truck and Trailer",        feedUrl: "https://hub.torquedma.com/.netlify/functions/hgr-inventory" },
-  { key: "Impex Heavy Metal",              feedUrl: "https://hub.torquedma.com/.netlify/functions/impex-inventory" },
-  { key: "Joe's Tractor Sales",            feedUrl: null },
-  { key: "Auto Connection 210 LLC",        feedUrl: null },
-  { key: "Dick Smith Equipment",           feedUrl: null },
-  { key: "Suttontown Repair Service",      feedUrl: null },
-  { key: "Fannon Land & Auction Co.",      feedUrl: null },
-  { key: "Mid-Atlantic Power & Equipment", feedUrl: null },
-  { key: "DeBary Truck Sales",            feedUrl: null },
-  { key: "A F Sales & Service",           feedUrl: null },
-  { key: "The Trailer Source",            feedUrl: null },
-  { key: "Allied Truck & Trailer Sales", feedUrl: null },
-];
+// Same buyer-live contract as inventory-engine.js: the public cards view owns
+// publication eligibility; sold=false selects its currently available units.
+// No dealer allowlist, external feeds, or additional lifecycle rules belong here.
+async function loadBuyerLiveStocks() {
+  if (!SB_ANON) throw new Error('Missing public inventory API key');
+  const stocks = new Set();
+  let offset = 0;
+
+  for (;;) {
+    const response = await fetch(
+      `${SB_URL}/rest/v1/inventory_cards?select=stock&sold=eq.false&order=id.asc&limit=${PAGE_SIZE}&offset=${offset}`,
+      { headers: { apikey: SB_ANON, Authorization: `Bearer ${SB_ANON}` } }
+    );
+    if (!response.ok) throw new Error(`Public inventory returned HTTP ${response.status}`);
+    const rows = await response.json();
+    if (!Array.isArray(rows)) throw new Error('Invalid public inventory response');
+    if (!rows.length) break;
+
+    for (const row of rows) {
+      if (!row || typeof row.stock !== 'string' || !row.stock.trim()) {
+        throw new Error('Public inventory row has no canonical stock identity');
+      }
+      stocks.add(row.stock);
+    }
+    // Advance by the actual response size, including when the API caps pages
+    // below PAGE_SIZE. An empty next page establishes completion.
+    offset += rows.length;
+  }
+  return [...stocks];
+}
 
 const STATIC_URLS = [
   { loc: '/',                                                 changefreq: 'daily',   priority: '1.0' },
@@ -125,43 +134,17 @@ const CATEGORY_URLS = [
 ];
 
 exports.handler = async () => {
-  const feedPromises = DEALERS
-    .filter(d => d.feedUrl)
-    .map(d =>
-      fetch(d.feedUrl)
-        .then(r => r.json())
-        .then(items =>
-          (items || [])
-            .filter(u => !u.sold)
-            .map(u => {
-              let stock = u.stock || '';
-              if (d.key === "HGR's Truck and Trailer" && stock && !stock.includes('-'))
-                stock = stock.slice(0, 3) + '-' + stock.slice(3);
-              return stock ? { stock, dealerKey: d.key } : null;
-            })
-            .filter(Boolean)
-        )
-        .catch(() => [])
-    );
-
-  const sbPromises = DEALERS
-    .filter(d => !d.feedUrl)
-    .map(d =>
-      fetch(
-        `${SB_URL}/rest/v1/inventory_cards?dealer=eq.${encodeURIComponent(d.key)}&sold=eq.false&limit=1000`,
-        { headers: { apikey: SB_ANON, Authorization: `Bearer ${SB_ANON}` } }
-      )
-        .then(r => r.json())
-        .then(items =>
-          (items || [])
-            .map(u => u.stock ? { stock: u.stock, dealerKey: d.key } : null)
-            .filter(Boolean)
-        )
-        .catch(() => [])
-    );
-
-  const results = await Promise.allSettled([...feedPromises, ...sbPromises]);
-  const vdpUnits = results.flatMap(r => r.status === 'fulfilled' ? r.value : []);
+  let stocks;
+  try {
+    stocks = await loadBuyerLiveStocks();
+  } catch (error) {
+    // Never publish a partial, successful sitemap after a failed inventory read.
+    return {
+      statusCode: 503,
+      headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
+      body: 'Sitemap temporarily unavailable',
+    };
+  }
 
   const staticXml = STATIC_URLS
     .map(u => `  <url><loc>${BASE}${u.loc}</loc><changefreq>${u.changefreq}</changefreq><priority>${u.priority}</priority></url>`)
@@ -171,8 +154,8 @@ exports.handler = async () => {
     .map(u => `  <url><loc>${BASE}${u.loc}</loc><changefreq>${u.changefreq}</changefreq><priority>${u.priority}</priority></url>`)
     .join('\n');
 
-  const vdpXml = vdpUnits
-    .map(({ stock, dealerKey }) =>
+  const vdpXml = stocks
+    .map(stock =>
       `  <url><loc>${BASE}/vehicle.html?stock=${encodeURIComponent(stock)}</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>`
     )
     .join('\n');
