@@ -855,6 +855,10 @@ exports.handler = async (event) => {
           //   (e) the row was matched by source_listing_id on the LIVE set (not by stock, not D1);
           //   (f) no row of this dealer — live or sold — already holds the incoming stock.
           // Nothing else changes: locks, absence preservation, salvage/VIN guards, DX, sold state.
+          // 2026-09-18 FIX-FORWARD: priorRow must be established BEFORE the reconciliation predicate
+          // below reads it. It was declared further down this block (a const temporal dead zone), which
+          // an unarmed run never reached (short-circuit on stockReconcileDealer) but an armed run always did.
+          const priorRow = existingRowForProv;
           const incomingStockForReconcile = unit.stock;
           const reconcileStock = !!(
             stockReconcileDealer &&
@@ -891,7 +895,6 @@ exports.handler = async (event) => {
           // are established. Missing condition means missing evidence.
           if (!item.condition) delete unit.condition;
 
-          const priorRow = existingRowForProv;
           // 2026-09-16 SALVAGE DISCLOSURE GUARD. An adjudicated Salvaged condition cannot be
           // downgraded to Used by routine synchronization; that is a disclosure, not a preference.
           if (priorRow && priorRow.condition === 'Salvaged' && unit.condition === 'Used') delete unit.condition;
