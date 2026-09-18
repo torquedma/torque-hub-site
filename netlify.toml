@@ -24,6 +24,10 @@
   function = "inventory"
 
 [[edge_functions]]
+  path = "/inventory-directory"
+  function = "inventory-directory"
+
+[[edge_functions]]
   path = "/vehicle.html"
   function = "vehicle"
 
