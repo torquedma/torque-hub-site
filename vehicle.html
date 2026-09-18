@@ -299,6 +299,32 @@
     @media (max-width: 500px) {
       .specs-grid { grid-template-columns: minmax(0, 1fr); }
     }
+
+    /* WALKAROUND — MOBILE DENSITY (Foreman corrected contract 2026-09-18: reproduce the approved
+       mockup — compact ~13px information text, ~15px headings, small blue bullets, tight rows and
+       padding). Scoped to .wa-card; presentation only — no content, markup or carousel change.
+       Existing selectors: .card-head (card header), .desc-body (card body), .desc-para,
+       .desc-list/li/::before, .desc-heading (OVERVIEW). Buyer Checklist parts are addressed
+       structurally: intro = first .desc-para in the body, checklist = .desc-list that follows a
+       .desc-para, closing paragraph = .desc-para that follows the .desc-list. */
+    @media (max-width: 640px) {
+      .wa-card .card-head { padding: 13px 18px 11px; font-size: 15px; line-height: 1.15; letter-spacing: 0.055em; }
+      .wa-card .desc-body { padding: 14px 18px 16px; }
+      .wa-card .desc-para { font-size: 13px; line-height: 1.42; margin-bottom: 8px; }
+      .wa-card .desc-para:last-child { margin-bottom: 0; }
+      .wa-card .desc-list { margin: 0; padding: 0; gap: 0; }
+      .wa-card .desc-list li { font-size: 13px; line-height: 1.30; margin-bottom: 3px; padding-left: 18px; }
+      .wa-card .desc-list li:last-child { margin-bottom: 0; }
+      .wa-card .desc-list li::before { font-size: 8px; line-height: 1; left: 2px; top: 0.58em; }
+      /* OVERVIEW inside Key Details */
+      .wa-card .desc-heading { font-size: 13px; line-height: 1.2; letter-spacing: 0.055em; margin: 13px 0 6px; }
+      .wa-card .desc-heading ~ .desc-para { font-size: 13px; line-height: 1.35; margin: 0; }
+      /* Buyer Checklist: intro, compact checklist, closing verification paragraph */
+      .wa-card .desc-body > .desc-para:first-child { line-height: 1.4; margin-bottom: 8px; }
+      .wa-card .desc-para + .desc-list li { line-height: 1.35; margin-bottom: 4px; }
+      .wa-card .desc-para + .desc-list li:last-child { margin-bottom: 0; }
+      .wa-card .desc-list + .desc-para { line-height: 1.4; margin-top: 8px; margin-bottom: 0; }
+    }
   </style>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-X9LG1DZKDP"></script>
