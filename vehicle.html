@@ -120,7 +120,6 @@
     .spec-val { font-size: 14px; font-weight: 700; color: var(--text); white-space: normal; overflow-wrap: break-word; word-break: break-word; overflow: visible; }
 
     /* DESCRIPTION */
-    .desc-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin-top: 20px; }
     .desc-body { padding: 18px; }
     .desc-heading { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text); margin: 18px 0 8px; }
     .desc-body > .desc-heading:first-child { margin-top: 0; }
@@ -129,15 +128,6 @@
     .desc-list li { font-size: 14px; color: var(--muted); padding-left: 16px; position: relative; line-height: 1.6; }
     .desc-list li::before { content: '•'; position: absolute; left: 0; color: var(--soft); }
 
-    /* BUYER INTELLIGENCE */
-    .bi-card { margin-top: 16px; }
-    .bi-card .desc-body { padding: 14px 18px; }
-    .bi-card .desc-para { font-size: 13px; line-height: 1.55; margin-bottom: 4px; }
-    .bi-card .desc-para:last-child { margin-bottom: 0; }
-    .bi-card .desc-list { gap: 2px; margin-bottom: 4px; }
-    .bi-card .desc-list li { font-size: 13px; line-height: 1.5; }
-    .bi-card .desc-heading { margin: 10px 0 6px; }
-    .bi-card .desc-body > .desc-heading:first-child { margin-top: 0; }
 
     /* JUDGMENT HEROES — Torque Take + Would I Buy It? share the green left accent
        (same token as Before You Buy) so they read as a grouped lead. */
@@ -184,6 +174,24 @@
     /* Verified Specs confidence badge + footer */
     .bi-conf { display: inline-block; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 6px; border-radius: 4px; color: #fff; margin-left: 8px; vertical-align: middle; }
     .bi-specs-footer { padding: 10px 18px; font-size: 11px; color: var(--muted); border-top: 1px solid var(--line); }
+
+    /* THE WALKAROUND — horizontal swipe carousel: KEY DETAILS → TORQUE TAKE → BUYER CHECKLIST.
+       Scroll-snap track modeled on the photo gallery: one card per viewport width, scrollbar
+       hidden, dots driven by a scroll listener (see initWalkaround). Card 1 (Key Details) is in
+       the static template so SSR fills it; intelligence cards are appended client-side. */
+    .wa-section { margin-top: 20px; }
+    .wa-track { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; scroll-behavior: smooth; }
+    .wa-track::-webkit-scrollbar { display: none; }
+    .wa-card { flex: 0 0 100%; scroll-snap-align: start; scroll-snap-stop: always; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+    .wa-track.has-more .wa-card { flex-basis: calc(100% - 36px); }
+    .wa-card .desc-body { padding: 14px 18px; }
+    .wa-card .desc-para { font-size: 13px; line-height: 1.55; margin-bottom: 6px; }
+    .wa-card .desc-para:last-child { margin-bottom: 0; }
+    .wa-card .desc-list { gap: 2px; margin-bottom: 0; }
+    .wa-card .desc-list li { font-size: 13px; line-height: 1.5; }
+    .wa-dots { display: flex; justify-content: center; gap: 6px; padding: 12px 0 4px; }
+    .wa-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--line); border: none; padding: 0; cursor: pointer; transition: background 0.2s; }
+    .wa-dot.active { background: var(--text); }
 
     /* SIMILAR */
     .similar-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin-top: 20px; }
@@ -372,17 +380,22 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
           <div class="gallery-thumbs" id="gallery-thumbs"></div>
         </div>
 
-        <!-- Card 1 — KEY DETAILS (the stored canonical DX: facts + Overview), rendered by
-             DESC_RENDER.buildKeyDetailsCardHtml on the client and by its edge twin for SSR. -->
-        <div class="desc-card" id="desc-card" style="display:none">
-          <div class="card-head">Key Details</div>
-          <div class="desc-body" id="desc-body"></div>
-        </div>
-
-        <!-- Cards 2–3 — TORQUE TAKE, BUYER CHECKLIST (client-rendered, stacked; parent is the
-             left-column <div>, which is never innerHTML'd, so cards are wipe-safe.
-             Empty when buyer_intelligence is null — zero footprint.) -->
-        <div id="bi-cards"></div>
+        <!-- THE WALKAROUND — horizontal swipe carousel.
+             Card 1 — KEY DETAILS (the stored canonical DX: facts + Overview), rendered by
+             DESC_RENDER.buildKeyDetailsCardHtml on the client and by its edge twin for SSR.
+             Cards 2–3 — TORQUE TAKE, BUYER CHECKLIST — appended into the track client-side
+             (#bi-cards is display:contents so its articles are flex items of the track).
+             Empty when buyer_intelligence is null — zero fake cards; Card 1 stands alone. -->
+        <section class="wa-section" id="wa">
+          <div class="wa-track" id="wa-track">
+            <article class="wa-card" id="desc-card" style="display:none">
+              <div class="card-head">Key Details</div>
+              <div class="desc-body" id="desc-body"></div>
+            </article>
+            <div id="bi-cards" style="display:contents"></div>
+          </div>
+          <div class="wa-dots" id="wa-dots" style="display:none"></div>
+        </section>
 
         <!-- Similar Units -->
         <div class="similar-card" id="similar-card" style="display:none">
@@ -754,10 +767,11 @@ function parseBuyerIntelligence(raw) {
   }
 }
 
-// buildBuyerIntelligenceCards — renders the Torque intelligence cards as a
-// vertical stack beneath KEY DETAILS (Foreman ruling 2026-09-18: no carousel,
-// no wrapper/header, no "Meet the Unit"). Each card is conditionally included;
-// if none survive, returns '' (zero footprint for units without bi data).
+// buildBuyerIntelligenceCards — renders the Torque intelligence cards as
+// .wa-card articles that follow KEY DETAILS in the horizontal Walkaround track
+// (Foreman corrected ruling 2026-09-18: carousel stays; no "Meet the Unit").
+// Each card is conditionally included; if none survive, returns '' (zero
+// footprint — Card 1 stands alone, no dots).
 //
 // Card 2 "Torque Take":     bi.torque_take[1..]   ([0] was the retired Meet lead)
 // Card 3 "Buyer Checklist": bi.decision_factors.makes_it_a_yes (+ optional footer)
@@ -779,7 +793,7 @@ function buildBuyerIntelligenceCards(bi) {
       ? bi.title.trim()
       : 'Torque Take';
     cards.push(
-      '<article class="desc-card bi-card">' +
+      '<article class="wa-card">' +
         '<div class="card-head">' + escBI(heading) + '</div>' +
         '<div class="desc-body">' +
           ttRest.map(t => '<p class="desc-para">' + escBI(t) + '</p>').join('') +
@@ -794,7 +808,7 @@ function buildBuyerIntelligenceCards(bi) {
       ? df.makes_it_a_yes_footer.trim()
       : '';
     cards.push(
-      '<article class="desc-card bi-card">' +
+      '<article class="wa-card">' +
         '<div class="card-head">Buyer Checklist</div>' +
         '<div class="desc-body">' +
           '<p class="desc-para">' + escBI('What a good one should show:') + '</p>' +
@@ -808,6 +822,65 @@ function buildBuyerIntelligenceCards(bi) {
   }
 
   return cards.join('');
+}
+
+// initWalkaround — builds one dot per .wa-card in the track (Key Details +
+// whatever intelligence cards were appended), wires scroll-position → active-dot
+// sync and dot-click → scroll-to-card. With a single card there is nothing to
+// swipe: no dots, no listeners.
+function initWalkaround() {
+  const track = document.getElementById('wa-track');
+  const dotsEl = document.getElementById('wa-dots');
+  if (!track || !dotsEl) return;
+  const cards = Array.from(track.querySelectorAll('.wa-card'));
+  if (cards.length < 2) { dotsEl.style.display = 'none'; track.classList.remove('has-more'); return; }
+  track.classList.add('has-more');
+  dotsEl.innerHTML = cards.map((_, i) =>
+    '<button type="button" class="wa-dot' + (i === 0 ? ' active' : '') +
+    '" data-wa-target="' + i + '" aria-label="Card ' + (i + 1) + '"></button>'
+  ).join('');
+  dotsEl.style.display = '';
+  const dots = Array.from(dotsEl.querySelectorAll('.wa-dot'));
+
+  let activeIdx = 0;
+  let scrollTimer = null;
+  let programmatic = false;
+
+  // One "step" = card width + gap. Read gap from computed style so changes to
+  // CSS don't require touching this JS.
+  function cardStep() {
+    const firstCard = track.querySelector('.wa-card');
+    if (!firstCard) return 0;
+    const cs = getComputedStyle(track);
+    const gap = parseFloat(cs.columnGap || cs.gap || '0') || 0;
+    return firstCard.offsetWidth + gap;
+  }
+
+  function setActive(i) {
+    if (i === activeIdx) return;
+    activeIdx = i;
+    dots.forEach((d, j) => d.classList.toggle('active', j === i));
+  }
+
+  track.addEventListener('scroll', () => {
+    if (programmatic) return;
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(() => {
+      const step = cardStep();
+      if (!step) return;
+      setActive(Math.round(track.scrollLeft / step));
+    }, 100);
+  }, { passive: true });
+
+  dots.forEach((dot, i) => {
+    dot.addEventListener('click', () => {
+      const step = cardStep();
+      programmatic = true;
+      track.scrollTo({ left: i * step, behavior: 'smooth' });
+      setActive(i);
+      setTimeout(() => { programmatic = false; }, 400);
+    });
+  });
 }
 
 // ─── RENDER VDP ─────────────────────────────────────────────────────────────
@@ -977,13 +1050,14 @@ function render(unit, dealerKey) {
     const descBody = el('desc-body'); if (descBody) descBody.innerHTML = window.DESC_RENDER.buildKeyDetailsCardHtml(unit.description);
   }
 
-  // Torque intelligence cards — sibling of #desc-card, rendered BELOW it (stacked).
+  // Torque intelligence cards — appended into the Walkaround track after Card 1.
   // Null/absent → render nothing (zero footprint on units without bi data).
   const biSlot = el('bi-cards');
   if (biSlot) {
     const bi = parseBuyerIntelligence(unit.buyer_intelligence);
     biSlot.innerHTML = bi ? buildBuyerIntelligenceCards(bi) : '';
   }
+  initWalkaround();
 
   // Lead form hidden fields
   const fMsg = el('f-msg');          if (fMsg)  fMsg.value  = `I'm interested in the ${title}${unit.stock ? ' (Stock # ' + unit.stock + ')' : ''}. Please contact me.`;
