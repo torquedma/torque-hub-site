@@ -21,16 +21,12 @@ const { showMileage, showHours } = require('./lib/usage-display.generated.js');
 // regenerating the same stock under the same engine_version overwrites the
 // pending review row, which is the desired behavior for retries.
 //
-// v1.3 contract shape change: Card 1 is now NORMALIZED IDENTITY DATA (not
-// prose). Top-level keys are:
-//   identity{}, torque_take[], buyer_checklist{}, uncertainty_type, buyer_question
-// The full parsed JSON is still stored as walkaround_review_queue.generated_bi
-// (jsonb) — no field-by-field handling required here. parsed.uncertainty_type
-// still validates against ALLOWED_UNCERTAINTY_TYPES below; parsed.abstain ===
-// true is still the abstain check. The publish-op shape validator (which
-// expects v1.2 keys) is INTENTIONALLY untouched this pass: v1.3 rows live in
-// the review queue for shape testing without affecting in-flight v1.2 review.
-const ENGINE_VERSION = 'walkaround-v1.3-text';
+// v1.4 contract (Foreman rulings 2026-09-18): the stored object is EXACTLY what
+// the live cards consume — version, torque_take[] (displayed paragraphs only,
+// no throwaway slot), decision_factors{makes_it_a_yes[4], makes_it_a_yes_footer},
+// uncertainty_type, buyer_question. No identity block, no meet (Card 1 is the
+// governed DX). Text evidence only. Abstention preserved.
+const ENGINE_VERSION = 'walkaround-v1.4-text';
 
 // Six allowed uncertainty_type values. Anything else (including arrays,
 // numbers, misspellings) is dropped to null before write.
@@ -76,11 +72,12 @@ function buildFacts(unit) {
 
 function buildUserMessage(unit) {
   const factsBlock = buildFacts(unit);
-  // Description is observable context — the model should treat it as marketing
-  // copy from the dealer, not as a verified spec sheet.
+  // Description is the listing's governed text (Canonical DX: Key Details +
+  // Overview, or dealer copy where no Canonical DX exists yet). It is evidence
+  // the buyer has already read as Card 1 — not a spec sheet the model may extend.
   const desc = (unit.description || '').toString().trim();
   const descBlock = desc
-    ? '\n\nLISTING DESCRIPTION (text only — dealer copy, NOT verified spec):\n' + desc
+    ? '\n\nLISTING DESCRIPTION (text evidence — not a spec sheet you may extend):\n' + desc
     : '';
   return 'FACTS (from inventory record):\n' + factsBlock + descBlock;
 }
@@ -181,6 +178,16 @@ exports.handler = async (event) => {
       }
 
       const uncertaintyType = validateUncertaintyType(parsed.uncertainty_type);
+
+      // v1.4 shape hygiene (non-abstain only): the contract has no placeholder
+      // slot, so strip any empty/whitespace elements; stamp the contract version
+      // so the Admin validator and the renderer can trust the stored shape.
+      if (Array.isArray(parsed.torque_take)) {
+        parsed.torque_take = parsed.torque_take
+          .map(s => (s == null ? '' : String(s).trim()))
+          .filter(Boolean);
+      }
+      parsed.version = '1.4';
 
       // Title for the queue row is built from the INVENTORY record (not the
       // model output) — keeps the review surface anchored in source-of-truth.
