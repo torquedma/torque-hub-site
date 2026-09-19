@@ -26,7 +26,7 @@ const { showMileage, showHours } = require('./lib/usage-display.generated.js');
 // no throwaway slot), decision_factors{makes_it_a_yes[4], makes_it_a_yes_footer},
 // uncertainty_type, buyer_question. No identity block, no meet (Card 1 is the
 // governed DX). Text evidence only. Abstention preserved.
-const ENGINE_VERSION = 'walkaround-v1.4-text';
+const ENGINE_VERSION = 'walkaround-v1.4.1-text';
 
 // Six allowed uncertainty_type values. Anything else (including arrays,
 // numbers, misspellings) is dropped to null before write.
@@ -182,11 +182,22 @@ exports.handler = async (event) => {
       // v1.4 shape hygiene (non-abstain only): the contract has no placeholder
       // slot, so strip any empty/whitespace elements; stamp the contract version
       // so the Admin validator and the renderer can trust the stored shape.
+      // v1.4.1 rule 9 (plain text): mechanical scrub of Markdown emphasis/code
+      // characters and collapsed whitespace on every stored string. Content is
+      // never rewritten — only these characters are removed.
+      const plain = s => String(s).replace(/[*`_~]+/g, '').replace(/\s+/g, ' ').trim();
       if (Array.isArray(parsed.torque_take)) {
         parsed.torque_take = parsed.torque_take
-          .map(s => (s == null ? '' : String(s).trim()))
+          .map(s => (s == null ? '' : plain(s)))
           .filter(Boolean);
       }
+      if (parsed.decision_factors && typeof parsed.decision_factors === 'object') {
+        const df = parsed.decision_factors;
+        if (Array.isArray(df.makes_it_a_yes)) df.makes_it_a_yes = df.makes_it_a_yes.map(s => (s == null ? '' : plain(s))).filter(Boolean);
+        if (typeof df.makes_it_a_yes_footer === 'string') df.makes_it_a_yes_footer = plain(df.makes_it_a_yes_footer);
+      }
+      if (typeof parsed.buyer_question === 'string') parsed.buyer_question = plain(parsed.buyer_question);
+      if (typeof parsed.title === 'string') parsed.title = plain(parsed.title);
       parsed.version = '1.4';
 
       // Title for the queue row is built from the INVENTORY record (not the
