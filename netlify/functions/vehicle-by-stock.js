@@ -31,20 +31,23 @@ exports.handler = async (event) => {
 
     let unit = null;
 
-    // Public projection. Matches inventory_public_detail's column set plus
-    // buyer_intelligence (which the VDP page reads at vehicle.html:1110).
+    // Public projection — read from inventory_public_detail, the SAME governed public
+    // view the VDP edge reads. The view enforces status='published' and derives
+    // listing_state ('live' | 'sold' | 'departed') once, so this fallback and the SSR
+    // path hand the browser an identical, already-derived lifecycle value (2B).
+    // The column set below is the view's projection; the browser never receives
+    // sold_at or sold_type and never derives lifecycle from `sold`.
     // ★ 2026-09-14 — do NOT restore select('*'). select('*') previously
     //   served internal fields (notes, raw_description, description_source,
     //   dx_locked, sold_type, provenance, etc.) to the public payload.
     //   Withdrawal tombstones in `notes` were reaching buyers.
-    const PUBLIC_COLUMNS = 'id, stock, dealer, year, make, model, trim, price, photos, category, subcategory, mileage, engine, horsepower, hours, fuel, condition, transmission, drivetrain, description, sold, vin, buyer_intelligence, contact_phone, contact_location';
+    const PUBLIC_COLUMNS = 'id, stock, dealer, year, make, model, trim, price, photos, category, subcategory, mileage, engine, horsepower, hours, fuel, condition, transmission, drivetrain, description, sold, vin, buyer_intelligence, contact_phone, contact_location, listing_state';
 
     // Pass 1: dealer-scoped if dealer provided
     if (dealerRaw) {
       const { data: pass1, error: pass1err } = await supabase
-        .from('inventory')
+        .from('inventory_public_detail')
         .select(PUBLIC_COLUMNS)
-        .eq('status', 'published')
         .eq('dealer', dealerRaw)
         .in('stock', variants)
         .limit(1);
@@ -55,9 +58,8 @@ exports.handler = async (event) => {
     // Pass 2: unscoped fallback (only if not found in pass 1, or no dealer was provided)
     if (!unit) {
       const { data: pass2, error: pass2err } = await supabase
-        .from('inventory')
+        .from('inventory_public_detail')
         .select(PUBLIC_COLUMNS)
-        .eq('status', 'published')
         .in('stock', variants)
         .limit(1);
       if (pass2err) throw pass2err;
@@ -66,6 +68,13 @@ exports.handler = async (event) => {
 
     if (!unit) {
       return { statusCode: 404, headers, body: JSON.stringify({ error: 'not found', stock: stockRaw, dealer: dealerRaw, variants }) };
+    }
+
+    // 2B FAIL CLOSED: the row exists but its lifecycle authority is absent/invalid
+    // (view projection missing or malformed). Never normalize to live; never 404.
+    if (unit.listing_state !== 'live' && unit.listing_state !== 'sold' && unit.listing_state !== 'departed') {
+      console.error(`vehicle-by-stock invalid lifecycle authority for ${unit.stock}: listing_state=${JSON.stringify(unit.listing_state)}`);
+      return { statusCode: 503, headers: { ...headers, 'Cache-Control': 'no-store' }, body: JSON.stringify({ error: 'lifecycle authority unavailable', stock: unit.stock }) };
     }
 
     let dealerRow = null;

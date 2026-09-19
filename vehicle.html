@@ -959,13 +959,34 @@ function render(unit, dealerKey) {
   if (_has('zip'))     d.zip     = _live.zip;
   const title = window.TITLE_HELPERS.buildDisplayTitle(unit);
   const price = formatPrice(unit.price);
-  const isSold = unit.sold === true;
   const subcat = unit.subcategory || '';
 
-  // Sold banner — built directly from isSold. Uses the edge-injected
-  // #sold-banner-tpl when present, otherwise constructs its own content
-  // so the client path is correct without SSR.
-  if (isSold && !el('sold-banner')) {
+  // 2B PUBLIC LIFECYCLE STATE — consumed verbatim from inventory_public_detail.listing_state
+  // ('live' | 'sold' | 'departed'), delivered either in the SSR handoff (window.__VDP_UNIT__)
+  // or in the vehicle-by-stock fallback payload. The browser NEVER derives lifecycle from
+  // the raw sale fields. When the SSR handoff exists, the SSR <head> (title, meta,
+  // robots, canonical, og, schema) is authoritative and is not rewritten on historical states.
+  const listingState = unit.listing_state;
+  if (listingState !== 'live' && listingState !== 'sold' && listingState !== 'departed') {
+    // FAIL CLOSED (2B): both server readers already refuse to hand over a row without valid
+    // lifecycle authority; if one ever reaches here anyway, show the unavailable state rather
+    // than normalizing uncertainty into a purchasable page.
+    console.error('[VDP] invalid lifecycle authority for', unit.stock, listingState);
+    showError();
+    return;
+  }
+  const historical = listingState !== 'live';
+  const stateWord = listingState === 'sold' ? 'Sold' : 'No Longer Listed';
+  const ssrHead = !!window.__VDP_UNIT__;
+  const priceNum0 = parseFloat(String(unit.price || '').replace(/[^0-9.]/g, '')) || 0;
+  // Historical price row: label by state, only when a real listing price exists; else empty.
+  const priceText = historical
+    ? (priceNum0 > 0 ? `${listingState === 'sold' ? 'Last Asking Price' : 'Last Listed Price'}: ${price}` : '')
+    : price;
+
+  // State banner — built from listingState. Uses the edge-injected #sold-banner-tpl
+  // when present, otherwise constructs its own content so the fallback path is correct.
+  if (historical && !el('sold-banner')) {
     const banner = document.createElement('div');
     banner.id = 'sold-banner';
     banner.className = 'sold-banner';
@@ -976,7 +997,7 @@ function render(unit, dealerKey) {
       const wrap = document.createElement('div');
       const t = document.createElement('div');
       t.className = 'sold-banner-text';
-      t.textContent = 'SOLD — NO LONGER AVAILABLE';
+      t.textContent = listingState === 'sold' ? 'SOLD — NO LONGER AVAILABLE' : 'NO LONGER LISTED';
       const s = document.createElement('div');
       s.className = 'sold-banner-sub';
       s.textContent = 'Check out similar available units below.';
@@ -997,21 +1018,35 @@ function render(unit, dealerKey) {
 
   // Page meta — all guarded; edge function may have already set these
   const pageUrl = `https://hub.torquedma.com/vehicle.html?stock=${encodeURIComponent(unit.stock)}`;
-  // SEO title (single descriptor: clean trim if present, else canonical subcat).
-  document.title = window.TITLE_HELPERS.buildSeoTitle(unit, cityState);
-  // Meta description: rebuild from the SEO "core" (ymm + descriptor) + existing
-  // price/call sentence shape. buildSeoTitle returns the full SEO title; we
+  // SEO core (ymm + descriptor): buildSeoTitle returns the full LIVE SEO title; we
   // recover the core by stripping the ' for Sale ... ' suffix it added.
-  const seoTitle = document.title;
-  const seoCore = seoTitle.replace(/\s+for Sale.*$/, '');
-  const descContent = `${seoCore} for sale${cityState ? ' in ' + cityState : ''}. ${price}. Call ${d.phone || 'the seller'} or apply for financing online. Torque Hub.`;
-
-  const pageTitleEl = el('page-title');   if (pageTitleEl) pageTitleEl.textContent = document.title;
-  const pageDescEl  = el('page-desc');    if (pageDescEl)  pageDescEl.content      = descContent;
-  const canonicalEl = el('canonical-url');if (canonicalEl) canonicalEl.href        = pageUrl;
-  const ogTitleEl   = el('og-title');     if (ogTitleEl)   ogTitleEl.content       = document.title;
-  const ogDescEl    = el('og-desc');      if (ogDescEl)    ogDescEl.content        = descContent;
-  const ogUrlEl     = el('og-url');       if (ogUrlEl)     ogUrlEl.content         = pageUrl;
+  const seoCore = window.TITLE_HELPERS.buildSeoTitle(unit, cityState).replace(/\s+for Sale.*$/, '');
+  const where = cityState ? ' in ' + cityState : '';
+  if (!historical) {
+    // LIVE: SEO title (single descriptor: clean trim if present, else canonical subcat).
+    document.title = window.TITLE_HELPERS.buildSeoTitle(unit, cityState);
+    const descContent = `${seoCore} for sale${where}. ${price}. Call ${d.phone || 'the seller'} or apply for financing online. Torque Hub.`;
+    const pageTitleEl = el('page-title');   if (pageTitleEl) pageTitleEl.textContent = document.title;
+    const pageDescEl  = el('page-desc');    if (pageDescEl)  pageDescEl.content      = descContent;
+    const canonicalEl = el('canonical-url');if (canonicalEl) canonicalEl.href        = pageUrl;
+    const ogTitleEl   = el('og-title');     if (ogTitleEl)   ogTitleEl.content       = document.title;
+    const ogDescEl    = el('og-desc');      if (ogDescEl)    ogDescEl.content        = descContent;
+    const ogUrlEl     = el('og-url');       if (ogUrlEl)     ogUrlEl.content         = pageUrl;
+  } else if (!ssrHead) {
+    // HISTORICAL, FALLBACK ONLY (no SSR head to honor): truthful state head, noindex,
+    // self-canonical. No "for Sale", no price, no phone, no financing language.
+    document.title = `${stateWord} — ${seoCore}${where} | Torque Hub`;
+    const descContent = listingState === 'sold'
+      ? `${seoCore}${where} has sold. Browse similar available units on Torque Hub.`
+      : `${seoCore}${where} is no longer listed on Torque Hub. Browse similar available units.`;
+    const pageTitleEl = el('page-title');   if (pageTitleEl) pageTitleEl.textContent = document.title;
+    const pageDescEl  = el('page-desc');    if (pageDescEl)  pageDescEl.content      = descContent;
+    const robotsEl    = document.querySelector('meta[name="robots"]'); if (robotsEl) robotsEl.content = 'noindex,follow';
+    const canonicalEl = el('canonical-url');if (canonicalEl) canonicalEl.href        = pageUrl;
+    const ogTitleEl   = el('og-title');     if (ogTitleEl)   ogTitleEl.content       = document.title;
+    const ogDescEl    = el('og-desc');      if (ogDescEl)    ogDescEl.content        = descContent;
+    const ogUrlEl     = el('og-url');       if (ogUrlEl)     ogUrlEl.content         = pageUrl;
+  }
 
   const firstPhoto = unit.photos && unit.photos.length ? (unit.photos[0].url || unit.photos[0].dataUrl || '') : '';
   if (firstPhoto) {
@@ -1019,9 +1054,10 @@ function render(unit, dealerKey) {
     const twitterImgEl = el('twitter-image'); if (twitterImgEl) twitterImgEl.content = firstPhoto;
   }
 
-  // Schema.org
+  // Schema.org — LIVE only. Historical pages keep the SSR identity-only schema
+  // (no offers); the fallback historical page leaves the empty schema slot.
   const isVehicle = !unit.category || unit.category.toLowerCase().includes('truck');
-  const schema = {
+  const schema = historical ? null : {
     "@context": "https://schema.org",
     "@type": isVehicle ? "Vehicle" : "Product",
     "name": title,
@@ -1032,14 +1068,14 @@ function render(unit, dealerKey) {
     "fuelType": unit.fuel || undefined,
     "vehicleBodyType": subcat || undefined,
     "mileageFromOdometer": (typeof UsageDisplay !== 'undefined' && UsageDisplay.showMileage(unit)) ? { "@type": "QuantitativeValue", "value": unit.mileage, "unitCode": "SMI" } : undefined,
-    "vehicleCondition": isSold ? "https://schema.org/UsedCondition" : (unit.condition === "New" ? "https://schema.org/NewCondition" : "https://schema.org/UsedCondition"),
+    "vehicleCondition": (unit.condition === "New" ? "https://schema.org/NewCondition" : "https://schema.org/UsedCondition"),
     "image": firstPhoto || undefined,
     "url": pageUrl,
     "offers": {
       "@type": "Offer",
       "price": parseFloat(String(unit.price || '').replace(/[^0-9.]/g, '')) || undefined,
       "priceCurrency": "USD",
-      "availability": isSold ? "https://schema.org/SoldOut" : "https://schema.org/InStock",
+      "availability": "https://schema.org/InStock",
       "seller": {
         "@type": "LocalBusiness",
         "name": dealerKey || unit.dealer,
@@ -1054,7 +1090,7 @@ function render(unit, dealerKey) {
     }
   };
   const schemaEl = el('schema-data');
-  if (schemaEl) schemaEl.textContent = JSON.stringify(schema, (k, v) => v === undefined ? undefined : v);
+  if (schemaEl && schema) schemaEl.textContent = JSON.stringify(schema, (k, v) => v === undefined ? undefined : v);
 
   // Breadcrumb
   const bcTitleEl = el('bc-title'); if (bcTitleEl) bcTitleEl.textContent = title;
@@ -1067,8 +1103,8 @@ function render(unit, dealerKey) {
     const hlBadge  = el('hl-badge');  if (hlBadge)  hlBadge.style.display = 'block';
   }
   const seoH2 = el('vdp-seo-h2');
-  if (seoH2) seoH2.textContent = seoCore + ' for Sale' + (cityState ? ' in ' + cityState : '');
-  const hlPrice  = el('hl-price');   if (hlPrice)  hlPrice.textContent  = price;
+  if (seoH2) seoH2.textContent = historical ? `${seoCore}${where} — ${stateWord}` : seoCore + ' for Sale' + where;
+  const hlPrice  = el('hl-price');   if (hlPrice)  hlPrice.textContent  = priceText;
   const hlDealer = el('hl-dealer');  if (hlDealer) hlDealer.textContent = dealerKey || unit.dealer || '';
   // Package 1.2: governed display location — "Dunn, NC 28334". Reused below by the dealer
   // card and the directions link so every buyer-visible geography surface shares one value.
@@ -1077,7 +1113,7 @@ function render(unit, dealerKey) {
     d.zip
   ].filter(Boolean).join(' ');
   const hlLoc    = el('hl-location');if (hlLoc)    hlLoc.textContent    = loc;
-  const hlSep    = el('hl-sep');     if (hlSep)    hlSep.style.display    = (price && dealerKey) ? 'inline' : 'none';
+  const hlSep    = el('hl-sep');     if (hlSep)    hlSep.style.display    = (priceText && dealerKey) ? 'inline' : 'none';
   const hlLocSep = el('hl-loc-sep'); if (hlLocSep) hlLocSep.style.display = loc ? 'inline' : 'none';
 
   // Gallery — called after VDP is visible so dimensions are available
@@ -1090,12 +1126,12 @@ function render(unit, dealerKey) {
   if (mobileCall) { mobileCall.href = callHref; mobileCall.textContent = `📞 Call ${d.phone || 'Now'}`; wirePhoneCta(mobileCall, 'mobile_sticky'); }
   const mobileBar = el('mobile-bar'); if (mobileBar) mobileBar.style.display = 'flex';
 
-  // Sold gate — suppress buyer-action UI and active-price presentation.
-  // Every statement is inside this branch; isSold === false is unchanged.
-  if (isSold) {
-    if (hlPrice) hlPrice.textContent = price ? `Last Asking Price: ${price}` : '';
+  // Historical gate (2B) — suppress every unit-specific acquisition/transaction surface.
+  // Every statement is inside this branch; LIVE is unchanged.
+  if (historical) {
     const leadCard = el('lead-form-card'); if (leadCard) leadCard.style.display = 'none';
     if (mobileBar) mobileBar.style.display = 'none';
+    const navFin = el('nav-finance'); if (navFin) navFin.style.display = 'none';
   }
 
   // Carry the viewed unit into finance.html for automatic subject resolution.
@@ -1118,7 +1154,9 @@ function render(unit, dealerKey) {
   // address string. dealers.address is NULL today, so this renders the locality line alone.
   const dAddrText = [d.address, loc].filter(Boolean).join('\n');
   const dAddr = el('d-addr'); if (dAddr) dAddr.textContent = dAddrText;
-  const dCall = el('d-call'); if (dCall) { dCall.href = callHref; dCall.textContent = d.phone ? `Call ${d.phone}` : 'Call'; wirePhoneCta(dCall, 'dealer_card'); }
+  // 2B: on historical pages the tracked dealer line stays (same governed tel:, same
+  // phone_cta_click stock attribution) but no longer implies this unit is purchasable.
+  const dCall = el('d-call'); if (dCall) { dCall.href = callHref; dCall.textContent = historical ? 'Call About Similar Inventory' : (d.phone ? `Call ${d.phone}` : 'Call'); wirePhoneCta(dCall, 'dealer_card'); }
   // Package 1.2: governed geography outranks the static registry mapsUrl. Mid-Atlantic's
   // registry mapsUrl points at "North Carolina" — leaving it first would keep a legacy
   // geography authority alive. The static mapsUrl survives ONLY as the true failure
@@ -1129,8 +1167,12 @@ function render(unit, dealerKey) {
     ? 'https://maps.google.com/?q=' + encodeURIComponent(dirQuery)
     : (d.mapsUrl || '#');
 
-  // Description
-  if (unit.description) {
+  // Description. Historical pages: the SSR-rendered Key Details body (edge desc-render
+  // with the historical suppression rule) is authoritative and is NOT re-rendered here;
+  // the fallback historical page renders no description body at all.
+  if (historical) {
+    if (!ssrHead) { const descCard = el('desc-card'); if (descCard) descCard.style.display = 'none'; }
+  } else if (unit.description) {
     const descCard = el('desc-card'); if (descCard) descCard.style.display = 'block';
     const descBody = el('desc-body'); if (descBody) descBody.innerHTML = window.DESC_RENDER.buildKeyDetailsCardHtml(unit.description);
   }

@@ -102,7 +102,9 @@ function buildSpecsHtml(unit) {
   ).join('');
 }
 
-function buildSchema(unit, d, pageUrl, dealerKey) {
+// 2B: historical (SOLD / DEPARTED) pages keep the Vehicle identity object and OMIT
+// `offers` entirely — no schema may imply a current offer or availability.
+function buildSchema(unit, d, pageUrl, dealerKey, historical) {
   const title = buildDisplayTitle(unit);
   const isVehicle = !unit.category || unit.category.toLowerCase().includes('truck');
   const photos = getPhotos(unit);
@@ -123,10 +125,10 @@ function buildSchema(unit, d, pageUrl, dealerKey) {
     'vehicleCondition': unit.condition === 'New' ? 'https://schema.org/NewCondition' : 'https://schema.org/UsedCondition',
     ...(firstPhoto      && { 'image': firstPhoto }),
     'url': pageUrl,
-    'offers': {
+    ...(historical ? {} : { 'offers': {
       '@type': 'Offer',
       ...(priceNum       && { 'price': priceNum, 'priceCurrency': 'USD' }),
-      'availability': unit.sold ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
+      'availability': 'https://schema.org/InStock',
       'seller': {
         '@type': 'LocalBusiness',
         'name': dealerKey || unit.dealer || '',
@@ -142,8 +144,19 @@ function buildSchema(unit, d, pageUrl, dealerKey) {
           },
         }),
       },
-    },
+    } }),
   };
+}
+
+// 2B: historical SEO title — same 65-char budget discipline as buildSeoTitle
+// (drop ' | Torque Hub' first, then location; prefix + core always survive).
+function buildHistoricalTitle(prefix, core, cityState) {
+  const where = cityState ? ' in ' + cityState : '';
+  const full = `${prefix} — ${core}${where} | Torque Hub`;
+  if (full.length <= 65) return full;
+  const noBrand = `${prefix} — ${core}${where}`;
+  if (noBrand.length <= 65) return noBrand;
+  return `${prefix} — ${core}`;
 }
 
 // ─── Supabase fetch with MPX variant handling ─────────────────────────────────
@@ -157,7 +170,7 @@ async function fetchUnit(stock, dealer, log) {
   console.log('[vehicle edge] fetchUnit variants:', variants, '| dealer:', dealer);
 
   const sbFetch = async (sv, dealerFilter) => {
-    const DETAIL_SELECT = 'stock,year,make,model,trim,price,photos,dealer,category,subcategory,mileage,engine,horsepower,hours,fuel,condition,transmission,drivetrain,description,sold,vin,buyer_intelligence,contact_phone,contact_location';
+    const DETAIL_SELECT = 'stock,year,make,model,trim,price,photos,dealer,category,subcategory,mileage,engine,horsepower,hours,fuel,condition,transmission,drivetrain,description,sold,vin,buyer_intelligence,contact_phone,contact_location,listing_state';
     const q = dealerFilter
       ? `stock=eq.${encodeURIComponent(sv)}&dealer=eq.${encodeURIComponent(dealerFilter)}&select=${DETAIL_SELECT}&limit=1`
       : `stock=eq.${encodeURIComponent(sv)}&select=${DETAIL_SELECT}&limit=1`;
@@ -206,8 +219,11 @@ async function fetchUnit(stock, dealer, log) {
 
 // ─── HTML transformer ─────────────────────────────────────────────────────────
 
-function injectMeta(html, { pageTitle, pageDesc, pageUrl, firstPhoto, schema }) {
+function injectMeta(html, { pageTitle, pageDesc, pageUrl, firstPhoto, schema, robots }) {
   html = html.replace(/<title[^>]*>[^<]*<\/title>/, `<title id="page-title">${esc(pageTitle)}</title>`);
+  if (robots) {
+    html = html.replace(/<meta name="robots"[^>]*>/, `<meta name="robots" content="${escAttr(robots)}" />`);
+  }
 
   html = html.replace(
     /<meta name="description"[^>]*>/,
@@ -477,16 +493,50 @@ export default async function handler(request, context) {
     const loc       = cityState;
 
     const pageUrl   = `${SITE}/vehicle.html?stock=${encodeURIComponent(unit.stock)}`;
+
+    // 2B PUBLIC LIFECYCLE STATE — read from inventory_public_detail.listing_state, the
+    // single derivation ('live' | 'sold' | 'departed'). Never recomputed here from
+    // sold / sold_at / sold_type, and handed to the client verbatim (below).
+    // FAIL CLOSED: a row was returned but lifecycle authority is absent/invalid (view
+    // projection missing, malformed value) → 503 no-store. Uncertainty is never
+    // normalized into LIVE, and the unit is not 404'd (it exists; authority failed).
+    const listingState = unit.listing_state;
+    if (listingState !== 'live' && listingState !== 'sold' && listingState !== 'departed') {
+      console.error(`[vehicle edge] invalid lifecycle authority for ${unit.stock}: listing_state=${JSON.stringify(listingState)} — serving 503`);
+      return new Response('Listing temporarily unavailable', {
+        status: 503,
+        headers: { 'Content-Type': 'text/plain; charset=UTF-8', 'Cache-Control': 'no-store' },
+      });
+    }
+    const historical = listingState !== 'live';
+
     // SEO/social — single descriptor (clean trim if present, else canonical subcat).
-    const pageTitle = buildSeoTitle(unit, cityState);
+    const liveTitle = buildSeoTitle(unit, cityState);
     // SEO core (ymm + descriptor, without the ' for Sale ... | Torque Hub' suffix)
     // — feeds the SEO H2 and meta description so they match client byte-for-byte.
-    const seoCore   = pageTitle.replace(/\s+for Sale.*$/, '');
-    const seoLine   = seoCore + ' for Sale' + (cityState ? ' in ' + cityState : '');
-    const pageDesc  = `${seoCore} for sale${cityState ? ' in ' + cityState : ''}. ${price}. Call ${d.phone || 'the seller'} or apply for financing online. Torque Hub.`;
+    const seoCore   = liveTitle.replace(/\s+for Sale.*$/, '');
+    const where     = cityState ? ' in ' + cityState : '';
+    // 2B historical head: truthful state, no transaction intent (no "for Sale", no
+    // price, no phone, no financing language).
+    const stateWord = listingState === 'sold' ? 'Sold' : 'No Longer Listed';
+    const pageTitle = historical ? buildHistoricalTitle(stateWord, seoCore, cityState) : liveTitle;
+    const seoLine   = historical ? `${seoCore}${where} — ${stateWord}` : seoCore + ' for Sale' + where;
+    const pageDesc  = listingState === 'sold'
+      ? `${seoCore}${where} has sold. Browse similar available units on Torque Hub.`
+      : listingState === 'departed'
+        ? `${seoCore}${where} is no longer listed on Torque Hub. Browse similar available units.`
+        : `${seoCore} for sale${where}. ${price}. Call ${d.phone || 'the seller'} or apply for financing online. Torque Hub.`;
+    const robots    = historical ? 'noindex,follow' : '';
 
-    const descHtml  = buildKeyDetailsCardHtml(unit.description);
-    const schema    = buildSchema(unit, d, pageUrl, dealerKey);
+    // 2B historical price: "Last Asking Price" (sold) / "Last Listed Price" (departed)
+    // only when a real listing price exists; otherwise NO price row. Never "Call for Price".
+    const priceNum  = parseFloat(String(unit.price || '').replace(/[^0-9.]/g, '')) || 0;
+    const hlPrice   = historical
+      ? (priceNum > 0 ? `${listingState === 'sold' ? 'Last Asking Price' : 'Last Listed Price'}: ${price}` : '')
+      : price;
+
+    const descHtml  = buildKeyDetailsCardHtml(unit.description, { historical });
+    const schema    = buildSchema(unit, d, pageUrl, dealerKey, historical);
 
     const unitForClient = {
       ...unit,
@@ -503,13 +553,15 @@ export default async function handler(request, context) {
     const dataScript = `<script>window.__VDP_UNIT__=${safeJson(unitForClient)};window.__VDP_DEALER_KEY__=${safeJson(dealerKey)};</script>`;
 
     let html = baseHtml;
-    html = injectMeta(html, { pageTitle, pageDesc, pageUrl, firstPhoto, schema });
+    html = injectMeta(html, { pageTitle, pageDesc, pageUrl, firstPhoto, schema, robots });
     html = html.replace('</head>', dataScript + '\n</head>');
-    html = injectBody(html, { unit, dealerKey, title, price, subcat, seoLine, loc, cityState, descHtml, firstPhoto });
+    html = injectBody(html, { unit, dealerKey, title, price: hlPrice, subcat, seoLine, loc, cityState, descHtml, firstPhoto });
 
-    if (unit.sold) {
+    if (historical) {
+      // 2B: dominant state banner. The client clones this template verbatim.
+      const bannerText = listingState === 'sold' ? 'SOLD — NO LONGER AVAILABLE' : 'NO LONGER LISTED';
       const soldTpl = '<template id="sold-banner-tpl">'
-        + '<div><div class="sold-banner-text">🚫 This unit has been sold</div>'
+        + `<div><div class="sold-banner-text">${bannerText}</div>`
         + '<div class="sold-banner-sub">Check out similar available units below.</div></div>'
         + '</template>';
       html = html.replace('</body>', soldTpl + '\n</body>');
