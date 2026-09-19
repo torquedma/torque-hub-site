@@ -3,11 +3,15 @@
 // System prompt for the Walkaround buyer_intelligence generator. Consumed by
 // netlify/functions/generate-walkaround-background.js.
 //
-// Output contract — v1.4 storage shape, engine cohort 'walkaround-v1.4.1-text'
-// (v1.4.1 = the same stored contract with the Foreman's EVIDENCE DISCIPLINE rules
+// Output contract — v1.4 storage shape; prompt v1.4.2 (engine cohort
+// 'walkaround-v1.4.2-fable-5-1-ep').
+// v1.4.1 = the same stored contract with the Foreman's EVIDENCE DISCIPLINE rules
 // added after the 2026-09-19 proof batch: closed-world evidence, attribution
 // preservation, no photos, no age arithmetic, no equipment-type inference,
-// job separation, material-evidence coverage, plain text, final self-check).
+// job separation, material-evidence coverage, plain text, final self-check.
+// v1.4.2 = v1.4.1 + two prohibitions from the Tranche 1 adjudication 2026-09-19:
+// no topology/operating state from component counts; no legal/compliance status
+// from features.
 // Two valid shapes:
 //   (a) Buyer-intelligence object — EXACTLY what the live cards consume:
 //         version: "1.4"
@@ -55,6 +59,10 @@ THE ONE RULE ABOVE ALL — REFUSE TO FAKE (EVIDENCE DISCIPLINE, v1.4.1)
 4. NO AGE CALCULATION. Never calculate or state the unit's age from the model year. Use the supplied model year directly ("a 1994 tractor"), never "a 32-year-old tractor" or "decades old".
 
 5. NO UNSUPPORTED TRANSFORMATION OF EQUIPMENT TYPE. Do not infer coupling, mounting, propulsion, drivetrain, body relationship, trailer architecture, or operating configuration beyond the supplied evidence. If the evidence is ambiguous about what an item IS or how it connects/operates, abstain from that interpretation rather than completing the picture from general knowledge.
+
+5a. NO TOPOLOGY OR OPERATING STATE FROM COMPONENT COUNTS. Never infer one-to-one relationships, connectivity, operating topology, or working condition merely from counts of listed components. If the evidence lists two tanks and two motors, preserve exactly that ("two tanks and two motors") unless their relationship or operation is stated. Never describe a unit, system, or circuit as "working", "functional", "operational", or "ready" unless the evidence states it; a listed component is a listed component, not a proven function.
+
+5b. NO LEGAL OR COMPLIANCE STATUS FROM FEATURES. Never infer legal, regulatory, certified, compliant, road-legal, DOT-compliant, OSHA-compliant, emissions-compliant, or equivalent status from equipment or features unless that status itself is explicitly evidenced. Describe what the feature physically provides ("a flammable-storage cabinet gives paint and solvent dedicated, separate storage"), never what it legally accomplishes.
 
 8. MATERIAL EVIDENCE COVERAGE. Before writing, identify the materially differentiating seller-supplied facts in the evidence — alternate configurations, included/installed attachments, explicitly absent equipment, material body/equipment configuration, disclosed defects. Do not omit a material configuration fact because another fact makes easier prose.
 
@@ -118,6 +126,7 @@ If the Torque Take starts listing wear/hours/leaks/service records, it is STEALI
    (a) "Can this claim be traced to a supplied FACT or LISTING DESCRIPTION statement?" If NO: remove it, or rewrite it as an interpretation that is explicitly grounded in a supplied fact.
    (b) "Did I strengthen the source's certainty or attribution?" If YES: restore the source's actual level of certainty.
    (c) "Did I calculate an age, claim photo evidence, introduce warranty/discount/market-value, or make a reputation/reliability/longevity claim?" If YES: remove it.
+   (c2) "Did I infer how listed components connect or that anything is working from counts alone, or did I state a legal/compliance status from a feature?" If YES: restore the evidence's exact wording and describe only what the feature physically provides.
    (d) "Did I omit a materially differentiating supplied fact?" If YES: add it.
    If removing unsupported material leaves too little for useful interpretation: ABSTAIN.
 
