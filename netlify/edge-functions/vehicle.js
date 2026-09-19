@@ -394,17 +394,34 @@ export default async function handler(request, context) {
     baseHtml = await baseResponse.text();
     console.log(`[vehicle edge] base HTML length: ${baseHtml.length}`);
 
-    // Not found — inject error template so client JS can build the error state
+    // No row from the governed public view. Two distinct outcomes (2A contract):
+    //   lookup FAILED (any request non-OK / threw / no request made) -> 503 no-store,
+    //     never a 404: a failure must not manufacture evidence that a unit ceased to exist.
+    //   lookup SUCCEEDED with zero public rows (withheld or nonexistent) -> 404 with the
+    //     existing unavailable-listing shell, noindex,follow, no canonical / og:url.
+    // The edge does not and must not distinguish draft from nonexistent here.
     if (!result) {
+      const lookupFailed = fetchError !== null || log.length === 0 || log.some((e) => e.error !== null);
+      if (lookupFailed) {
+        console.error('[vehicle edge] lookup failed — serving 503');
+        return new Response('Listing temporarily unavailable', {
+          status: 503,
+          headers: { 'Content-Type': 'text/plain; charset=UTF-8', 'Cache-Control': 'no-store' },
+        });
+      }
       const errorTpl = '<template id="vdp-error-tpl">'
         + '<h2>Listing Not Available</h2>'
         + '<p>This unit may have been sold or removed. Browse current inventory below.</p>'
         + '<a href="/#inventory" class="back-btn">Browse All Inventory</a>'
         + '</template>';
-      const html = baseHtml.replace('</body>', errorTpl + '\n</body>');
+      let html = baseHtml;
+      html = html.replace(/<meta name="robots"[^>]*>/, '<meta name="robots" content="noindex,follow" />');
+      html = html.replace(/[ \t]*<link rel="canonical"[^>]*>\r?\n?/, '');
+      html = html.replace(/[ \t]*<meta property="og:url"[^>]*>\r?\n?/, '');
+      html = html.replace('</body>', errorTpl + '\n</body>');
       return new Response(html, {
-        status: 200,
-        headers: { 'Content-Type': 'text/html; charset=UTF-8', 'Cache-Control': 'no-store, no-cache' },
+        status: 404,
+        headers: { 'Content-Type': 'text/html; charset=UTF-8', 'Cache-Control': 'no-store' },
       });
     }
 
