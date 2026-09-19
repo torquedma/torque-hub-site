@@ -312,7 +312,7 @@ window.InventoryEngine = (function () {
   // ── Data loading ───────────────────────────────────────────────────────────
   async function loadAll() {
     var dealersP = fetch(
-      SB_URL + '/rest/v1/dealers?select=name,phone,location',
+      SB_URL + '/rest/v1/dealers?select=name,phone,city,state',
       { headers: SB_HDRS }
     ).then(function(r) { return r.json(); }).catch(function() { return []; });
 
@@ -335,7 +335,8 @@ window.InventoryEngine = (function () {
           var entry = DEALERS.find(function(x) { return x.key === row.name; });
           if (entry) {
             if (row.phone) entry.phone = row.phone;
-            if (row.location) entry.location = row.location;
+            var _loc = [row.city, row.state].filter(Boolean).join(', ');
+            if (_loc) entry.location = _loc;
           }
         });
       }

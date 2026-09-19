@@ -946,8 +946,17 @@ function render(unit, dealerKey) {
   const d = {
     ...(DEALERS[dealerKey] || DEALERS[unit.dealer] || {}),
     ...(_live.phone   && { phone: _live.phone, tel: _live.phone.replace(/\D/g, '') }),
-    ...(_live.address && { address: _live.address }),
   };
+  // Package 1.2: geography authority by PRESENCE, not truthiness. A successful governed
+  // dealer row hands over address/city/state/zip — and an empty address is an AUTHORITATIVE
+  // "no governed street exists", which must displace the static registry seed. A truthiness
+  // guard cannot express that. If _live carries no geography at all (edge failure, no row,
+  // no SSR), the properties are absent and the registry fallback above stands untouched.
+  const _has = (k) => Object.prototype.hasOwnProperty.call(_live, k);
+  if (_has('address')) d.address = _live.address;
+  if (_has('city'))    d.city    = _live.city;
+  if (_has('state'))   d.state   = _live.state;
+  if (_has('zip'))     d.zip     = _live.zip;
   const title = window.TITLE_HELPERS.buildDisplayTitle(unit);
   const price = formatPrice(unit.price);
   const isSold = unit.sold === true;
@@ -978,12 +987,13 @@ function render(unit, dealerKey) {
     if (vdpContainer) vdpContainer.insertBefore(banner, vdpContainer.firstChild);
   }
 
-  // Derive city/state for SEO strings
-  const addrLines = (d.address || '').split('\n');
-  const cityLine = addrLines[addrLines.length - 1] || '';
-  const city = cityLine.split(',')[0].trim();
-  const stateCode = (cityLine.split(',')[1] || '').trim().split(' ')[0];
-  const cityState = city && stateCode ? `${city}, ${stateCode}` : city || 'NC';
+  // Package 1.2: SEO geography from GOVERNED structured components. No newline parsing,
+  // no comma splitting, no 'NC' fallback. Empty is correct when nothing is governed —
+  // every consumer below already guards with `cityState ? ... : ''`.
+  const geoCity   = (d.city  || '').trim();
+  const geoState  = (d.state || '').trim();
+  const cityState = geoCity && geoState ? `${geoCity}, ${geoState}`
+                  : geoCity || geoState || '';
 
   // Page meta — all guarded; edge function may have already set these
   const pageUrl = `https://hub.torquedma.com/vehicle.html?stock=${encodeURIComponent(unit.stock)}`;
@@ -1034,7 +1044,12 @@ function render(unit, dealerKey) {
         "@type": "LocalBusiness",
         "name": dealerKey || unit.dealer,
         "telephone": d.phone || undefined,
-        "address": d.address ? { "@type": "PostalAddress", "streetAddress": d.address.split('\n')[0], "addressLocality": (d.address.split('\n')[1] || '').split(',')[0], "addressRegion": "NC", "addressCountry": "US" } : undefined
+        "address": (d.city || d.state || d.zip || d.address) ? Object.assign({ "@type": "PostalAddress" },
+          d.address ? { "streetAddress": d.address } : {},
+          d.city    ? { "addressLocality": d.city }  : {},
+          d.state   ? { "addressRegion": d.state }   : {},
+          d.zip     ? { "postalCode": d.zip }        : {},
+          { "addressCountry": "US" }) : undefined
       }
     }
   };
@@ -1055,7 +1070,12 @@ function render(unit, dealerKey) {
   if (seoH2) seoH2.textContent = seoCore + ' for Sale' + (cityState ? ' in ' + cityState : '');
   const hlPrice  = el('hl-price');   if (hlPrice)  hlPrice.textContent  = price;
   const hlDealer = el('hl-dealer');  if (hlDealer) hlDealer.textContent = dealerKey || unit.dealer || '';
-  const loc = d.address ? d.address.split('\n')[1] || '' : '';
+  // Package 1.2: governed display location — "Dunn, NC 28334". Reused below by the dealer
+  // card and the directions link so every buyer-visible geography surface shares one value.
+  const loc = [
+    [d.city, d.state].filter(Boolean).join(', '),
+    d.zip
+  ].filter(Boolean).join(' ');
   const hlLoc    = el('hl-location');if (hlLoc)    hlLoc.textContent    = loc;
   const hlSep    = el('hl-sep');     if (hlSep)    hlSep.style.display    = (price && dealerKey) ? 'inline' : 'none';
   const hlLocSep = el('hl-loc-sep'); if (hlLocSep) hlLocSep.style.display = loc ? 'inline' : 'none';
@@ -1093,11 +1113,21 @@ function render(unit, dealerKey) {
 
   // Dealer card
   const dName = el('d-name'); if (dName) dName.textContent = dealerKey || unit.dealer;
-  const dAddr = el('d-addr'); if (dAddr) dAddr.textContent = d.address || '';
+  // Package 1.2: compose the visible dealer address from GOVERNED parts — governed street
+  // when one exists, then the governed locality line. Never infer components from a legacy
+  // address string. dealers.address is NULL today, so this renders the locality line alone.
+  const dAddrText = [d.address, loc].filter(Boolean).join('\n');
+  const dAddr = el('d-addr'); if (dAddr) dAddr.textContent = dAddrText;
   const dCall = el('d-call'); if (dCall) { dCall.href = callHref; dCall.textContent = d.phone ? `Call ${d.phone}` : 'Call'; wirePhoneCta(dCall, 'dealer_card'); }
+  // Package 1.2: governed geography outranks the static registry mapsUrl. Mid-Atlantic's
+  // registry mapsUrl points at "North Carolina" — leaving it first would keep a legacy
+  // geography authority alive. The static mapsUrl survives ONLY as the true failure
+  // fallback, when no governed geography reached the client at all.
+  const dirQuery = [d.address, loc].filter(Boolean).join(', ');
   const dDir  = el('d-directions');
-  if (dDir) dDir.href = d.mapsUrl
-    || (d.address ? 'https://maps.google.com/?q=' + encodeURIComponent(d.address) : '#');
+  if (dDir) dDir.href = dirQuery
+    ? 'https://maps.google.com/?q=' + encodeURIComponent(dirQuery)
+    : (d.mapsUrl || '#');
 
   // Description
   if (unit.description) {

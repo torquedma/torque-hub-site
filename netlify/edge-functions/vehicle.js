@@ -108,7 +108,6 @@ function buildSchema(unit, d, pageUrl, dealerKey) {
   const photos = getPhotos(unit);
   const firstPhoto = photos[0]?.url || photos[0]?.dataUrl || '';
   const priceNum = parseFloat(String(unit.price || '').replace(/[^0-9.]/g, '')) || undefined;
-  const addrParts = (d.address || '').split('\n');
 
   return {
     '@context': 'https://schema.org',
@@ -132,12 +131,13 @@ function buildSchema(unit, d, pageUrl, dealerKey) {
         '@type': 'LocalBusiness',
         'name': dealerKey || unit.dealer || '',
         ...(d.phone && { 'telephone': d.phone }),
-        ...(addrParts[0] && {
+        ...((d.city || d.state || d.zip || d.address) && {
           'address': {
             '@type': 'PostalAddress',
-            'streetAddress': addrParts[0],
-            'addressLocality': (addrParts[1] || '').split(',')[0].trim(),
-            'addressRegion': 'NC',
+            ...(d.address && { 'streetAddress': d.address }),
+            ...(d.city    && { 'addressLocality': d.city }),
+            ...(d.state   && { 'addressRegion': d.state }),
+            ...(d.zip     && { 'postalCode': d.zip }),
             'addressCountry': 'US',
           },
         }),
@@ -412,7 +412,7 @@ export default async function handler(request, context) {
     let d = { ...(DEALERS[dealerKey] || {}) };
     try {
       const _dr = await fetch(
-        `${SUPABASE_URL}/rest/v1/dealers?select=name,phone,address&name=eq.${encodeURIComponent(dealerKey)}&limit=1`,
+        `${SUPABASE_URL}/rest/v1/dealers?select=name,phone,address,city,state,zip&name=eq.${encodeURIComponent(dealerKey)}&limit=1`,
         { headers: SB_HEADERS }
       );
       if (_dr.ok) {
@@ -420,13 +420,25 @@ export default async function handler(request, context) {
         const _row = _rows && _rows[0];
         if (_row) {
           if (_row.phone) d.phone = _row.phone;
-          if (_row.address) d.address = _row.address;
+          // Package 1.1: a successful governed dealer row is AUTHORITATIVE for street.
+          // NULL is meaningful here — it means no governed street address exists — so the
+          // static registry seed must be displaced rather than left standing. The other
+          // geography fields stay guarded; only `address` needs NULL to carry meaning.
+          // If the query fails or returns no row, the registry remains the fallback.
+          d.address = _row.address || '';
+          if (_row.city) d.city = _row.city;
+          if (_row.state) d.state = _row.state;
+          if (_row.zip) d.zip = _row.zip;
         }
       }
     } catch (_) {}
 
-    const resolvedAddress = unit.contact_location || d.address || '';
-    d.address = resolvedAddress;
+    // Package 1: inventory.contact_location is NOT geographic authority. Its semantic
+    // shape is unestablished and it is empty across the entire observed population, so it
+    // must not be able to become a structured streetAddress. The DB column is untouched;
+    // only this renderer's authority path changes. d.address now carries governed street
+    // only (dealers.address), which is NULL today and therefore correctly omitted.
+    d.address = d.address || '';
 
     console.log(`[vehicle edge] photos raw — type:${typeof unit.photos} isArray:${Array.isArray(unit.photos)} sample:${JSON.stringify(unit.photos)?.slice(0, 150)}`);
 
@@ -438,12 +450,14 @@ export default async function handler(request, context) {
 
     console.log(`[vehicle edge] photos parsed — count:${photos.length} first:${photos[0]?.url ?? 'none'}`);
 
-    const addrLines = (d.address || '').split('\n');
-    const cityLine  = addrLines[addrLines.length - 1] || '';
-    const city      = cityLine.split(',')[0].trim();
-    const stateCode = (cityLine.split(',')[1] || '').trim().split(' ')[0];
-    const cityState = city && stateCode ? `${city}, ${stateCode}` : city || 'NC';
-    const loc       = addrLines.length > 1 ? addrLines[1] : addrLines[0] || '';
+    // STRUCTURED DEALER GEOGRAPHY (Package 1). city/state/zip are governed components from
+    // the dealers table. Never parse geography out of newline position, and never fall back
+    // to a hard-coded region. Omission beats a fabricated value.
+    const geoCity   = (d.city  || '').trim();
+    const geoState  = (d.state || '').trim();
+    const cityState = geoCity && geoState ? `${geoCity}, ${geoState}`
+                    : geoCity || geoState || '';
+    const loc       = cityState;
 
     const pageUrl   = `${SITE}/vehicle.html?stock=${encodeURIComponent(unit.stock)}`;
     // SEO/social — single descriptor (clean trim if present, else canonical subcat).
@@ -462,7 +476,10 @@ export default async function handler(request, context) {
       photos,
       _dealer: {
         phone: unit.contact_phone || d.phone || '',
-        address: d.address || ''
+        address: d.address || '',
+        city:  d.city  || '',
+        state: d.state || '',
+        zip:   d.zip   || ''
       }
     };
     console.log(`[vehicle edge] injecting __VDP_UNIT__ photos count:${photos.length} first url:${photos[0]?.url ?? 'none'}`);
