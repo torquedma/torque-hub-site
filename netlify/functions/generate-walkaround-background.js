@@ -26,7 +26,10 @@ const { showMileage, showHours } = require('./lib/usage-display.generated.js');
 // no throwaway slot), decision_factors{makes_it_a_yes[4], makes_it_a_yes_footer},
 // uncertainty_type, buyer_question. No identity block, no meet (Card 1 is the
 // governed DX). Text evidence only. Abstention preserved.
-const ENGINE_VERSION = 'walkaround-v1.4.1-fable-5-1';
+const ENGINE_VERSION = 'walkaround-v1.4.1-fable-5-1-ep';
+// -ep = EVIDENCE PARITY (Foreman 2026-09-19): the model now reasons from the same
+// governed description surface the buyer sees on the VDP's KEY DETAILS card.
+// Prompt and model are FROZEN from the walkaround-v1.4.1-fable-5-1 cohort.
 // MODEL-ISOLATION COHORT (Foreman 2026-09-19): identical v1.4.1 prompt bytes and
 // evidence, generation model changed from claude-haiku-4-5-20251001 to the current
 // strongest generally available model per the Models overview (verified 2026-09-19):
@@ -75,12 +78,36 @@ function buildFacts(unit) {
   return facts.join('\n');
 }
 
+// extractBuyerEvidence — EVIDENCE PARITY with the VDP's Card-1 extraction contract
+// (js/desc-render.js / netlify/edge-functions/lib/desc-render.js), applied to
+// plain text instead of HTML:
+//   • start at the 'Key Details' heading (fallback: whole text if absent);
+//   • drop any Key Details bullet labelled 'Price:' (the hero owns price);
+//   • keep the 'Overview' heading and prose;
+//   • stop at 'Interested In This Unit?' (dealer/lead surfaces own the CTA).
+// Presentation artifacts the renderer already suppresses (legacy headline, stale
+// Price line, CTA) therefore never reach the model. Legitimate seller evidence is
+// untouched; nothing is rewritten; inventory.description is never modified.
+function extractBuyerEvidence(text) {
+  if (!text) return '';
+  const lines = String(text).split('\n');
+  let start = lines.findIndex(l => l.trim() === 'Key Details');
+  if (start < 0) start = 0;
+  const out = [];
+  for (let k = start; k < lines.length; k++) {
+    const t = lines[k].trim();
+    if (t === 'Interested In This Unit?') break;
+    if (/^[-•]\s*Price:/.test(t)) continue;
+    out.push(lines[k].replace(/\s+$/, ''));
+  }
+  return out.join('\n').trim();
+}
+
 function buildUserMessage(unit) {
   const factsBlock = buildFacts(unit);
-  // Description is the listing's governed text (Canonical DX: Key Details +
-  // Overview, or dealer copy where no Canonical DX exists yet). It is evidence
-  // the buyer has already read as Card 1 — not a spec sheet the model may extend.
-  const desc = (unit.description || '').toString().trim();
+  // Description evidence = exactly what the buyer sees on the KEY DETAILS card
+  // (Key Details + Overview), via the same extraction contract as the renderer.
+  const desc = extractBuyerEvidence(unit.description);
   const descBlock = desc
     ? '\n\nLISTING DESCRIPTION (text evidence — not a spec sheet you may extend):\n' + desc
     : '';
