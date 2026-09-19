@@ -26,7 +26,12 @@ const { showMileage, showHours } = require('./lib/usage-display.generated.js');
 // no throwaway slot), decision_factors{makes_it_a_yes[4], makes_it_a_yes_footer},
 // uncertainty_type, buyer_question. No identity block, no meet (Card 1 is the
 // governed DX). Text evidence only. Abstention preserved.
-const ENGINE_VERSION = 'walkaround-v1.4.1-text';
+const ENGINE_VERSION = 'walkaround-v1.4.1-fable-5-1';
+// MODEL-ISOLATION COHORT (Foreman 2026-09-19): identical v1.4.1 prompt bytes and
+// evidence, generation model changed from claude-haiku-4-5-20251001 to the current
+// strongest generally available model per the Models overview (verified 2026-09-19):
+// claude-fable-5-1. Stored contract unchanged (version "1.4").
+const GENERATION_MODEL = 'claude-fable-5-1';
 
 // Six allowed uncertainty_type values. Anything else (including arrays,
 // numbers, misspellings) is dropped to null before write.
@@ -153,7 +158,7 @@ exports.handler = async (event) => {
           'content-type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'claude-haiku-4-5-20251001',
+          model: GENERATION_MODEL,
           max_tokens: 4096,
           system: WALKAROUND_SYSTEM_PROMPT,
           messages: [{ role: 'user', content: userMessage }],
@@ -168,7 +173,10 @@ exports.handler = async (event) => {
       }
 
       const apiData = await res.json();
-      const raw = (apiData.content?.[0]?.text || '').trim();
+      // Select the text block by type: models with adaptive thinking may return a
+      // thinking block before the text block, so content[0] is not guaranteed text.
+      const textBlock = Array.isArray(apiData.content) ? apiData.content.find(b => b && b.type === 'text') : null;
+      const raw = (textBlock?.text || '').trim();
 
       const parsed = parseModelJson(raw);
       if (!parsed || typeof parsed !== 'object') {
