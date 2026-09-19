@@ -812,12 +812,12 @@ function parseBuyerIntelligence(raw) {
 // Each card is conditionally included; if none survive, returns '' (zero
 // footprint — Card 1 stands alone, no dots).
 //
-// Card 2 "Torque Take":     bi.torque_take[1..]   ([0] was the retired Meet lead)
+// Card 2 "Torque Take":     bi.torque_take[]      (v1.4: displayed paragraphs only, no placeholder slot)
 // Card 3 "Buyer Checklist": bi.decision_factors.makes_it_a_yes (+ optional footer)
 //                           (makes_it_a_walk stays dormant in the data)
 function buildBuyerIntelligenceCards(bi) {
   const ttRest = Array.isArray(bi.torque_take)
-    ? bi.torque_take.slice(1).map(s => (s == null ? '' : String(s).trim())).filter(Boolean)
+    ? bi.torque_take.map(s => (s == null ? '' : String(s).trim())).filter(Boolean)
     : [];
   const df = bi.decision_factors || {};
   const yes = Array.isArray(df.makes_it_a_yes)
