@@ -26,7 +26,10 @@ const { showMileage, showHours } = require('./lib/usage-display.generated.js');
 // no throwaway slot), decision_factors{makes_it_a_yes[4], makes_it_a_yes_footer},
 // uncertainty_type, buyer_question. No identity block, no meet (Card 1 is the
 // governed DX). Text evidence only. Abstention preserved.
-const ENGINE_VERSION = 'walkaround-v1.4.2-fable-5-1-ep';
+const ENGINE_VERSION = 'walkaround-v1.4.3-fable-5-1-ep';
+// v1.4.3 (Foreman 2026-09-19): prompt-only change — Owner's maintenance rule
+// (source-activated, scope-bound). Model, evidence-parity extraction, storage
+// contract unchanged. New cohort label so v1.4.2 rows remain the before-record.
 // -ep = EVIDENCE PARITY (Foreman 2026-09-19): the model now reasons from the same
 // governed description surface the buyer sees on the VDP's KEY DETAILS card.
 // Prompt and model are FROZEN from the walkaround-v1.4.1-fable-5-1 cohort.
