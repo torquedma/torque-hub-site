@@ -149,6 +149,7 @@ exports.handler = async (event) => {
     listing_id:     resolvedListingId,
     dealer_name:    payload.dealer_name    || null,
     source_url:     payload.source_url     || null,
+    submission_url: payload.submission_url || null,
     message:        payload.message        || null,
     credit_score:   payload.credit_score   || null,
     rep:            payload.rep            || null,

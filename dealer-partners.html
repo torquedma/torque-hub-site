@@ -183,7 +183,7 @@ async function submitPartnerApp(prefix, type) {
     customer_email: emailEl ? emailEl.value.trim() : null,
     message: type + ' Application\nName: ' + name + '\nPhone: ' + phone + '\nEmail: ' + (emailEl ? emailEl.value.trim() : '') + '\n' + fields.join('\n'),
     source: type.toLowerCase().replace(/ /g,'_') + '_application',
-    source_url: window.location.href, status: 'new', dealer_name: 'Torque Hub Partner Lead'
+    source_url: window.location.href, submission_url: window.location.href, status: 'new', dealer_name: 'Torque Hub Partner Lead'
   };
   const emailFallback = prefix === 'lp' ? 'lenders@torquedma.com' : 'dealers@torquedma.com';
   const submitBtn = document.getElementById(prefix+'-submit');

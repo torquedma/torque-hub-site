@@ -1342,6 +1342,7 @@ function submitLead() {
       stock_number: stock || null,
       listing_title: listingTitle || null,
       source_url: pageUrl || null,
+      submission_url: window.location.href || null,
       referrer: referrer || null
     })
   }).then(r => {

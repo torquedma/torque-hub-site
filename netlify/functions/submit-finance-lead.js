@@ -194,6 +194,7 @@ exports.handler = async (event) => {
     listing_price_snapshot: stockExists ? listingPriceSnapshot : null,
     listing_id:     resolvedListingId,
     source_url:     payload.source_url     || null,
+    submission_url: payload.submission_url || null,
     message:        payload.message        || null,
     credit_score:   payload.credit_score   || null,
     lender:         resolvedLender,
