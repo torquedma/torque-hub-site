@@ -89,16 +89,18 @@ exports.handler = async (event) => {
   let resolvedDealerName = null;    // retained for persistence
   let routeResolved = false;        // lender-routing validity (replaces stockRouteResolved)
   let listingPriceSnapshot = null;
+  let resolvedListingId = null;     // canonical inventory.id — retained for persistence
   if (payload.stock_number) {
     try {
       const { data: inv } = await supabase
         .from('inventory')
-        .select('dealer, sold, price')
+        .select('id, dealer, sold, price')
         .eq('stock', payload.stock_number)
         .single();
       if (inv && inv.dealer) {
         stockExists = true;
         resolvedDealerName = inv.dealer;
+        resolvedListingId = inv.id || null;
         stockSold = !!inv.sold;
         const lp = normalizePrice(inv.price);
         listingPriceSnapshot = lp.ok ? lp.value : null;
@@ -190,6 +192,7 @@ exports.handler = async (event) => {
     external_vehicle_model: stockExists ? null : (extModel || null),
     external_vehicle_price: stockExists ? null : extPrice.value,
     listing_price_snapshot: stockExists ? listingPriceSnapshot : null,
+    listing_id:     resolvedListingId,
     source_url:     payload.source_url     || null,
     message:        payload.message        || null,
     credit_score:   payload.credit_score   || null,

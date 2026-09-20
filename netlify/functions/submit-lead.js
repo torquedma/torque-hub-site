@@ -80,15 +80,18 @@ exports.handler = async (event) => {
   let routeCode = null;
   let routeBasis = null;
   let stockRouteResolved = false;
+  let resolvedListingId = null;     // canonical inventory.id — set on inventory resolution,
+                                    // independently of finance-route resolution
 
   if (sellerMatchEligible && payload.stock_number) {
     try {
       const { data: inv } = await supabase
         .from('inventory')
-        .select('dealer')
+        .select('id, dealer')
         .eq('stock', payload.stock_number)
         .single();
       if (inv && inv.dealer) {
+        resolvedListingId = inv.id || null;
         const { data: route } = await supabase
           .from('finance_routes')
           .select('dealer_notification_email, dealer_code, code')
@@ -143,6 +146,7 @@ exports.handler = async (event) => {
     customer_email: payload.customer_email || null,
     stock:          payload.stock_number   || null,
     unit_title:     payload.listing_title  || null,
+    listing_id:     resolvedListingId,
     dealer_name:    payload.dealer_name    || null,
     source_url:     payload.source_url     || null,
     message:        payload.message        || null,
