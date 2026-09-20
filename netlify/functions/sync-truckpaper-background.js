@@ -376,11 +376,6 @@ function deriveSubcategory(item) {
   return '';
 }
 
-const DEALER_INFO_MAP = {
-  'Impex Heavy Metal': { name: 'Impex Heavy Metal', phone: '336-715-8704', location: 'Greensboro, NC' },
-  "HGR's Truck and Trailer": { name: "HGR's Truck and Trailer", phone: '910-661-0868', location: 'Hope Mills, NC' },
-  'Mid-Atlantic Power & Equipment': { name: 'Mid-Atlantic Power & Equipment', phone: '910-889-9201', location: 'Dunn, NC' },
-};
 
 // 2026-09-04 INVENTORY AUTHORITY FREEZE. The marketplace-feed (and Mid-Atlantic
 // dealer-site) actors have been shown to return incomplete populations that the
@@ -700,7 +695,6 @@ exports.handler = async (event) => {
         }
 
         const rawDescription = item.description || item.title || '';
-        const dealerInfo = DEALER_INFO_MAP[dealer] || { name: dealer };
 
         let sub = deriveSubcategory(item);
         const _mk = (make || '').toLowerCase().trim();

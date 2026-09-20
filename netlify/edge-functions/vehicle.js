@@ -13,23 +13,23 @@ const SB_HEADERS = { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPAB
 const SITE = 'https://hub.torquedma.com';
 
 const DEALERS = {
-  'Davenport Motors':              { phone: '252-809-2172', address: '3711 Mackeys Rd\nPlymouth, NC 27962' },
-  "Fat Daddy's Truck Sales":       { phone: '919-759-5434', address: '4337 Hwy 13 N\nGoldsboro, NC 27534' },
-  'Wilson Trailer Sales & Service':{ phone: '252-429-8805', address: '1605 Thorne Ave S\nWilson, NC 27893' },
-  "HGR's Truck and Trailer":       { phone: '910-661-0868', address: '4519 Marracco Dr\nHope Mills, NC 28348' },
-  'Auto Connection 210 LLC':       { phone: '910-490-2596', address: 'Angier, NC' },
-  'Dick Smith Equipment':          { phone: '919-734-1191', address: 'Goldsboro, NC' },
-  'Impex Heavy Metal':             { phone: '336-715-8704', address: 'Greensboro, NC' },
-  'Ironworks Trading Corp':        { phone: '757-663-4444', address: 'Norfolk, VA' },
-  "Joe's Tractor Sales":           { phone: '336-850-8271', address: 'Thomasville, NC' },
+  'Davenport Motors':              { phone: '', address: '3711 Mackeys Rd\nPlymouth, NC 27962' },
+  "Fat Daddy's Truck Sales":       { phone: '', address: '4337 Hwy 13 N\nGoldsboro, NC 27534' },
+  'Wilson Trailer Sales & Service':{ phone: '', address: '1605 Thorne Ave S\nWilson, NC 27893' },
+  "HGR's Truck and Trailer":       { phone: '', address: '4519 Marracco Dr\nHope Mills, NC 28348' },
+  'Auto Connection 210 LLC':       { phone: '', address: 'Angier, NC' },
+  'Dick Smith Equipment':          { phone: '', address: 'Goldsboro, NC' },
+  'Impex Heavy Metal':             { phone: '', address: 'Greensboro, NC' },
+  'Ironworks Trading Corp':        { phone: '', address: 'Norfolk, VA' },
+  "Joe's Tractor Sales":           { phone: '', address: 'Thomasville, NC' },
   "Mid-Atlantic Power & Equipment":{ phone: '',             address: 'North Carolina' },
-  "Smith's Enterprise":            { phone: '910-567-2680', address: 'Salemburg, NC' },
+  "Smith's Enterprise":            { phone: '', address: 'Salemburg, NC' },
   'Suttontown Repair Service':     { phone: '',             address: 'North Carolina' },
   'Johnson Farm Service':          { phone: '',             address: 'North Carolina' },
-  'DeBary Truck Sales':            { phone: '(407) 993-2364', address: '3400 FL-46\nSanford, FL 32771' },
-  'A F Sales & Service':           { phone: '(317) 449-8903', address: '7300 W. Washington St.\nIndianapolis, IN 46231' },
-  'The Trailer Source':            { phone: '336-850-8176',   address: '4060 Patterson Avenue\nWinston Salem, NC 27105' },
-  'Allied Truck & Trailer Sales':  { phone: '336-388-6882',   address: '2804 US-220\nMadison, NC 27025' },
+  'DeBary Truck Sales':            { phone: '', address: '3400 FL-46\nSanford, FL 32771' },
+  'A F Sales & Service':           { phone: '', address: '7300 W. Washington St.\nIndianapolis, IN 46231' },
+  'The Trailer Source':            { phone: '',   address: '4060 Patterson Avenue\nWinston Salem, NC 27105' },
+  'Allied Truck & Trailer Sales':  { phone: '',   address: '2804 US-220\nMadison, NC 27025' },
 };
 
 // ─── Escaping helpers ────────────────────────────────────────────────────────
@@ -132,7 +132,7 @@ function buildSchema(unit, d, pageUrl, dealerKey, historical) {
       'seller': {
         '@type': 'LocalBusiness',
         'name': dealerKey || unit.dealer || '',
-        ...(d.phone && { 'telephone': d.phone }),
+        ...(unit.public_phone && { 'telephone': unit.public_phone }),
         ...((d.city || d.state || d.zip || d.address) && {
           'address': {
             '@type': 'PostalAddress',
@@ -170,7 +170,7 @@ async function fetchUnit(stock, dealer, log) {
   console.log('[vehicle edge] fetchUnit variants:', variants, '| dealer:', dealer);
 
   const sbFetch = async (sv, dealerFilter) => {
-    const DETAIL_SELECT = 'stock,year,make,model,trim,price,photos,dealer,category,subcategory,mileage,engine,horsepower,hours,fuel,condition,transmission,drivetrain,description,sold,vin,buyer_intelligence,contact_phone,contact_location,listing_state';
+    const DETAIL_SELECT = 'stock,year,make,model,trim,price,photos,dealer,category,subcategory,mileage,engine,horsepower,hours,fuel,condition,transmission,drivetrain,description,sold,vin,buyer_intelligence,contact_phone,contact_location,listing_state,public_phone,cta_phone,tracking_scope';
     const q = dealerFilter
       ? `stock=eq.${encodeURIComponent(sv)}&dealer=eq.${encodeURIComponent(dealerFilter)}&select=${DETAIL_SELECT}&limit=1`
       : `stock=eq.${encodeURIComponent(sv)}&select=${DETAIL_SELECT}&limit=1`;
@@ -452,7 +452,6 @@ export default async function handler(request, context) {
         const _rows = await _dr.json();
         const _row = _rows && _rows[0];
         if (_row) {
-          if (_row.phone) d.phone = _row.phone;
           // Package 1.1: a successful governed dealer row is AUTHORITATIVE for street.
           // NULL is meaningful here — it means no governed street address exists — so the
           // static registry seed must be displaced rather than left standing. The other
@@ -525,7 +524,7 @@ export default async function handler(request, context) {
       ? `${seoCore}${where} has sold. Browse similar available units on Torque Hub.`
       : listingState === 'departed'
         ? `${seoCore}${where} is no longer listed on Torque Hub. Browse similar available units.`
-        : `${seoCore} for sale${where}. ${price}. Call ${d.phone || 'the seller'} or apply for financing online. Torque Hub.`;
+        : `${seoCore} for sale${where}. ${price}. Call ${unit.public_phone || 'the seller'} or apply for financing online. Torque Hub.`;
     const robots    = historical ? 'noindex,follow' : '';
 
     // 2B historical price: "Last Asking Price" (sold) / "Last Listed Price" (departed)
@@ -542,7 +541,11 @@ export default async function handler(request, context) {
       ...unit,
       photos,
       _dealer: {
-        phone: unit.contact_phone || d.phone || '',
+        // Governed phone truth (view-derived, one place): public_phone for display, cta_phone for tel: links.
+        // An empty cta_phone is AUTHORITATIVE (retired tracking identity) and must suppress the call CTAs.
+        phone: unit.public_phone || '',
+        cta_phone: unit.cta_phone || '',
+        tracking_scope: unit.tracking_scope || 'direct',
         address: d.address || '',
         city:  d.city  || '',
         state: d.state || '',

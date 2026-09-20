@@ -523,43 +523,43 @@ const SB_HEADERS = { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPAB
 const DEALERS = {
   "Davenport Motors": {
     feedUrl: "https://davenportmotors.net/.netlify/functions/inventory",
-    phone: "252-809-2172", tel: "2528092172",
+    phone: "", tel: "",
     address: "3711 Mackeys Rd\nPlymouth, NC 27962",
     mapsUrl: "https://maps.google.com/?q=3711+Mackeys+Rd+Plymouth+NC+27962"
   },
   "Fat Daddy's Truck Sales": {
     feedUrl: "https://fatdaddystrucksales.netlify.app/.netlify/functions/inventory",
-    phone: "919-759-5434", tel: "9197595434",
+    phone: "", tel: "",
     address: "4337 Hwy 13 N\nGoldsboro, NC 27534",
     mapsUrl: "https://maps.google.com/?q=4337+Hwy+13+N+Goldsboro+NC+27534"
   },
   "Wilson Trailer Sales & Service": {
     feedUrl: "https://wilson-trailer-sales.netlify.app/.netlify/functions/inventory",
-    phone: "252-429-8805", tel: "2524298805",
+    phone: "", tel: "",
     address: "1605 Thorne Ave S\nWilson, NC 27893",
     mapsUrl: "https://maps.google.com/?q=1605+Thorne+Ave+S+Wilson+NC+27893"
   },
   "HGR's Truck and Trailer": {
     feedUrl: "https://hub.torquedma.com/.netlify/functions/hgr-inventory",
-    phone: "910-661-0868", tel: "9106610868",
+    phone: "", tel: "",
     address: "4519 Marracco Dr\nHope Mills, NC 28348",
     mapsUrl: "https://maps.google.com/?q=4519+Marracco+Dr+Hope+Mills+NC+28348"
   },
   "Auto Connection 210 LLC": {
     feedUrl: null,
-    phone: "910-490-2596", tel: "9104902596",
+    phone: "", tel: "",
     address: "Angier, NC",
     mapsUrl: "https://maps.google.com/?q=Angier+NC"
   },
   "Dick Smith Equipment": {
     feedUrl: null,
-    phone: "919-734-1191", tel: "9197341191",
+    phone: "", tel: "",
     address: "Goldsboro, NC",
     mapsUrl: "https://maps.google.com/?q=Goldsboro+NC"
   },
   "Impex Heavy Metal": {
     feedUrl: null,
-    phone: "336-715-8704", tel: "3367158704",
+    phone: "", tel: "",
     address: "Greensboro, NC",
     mapsUrl: "https://maps.google.com/?q=Impex+Heavy+Metal+Greensboro+NC"
   },
@@ -571,7 +571,7 @@ const DEALERS = {
   },
   "Smith's Enterprise": {
     feedUrl: null,
-    phone: "910-567-2680", tel: "9105672680",
+    phone: "", tel: "",
     address: "Salemburg, NC",
     mapsUrl: "https://maps.google.com/?q=Salemburg+NC"
   },
@@ -589,37 +589,37 @@ const DEALERS = {
   },
   "Ironworks Trading Corp": {
     feedUrl: null,
-    phone: "757-663-4444", tel: "7576634444",
+    phone: "", tel: "",
     address: "Norfolk, VA",
     mapsUrl: "https://maps.google.com/?q=Norfolk+VA"
   },
   "Joe's Tractor Sales": {
     feedUrl: null,
-    phone: "336-850-8271", tel: "3368508271",
+    phone: "", tel: "",
     address: "Thomasville, NC",
     mapsUrl: "https://maps.google.com/?q=Thomasville+NC"
   },
   "DeBary Truck Sales": {
     feedUrl: null,
-    phone: "(407) 993-2364", tel: "4079932364",
+    phone: "", tel: "",
     address: "3400 FL-46\nSanford, FL 32771",
     mapsUrl: "https://maps.google.com/?q=3400+FL-46+Sanford+FL+32771"
   },
   "A F Sales & Service": {
     feedUrl: null,
-    phone: "(317) 449-8903", tel: "3174498903",
+    phone: "", tel: "",
     address: "7300 W. Washington St.\nIndianapolis, IN 46231",
     mapsUrl: "https://maps.google.com/?q=7300+W+Washington+St+Indianapolis+IN+46231"
   },
   "The Trailer Source": {
     feedUrl: null,
-    phone: "336-850-8176", tel: "3368508176",
+    phone: "", tel: "",
     address: "4060 Patterson Avenue\nWinston Salem, NC 27105",
     mapsUrl: "https://maps.google.com/?q=4060+Patterson+Avenue+Winston+Salem+NC+27105"
   },
   "Allied Truck & Trailer Sales": {
     feedUrl: null,
-    phone: "336-388-6882", tel: "3363886882",
+    phone: "", tel: "",
     address: "2804 US-220\nMadison, NC 27025",
     mapsUrl: "https://maps.google.com/?q=2804+US-220+Madison+NC+27025"
   }
@@ -945,7 +945,10 @@ function render(unit, dealerKey) {
   const _live = unit._dealer || {};
   const d = {
     ...(DEALERS[dealerKey] || DEALERS[unit.dealer] || {}),
-    ...(_live.phone   && { phone: _live.phone, tel: _live.phone.replace(/\D/g, '') }),
+    ...(_live.phone   && { phone: _live.phone }),
+    // tel: comes ONLY from the governed cta_phone. Presence-based: an authoritative empty cta_phone
+    // (retired tracking identity) yields tel:'' and the call CTAs are hidden below.
+    ...(Object.prototype.hasOwnProperty.call(_live, 'cta_phone') && { tel: String(_live.cta_phone || '').replace(/\D/g, '') }),
   };
   // Package 1.2: geography authority by PRESENCE, not truthiness. A successful governed
   // dealer row hands over address/city/state/zip — and an empty address is an AUTHORITATIVE
@@ -1122,8 +1125,9 @@ function render(unit, dealerKey) {
 
   // CTAs (sticky mobile bar only — in-scroll price card + finance card removed)
   const callHref = `tel:${d.tel || ''}`;
+  const hasCta = !!d.tel;
   const mobileCall = el('mobile-call');
-  if (mobileCall) { mobileCall.href = callHref; mobileCall.textContent = `📞 Call ${d.phone || 'Now'}`; wirePhoneCta(mobileCall, 'mobile_sticky'); }
+  if (mobileCall) { mobileCall.href = callHref; mobileCall.textContent = `📞 Call ${d.phone || 'Now'}`; mobileCall.style.display = hasCta ? '' : 'none'; if (hasCta) wirePhoneCta(mobileCall, 'mobile_sticky'); }
   const mobileBar = el('mobile-bar'); if (mobileBar) mobileBar.style.display = 'flex';
 
   // Historical gate (2B) — suppress every unit-specific acquisition/transaction surface.
@@ -1156,7 +1160,7 @@ function render(unit, dealerKey) {
   const dAddr = el('d-addr'); if (dAddr) dAddr.textContent = dAddrText;
   // 2B: on historical pages the tracked dealer line stays (same governed tel:, same
   // phone_cta_click stock attribution) but no longer implies this unit is purchasable.
-  const dCall = el('d-call'); if (dCall) { dCall.href = callHref; dCall.textContent = historical ? 'Call About Similar Inventory' : (d.phone ? `Call ${d.phone}` : 'Call'); wirePhoneCta(dCall, 'dealer_card'); }
+  const dCall = el('d-call'); if (dCall) { dCall.href = callHref; dCall.textContent = historical ? 'Call About Similar Inventory' : (d.phone ? `Call ${d.phone}` : 'Call'); dCall.style.display = hasCta ? '' : 'none'; if (hasCta) wirePhoneCta(dCall, 'dealer_card'); }
   // Package 1.2: governed geography outranks the static registry mapsUrl. Mid-Atlantic's
   // registry mapsUrl points at "North Carolina" — leaving it first would keep a legacy
   // geography authority alive. The static mapsUrl survives ONLY as the true failure
