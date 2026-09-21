@@ -204,9 +204,12 @@ function buildSixCards(units) {
       ? `<img src="${esc(photo)}" alt="${esc(title)}" loading="eager"${fp} decoding="async">`
       : `<img src="/photos-coming-soon.png" alt="Photos coming soon" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;">`;
 
-    const chipsHtml = chips.length
-      ? `<div class="inv-specs">${chips.map(c => `<span class="inv-spec">${esc(c)}</span>`).join('')}</div>`
+    // Stock # pill: first, outside the chip cap; stored value, trimmed only to detect presence.
+    const stockPill = (u.stock != null && String(u.stock).trim())
+      ? `<span class="inv-spec">STOCK # ${esc(u.stock)}</span>`
       : '';
+    const pillsHtml = stockPill + chips.map(c => `<span class="inv-spec">${esc(c)}</span>`).join('');
+    const chipsHtml = pillsHtml ? `<div class="inv-specs">${pillsHtml}</div>` : '';
 
     return (
       `<article class="inv-card" aria-label="${esc(title)}">` +

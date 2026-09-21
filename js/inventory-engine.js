@@ -488,6 +488,11 @@ window.InventoryEngine = (function () {
                            : (u.price && u.price !== '0' ? u.price : 'Call');
         var dealerLine = [d.name || u.dealer, d.location || ''].filter(Boolean).join(' &middot; ');
         var chips = buildCardChips(u);
+        // Stock # pill (/inventory full mode only): first, outside the chip cap; stored value, trimmed only to detect presence.
+        var stockPill = (_cfg.mode === 'full' && u.stock != null && String(u.stock).trim())
+          ? '<span class="inv-spec">STOCK # ' + String(u.stock).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') + '</span>'
+          : '';
+        var pillsHtml = stockPill + chips.map(function(c) { return '<span class="inv-spec">' + c + '</span>'; }).join('');
 
         return '<article class="inv-card" aria-label="' + title + '">' +
           '<a class="inv-card-link" href="' + vdpUrl + '" aria-label="View listing: ' + title + '">' +
@@ -499,7 +504,7 @@ window.InventoryEngine = (function () {
               (subLabel ? '<div class="inv-sub">' + subLabel + '</div>' : '') +
               '<div class="inv-price">' + priceStr + '</div>' +
               '<div class="inv-dealer">' + dealerLine + '</div>' +
-              (chips.length ? '<div class="inv-specs">' + chips.map(function(c) { return '<span class="inv-spec">' + c + '</span>'; }).join('') + '</div>' : '') +
+              (pillsHtml ? '<div class="inv-specs">' + pillsHtml + '</div>' : '') +
               '<div class="inv-cta-wrap"><span class="inv-cta">View Listing</span></div>' +
             '</div>' +
           '</a>' +
