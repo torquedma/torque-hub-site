@@ -676,14 +676,15 @@ exports.handler = async (event) => {
 
         let engine = item.engine || '';
         if (!engine && item.description) {
-          const m = item.description.match(/Engine[:\s•]+([^\n•✔]{5,60})/i);
+          // A label is a field only when a colon follows it on the same line.
+          const m = item.description.match(/Engine[ \t]*:[ \t]*([^\n•✔]{5,60})/i);
           if (m) engine = m[1].trim();
         }
         engine = cleanEngine(trimSpec(engine));
 
         let transmission = item.transmission || '';
         if (!transmission && item.description) {
-          const m = item.description.match(/Transmission[:\s•]+([^\n•✔]{5,40})/i);
+          const m = item.description.match(/Transmission[ \t]*:[ \t]*([^\n•✔]{5,40})/i);
           if (m) transmission = m[1].trim();
         }
         transmission = trimSpec(transmission);
