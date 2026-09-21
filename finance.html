@@ -910,6 +910,11 @@ function submitFinance() {
   const downPayment = document.getElementById("f-down-payment").value;
   const timeframe = document.getElementById("f-timeframe").value;
 
+  // One id per submission attempt. The financeSubmitting guard at the top
+  // of submitFinance() prevents re-entry after acceptance, so an accepted
+  // POST cannot emit two ids; a retry after a failed POST gets a new one.
+  const leadEventId = newEventId();
+
   // Subject and seller are read from state only. No DOM authority remains here.
 
   const payload = {
@@ -967,11 +972,6 @@ function submitFinance() {
     errEl.style.display = "block";
     errEl.scrollIntoView({ behavior: "smooth", block: "center" });
   };
-
-  // One id per submission attempt. The financeSubmitting guard at the top
-  // of submitFinance() prevents re-entry after acceptance, so an accepted
-  // POST cannot emit two ids; a retry after a failed POST gets a new one.
-  const leadEventId = newEventId();
 
   fetch("/.netlify/functions/submit-finance-lead", {
     method: "POST",
