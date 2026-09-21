@@ -1309,6 +1309,15 @@ function wirePhoneCta(elm, ctaLocation) {
 // conversion. Both terminal paths below hide the form, so this is never reset.
 let leadSubmitting = false;
 
+// Submission-scoped id. One id per submission attempt, generated immediately
+// before the POST - never at page load, never inside a handler that could run
+// twice. Torque Hub owns this identity as submission_id.
+function newSubmissionId() {
+  try {
+    if (window.crypto && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+  } catch (e) {}
+  return 'e-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+}
 function submitLead() {
   if (leadSubmitting) return;
   const name = document.getElementById('f-name').value.trim();
@@ -1327,6 +1336,7 @@ function submitLead() {
   }
 
   leadSubmitting = true;
+  const submissionId = newSubmissionId();
 
   fetch('/.netlify/functions/submit-lead', {
     method: 'POST',
@@ -1343,6 +1353,7 @@ function submitLead() {
       listing_title: listingTitle || null,
       source_url: pageUrl || null,
       submission_url: window.location.href || null,
+      submission_id: submissionId,
       referrer: referrer || null
     })
   }).then(r => {

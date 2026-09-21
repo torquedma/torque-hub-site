@@ -180,6 +180,14 @@ exports.handler = async (event) => {
     }) };
   }
 
+  // Submission identity. A valid UUID enables replay protection; a missing or
+  // malformed value degrades to NULL and the lead is accepted normally. Never
+  // manufacture one server-side - the server does not know the browser's
+  // submission identity.
+  const SUBMISSION_ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const submissionId = (typeof payload.submission_id === 'string' && SUBMISSION_ID_RE.test(payload.submission_id))
+    ? payload.submission_id
+    : null;
   const { data: inserted, error } = await supabase.from('leads').insert([{
     customer_name:  customer_name.trim(),
     customer_phone: customer_phone.trim(),
@@ -195,6 +203,7 @@ exports.handler = async (event) => {
     listing_id:     resolvedListingId,
     source_url:     payload.source_url     || null,
     submission_url: payload.submission_url || null,
+    submission_id:  submissionId,
     message:        payload.message        || null,
     credit_score:   payload.credit_score   || null,
     lender:         resolvedLender,
@@ -212,6 +221,21 @@ exports.handler = async (event) => {
   }]).select('id').single();
 
   if (error) {
+    // REPLAY: this submission attempt was already accepted. Resolve to the
+    // original result. No second lead, no re-notification, and later no second
+    // server conversion - the early return below precedes the notification block.
+    if (error.code === '23505' && submissionId) {
+      const { data: prior } = await supabase
+        .from('leads')
+        .select('id, dealer_code, route_code')
+        .eq('submission_id', submissionId)
+        .single();
+      if (prior && prior.id) {
+        return { statusCode: 200, headers, body: JSON.stringify({
+          success: true, lead_id: prior.id, dealer_code: prior.dealer_code,
+          route_code: prior.route_code, replay: true }) };
+      }
+    }
     console.error('submit-finance-lead error:', error.message);
     return { statusCode: 500, headers, body: JSON.stringify({ error: 'Failed to save lead' }) };
   }

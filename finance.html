@@ -930,6 +930,7 @@ function submitFinance() {
     external_vehicle_price: financeSubject.mode === 'external' ? financeSubject.external.externalPrice : null,
     source_url: window.location.href,
     submission_url: window.location.href,
+    submission_id: leadEventId,
     referrer: document.getElementById("f-referrer").value,
     source: document.getElementById("f-source").value,
     status: "new",
