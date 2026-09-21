@@ -1,5 +1,6 @@
 const { createClient } = require('@supabase/supabase-js');
 const { generateDescription } = require('./lib/generate-description.generated');
+const { checkPublicationEligibility } = require('./lib/publication-eligibility');
 
 exports.handler = async (event) => {
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
@@ -35,7 +36,7 @@ exports.handler = async (event) => {
   // dx_locked=false guard is always applied — locked units are excluded even if listed in ?stocks.
   let query = supabase
     .from('inventory')
-    .select('stock, dealer, year, make, model, trim, category, subcategory, price, mileage, hours, engine, horsepower, transmission, drivetrain, fuel, condition, vin, raw_description, description, description_source, status, provenance, gvwr_class, body_class, vin_decoded_at, created_at')
+    .select('stock, dealer, year, make, model, trim, category, subcategory, price, mileage, hours, engine, horsepower, transmission, drivetrain, fuel, condition, vin, raw_description, description, description_source, status, provenance, gvwr_class, body_class, vin_decoded_at, created_at, photos, sold, completion_state, completion_attempts')
     .eq('sold', false)
     .eq('dx_locked', false);
   if (stocksList)      query = query.in('stock', stocksList);
@@ -108,6 +109,22 @@ exports.handler = async (event) => {
 
   let processed = 0, skipped_error = 0;
   let skipped_insufficient_evidence = 0;
+  // Lifecycle counters — legacy NULL rows use the pre-existing counters above.
+  let lifecycle_complete = 0, lifecycle_hold_validation = 0,
+      lifecycle_hold_evidence = 0, lifecycle_retryable = 0;
+
+  // Dealer allowlist for publication eligibility. dealers.name is UNIQUE and
+  // is the same relationship inventory_public_detail uses; inventory has no
+  // dealer key column. Fetched once per invocation, passed to the pure gate.
+  let knownDealerNames = new Set();
+  {
+    const { data: dealerRows, error: dealerErr } = await supabase.from('dealers').select('name');
+    if (dealerErr) {
+      console.error('[DEALERS-FETCH-FAIL]', dealerErr.message);
+    } else {
+      knownDealerNames = new Set((dealerRows || []).map(r => r.name).filter(Boolean));
+    }
+  }
 
   if (dryRun) {
     console.log(`[DRY-RUN] would process ${candidates.length}: ${candidates.map(u => u.stock).join(', ')}`);
@@ -134,6 +151,115 @@ exports.handler = async (event) => {
   }
 
   for (const unit of candidates) {
+    // LIFECYCLE ROW = completion_state IS NOT NULL. Non-lifecycle rows keep
+    // today's behavior byte-for-byte (legacy defect knowingly preserved to
+    // prevent this package expanding blast radius — banked separately).
+    const isLifecycle = unit.completion_state != null;
+    const nowIso = new Date().toISOString();
+
+    if (isLifecycle) {
+      const nextAttempts = (Number(unit.completion_attempts) || 0) + 1;
+      try {
+        const text = await generateDescription(unit, anthropicKey);
+        if (!text || !text.trim()) {
+          console.warn(`[SKIP-EMPTY] Empty description returned for ${unit.stock}`);
+          const { error: wErr } = await supabase
+            .from('inventory')
+            .update({
+              completion_state: 'retryable',
+              completion_reason: 'ERROR:EmptyDescription',
+              completion_attempts: nextAttempts,
+              completion_attempted_at: nowIso,
+            })
+            .eq('stock', unit.stock)
+            .eq('sold', false);
+          if (wErr) { console.error(`[LIFECYCLE-WRITE-FAIL] ${unit.stock}:`, wErr.message); skipped_error++; }
+          else { lifecycle_retryable++; }
+          continue;
+        }
+
+        // Publication eligibility — the DX just written is the input alongside
+        // the fully loaded unit. Merge in the fields that would have been
+        // written so the gate sees the post-write view.
+        const postView = Object.assign({}, unit, {
+          description: text,
+          description_source: 'torque_hub_dx',
+          description_generated_at: nowIso,
+        });
+        const gate = checkPublicationEligibility(postView, text, knownDealerNames);
+
+        const payload = {
+          description: text,
+          description_source: 'torque_hub_dx',
+          description_generated_at: nowIso,
+          completion_attempts: nextAttempts,
+          completion_attempted_at: nowIso,
+        };
+        if (gate.eligible) {
+          if (unit.status === 'draft') payload.status = 'published';
+          payload.completion_state = 'complete';
+          payload.completion_reason = null;
+        } else {
+          // DX FIELDS ARE WRITTEN; status is deliberately NOT promoted.
+          payload.completion_state = 'hold';
+          payload.completion_reason = 'VALIDATION:' + gate.failedCheck;
+        }
+
+        const { error: writeError } = await supabase
+          .from('inventory')
+          .update(payload)
+          .eq('stock', unit.stock)
+          .eq('sold', false);
+
+        if (writeError) {
+          console.error(`[LIFECYCLE-WRITE-FAIL] ${unit.stock} (${unit.dealer}):`, writeError.message);
+          skipped_error++;
+        } else if (gate.eligible) {
+          console.log(`[LIFECYCLE-COMPLETE] ${unit.stock} (${unit.dealer}) — "${text.slice(0, 60).replace(/\n/g, ' ')}..."`);
+          lifecycle_complete++;
+          processed++;
+        } else {
+          console.log(`[LIFECYCLE-HOLD-VALIDATION] ${unit.stock} (${unit.dealer}) — check=${gate.failedCheck}`);
+          lifecycle_hold_validation++;
+        }
+      } catch (err) {
+        // Evidence refusal or grounding failure → HOLD, do not write description,
+        // increment attempts. Otherwise (model/API/technical) → RETRYABLE.
+        const isEvidence = err && (err.code === 'INSUFFICIENT_EVIDENCE' || err.code === 'OVERVIEW_GROUNDING_FAILED');
+        if (isEvidence) {
+          const reason = err.reason || (err.code === 'INSUFFICIENT_EVIDENCE' ? 'INSUFFICIENT_EVIDENCE' : err.code);
+          const { error: wErr } = await supabase
+            .from('inventory')
+            .update({
+              completion_state: 'hold',
+              completion_reason: reason,
+              completion_attempts: nextAttempts,
+              completion_attempted_at: nowIso,
+            })
+            .eq('stock', unit.stock)
+            .eq('sold', false);
+          if (wErr) { console.error(`[LIFECYCLE-WRITE-FAIL] ${unit.stock}:`, wErr.message); skipped_error++; }
+          else { console.log(`[LIFECYCLE-HOLD-EVIDENCE] ${unit.stock} (${unit.dealer}) — ${reason}`); lifecycle_hold_evidence++; }
+        } else {
+          const cls = (err && err.name) || 'Error';
+          const { error: wErr } = await supabase
+            .from('inventory')
+            .update({
+              completion_state: 'retryable',
+              completion_reason: 'ERROR:' + cls,
+              completion_attempts: nextAttempts,
+              completion_attempted_at: nowIso,
+            })
+            .eq('stock', unit.stock)
+            .eq('sold', false);
+          if (wErr) { console.error(`[LIFECYCLE-WRITE-FAIL] ${unit.stock}:`, wErr.message); skipped_error++; }
+          else { console.error(`[LIFECYCLE-RETRYABLE] ${unit.stock} (${unit.dealer}):`, err && err.message); lifecycle_retryable++; }
+        }
+      }
+      continue;
+    }
+
+    // ── LEGACY (completion_state IS NULL): behavior byte-for-byte as today.
     try {
       // VIN decoding lives in decode-vin-background.js (T1.3). This function
       // READS decoded facts (engine/fuel/drivetrain/gvwr_class/body_class/
@@ -184,7 +310,7 @@ exports.handler = async (event) => {
     }
   }
 
-  const summary = { total_candidates, processed, skipped_error, skipped_insufficient_evidence, limit_applied: stocksList ? 'n/a (stocks mode)' : (limit ?? 'none'), stocks_requested: stocksList ? stocksList.length : null, stock_filter: stocksList ? stocksList : stockParam, force: forceAll };
+  const summary = { total_candidates, processed, skipped_error, skipped_insufficient_evidence, lifecycle_complete, lifecycle_hold_validation, lifecycle_hold_evidence, lifecycle_retryable, limit_applied: stocksList ? 'n/a (stocks mode)' : (limit ?? 'none'), stocks_requested: stocksList ? stocksList.length : null, stock_filter: stocksList ? stocksList : stockParam, force: forceAll };
   console.log('generate-dx-background complete:', JSON.stringify(summary));
   return { statusCode: 200, body: JSON.stringify(summary) };
 };
