@@ -160,7 +160,11 @@ exports.handler = async (event) => {
     if (isLifecycle) {
       const nextAttempts = (Number(unit.completion_attempts) || 0) + 1;
       try {
-        const text = await generateDescription(unit, anthropicKey);
+        // D1 caller gate — the spec-configuration (C1) path is authorised only
+        // for lifecycle rows (completion_state IS NOT NULL). Passed via the
+        // options third-arg to generateDescription; legacy rows below invoke
+        // the two-argument signature, which is byte-for-byte with base.
+        const text = await generateDescription(unit, anthropicKey, { specConfiguration: true });
         if (!text || !text.trim()) {
           console.warn(`[SKIP-EMPTY] Empty description returned for ${unit.stock}`);
           const { error: wErr } = await supabase
