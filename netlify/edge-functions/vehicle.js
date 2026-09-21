@@ -12,25 +12,19 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 const SB_HEADERS = { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON };
 const SITE = 'https://hub.torquedma.com';
 
-const DEALERS = {
-  'Davenport Motors':              { phone: '', address: '3711 Mackeys Rd\nPlymouth, NC 27962' },
-  "Fat Daddy's Truck Sales":       { phone: '', address: '4337 Hwy 13 N\nGoldsboro, NC 27534' },
-  'Wilson Trailer Sales & Service':{ phone: '', address: '1605 Thorne Ave S\nWilson, NC 27893' },
-  "HGR's Truck and Trailer":       { phone: '', address: '4519 Marracco Dr\nHope Mills, NC 28348' },
-  'Auto Connection 210 LLC':       { phone: '', address: 'Angier, NC' },
-  'Dick Smith Equipment':          { phone: '', address: 'Goldsboro, NC' },
-  'Impex Heavy Metal':             { phone: '', address: 'Greensboro, NC' },
-  'Ironworks Trading Corp':        { phone: '', address: 'Norfolk, VA' },
-  "Joe's Tractor Sales":           { phone: '', address: 'Thomasville, NC' },
-  "Mid-Atlantic Power & Equipment":{ phone: '',             address: 'North Carolina' },
-  "Smith's Enterprise":            { phone: '', address: 'Salemburg, NC' },
-  'Suttontown Repair Service':     { phone: '',             address: 'North Carolina' },
-  'Johnson Farm Service':          { phone: '',             address: 'North Carolina' },
-  'DeBary Truck Sales':            { phone: '', address: '3400 FL-46\nSanford, FL 32771' },
-  'A F Sales & Service':           { phone: '', address: '7300 W. Washington St.\nIndianapolis, IN 46231' },
-  'The Trailer Source':            { phone: '',   address: '4060 Patterson Avenue\nWinston Salem, NC 27105' },
-  'Allied Truck & Trailer Sales':  { phone: '',   address: '2804 US-220\nMadison, NC 27025' },
-};
+// GIP (PPS public location, Phase 3): the ONE explicit public field contract for the VDP.
+// The same list is the PostgREST select AND the browser-handoff allowlist, so a column
+// can only reach the browser if it is named here. Raw canonical contact fields
+// (contact_phone, contact_location) are deliberately absent. Geography is resolved once
+// in inventory_public_detail (public_street/city/state/zip); no renderer re-derives it.
+const PUBLIC_UNIT_FIELDS = [
+  'stock','year','make','model','trim','price','photos','dealer','category','subcategory',
+  'mileage','engine','horsepower','hours','fuel','condition','transmission','drivetrain',
+  'description','sold','vin','buyer_intelligence','listing_state',
+  'public_phone','cta_phone','tracking_scope',
+  'public_street','public_city','public_state','public_zip','public_geo_scope',
+];
+const pickPublic = (row) => Object.fromEntries(PUBLIC_UNIT_FIELDS.filter((k) => k in row).map((k) => [k, row[k]]));
 
 // ─── Escaping helpers ────────────────────────────────────────────────────────
 
@@ -170,7 +164,7 @@ async function fetchUnit(stock, dealer, log) {
   console.log('[vehicle edge] fetchUnit variants:', variants, '| dealer:', dealer);
 
   const sbFetch = async (sv, dealerFilter) => {
-    const DETAIL_SELECT = 'stock,year,make,model,trim,price,photos,dealer,category,subcategory,mileage,engine,horsepower,hours,fuel,condition,transmission,drivetrain,description,sold,vin,buyer_intelligence,contact_phone,contact_location,listing_state,public_phone,cta_phone,tracking_scope';
+    const DETAIL_SELECT = PUBLIC_UNIT_FIELDS.join(',');
     const q = dealerFilter
       ? `stock=eq.${encodeURIComponent(sv)}&dealer=eq.${encodeURIComponent(dealerFilter)}&select=${DETAIL_SELECT}&limit=1`
       : `stock=eq.${encodeURIComponent(sv)}&select=${DETAIL_SELECT}&limit=1`;
@@ -442,35 +436,16 @@ export default async function handler(request, context) {
     }
 
     const { unit, dealerKey } = result;
-    let d = { ...(DEALERS[dealerKey] || {}) };
-    try {
-      const _dr = await fetch(
-        `${SUPABASE_URL}/rest/v1/dealers?select=name,phone,address,city,state,zip&name=eq.${encodeURIComponent(dealerKey)}&limit=1`,
-        { headers: SB_HEADERS }
-      );
-      if (_dr.ok) {
-        const _rows = await _dr.json();
-        const _row = _rows && _rows[0];
-        if (_row) {
-          // Package 1.1: a successful governed dealer row is AUTHORITATIVE for street.
-          // NULL is meaningful here — it means no governed street address exists — so the
-          // static registry seed must be displaced rather than left standing. The other
-          // geography fields stay guarded; only `address` needs NULL to carry meaning.
-          // If the query fails or returns no row, the registry remains the fallback.
-          d.address = _row.address || '';
-          if (_row.city) d.city = _row.city;
-          if (_row.state) d.state = _row.state;
-          if (_row.zip) d.zip = _row.zip;
-        }
-      }
-    } catch (_) {}
-
-    // Package 1: inventory.contact_location is NOT geographic authority. Its semantic
-    // shape is unestablished and it is empty across the entire observed population, so it
-    // must not be able to become a structured streetAddress. The DB column is untouched;
-    // only this renderer's authority path changes. d.address now carries governed street
-    // only (dealers.address), which is NULL today and therefore correctly omitted.
-    d.address = d.address || '';
+    // GIP Phase 3: geography is a PROJECTION OUTPUT. inventory_public_detail resolves it once —
+    // unit-scoped locality where the unit carries one (Private Party Seller), otherwise the
+    // governed dealer row — and this renderer only consumes it. No dealers fetch, no static
+    // registry, no parsing of any legacy address string. Empty stays empty.
+    const d = {
+      address: unit.public_street || '',
+      city:    unit.public_city   || '',
+      state:   unit.public_state  || '',
+      zip:     unit.public_zip    || '',
+    };
 
     console.log(`[vehicle edge] photos raw — type:${typeof unit.photos} isArray:${Array.isArray(unit.photos)} sample:${JSON.stringify(unit.photos)?.slice(0, 150)}`);
 
@@ -538,7 +513,7 @@ export default async function handler(request, context) {
     const schema    = buildSchema(unit, d, pageUrl, dealerKey, historical);
 
     const unitForClient = {
-      ...unit,
+      ...pickPublic(unit),
       photos,
       _dealer: {
         // Governed phone truth (view-derived, one place): public_phone for display, cta_phone for tel: links.

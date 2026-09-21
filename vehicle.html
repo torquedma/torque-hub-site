@@ -519,112 +519,6 @@ const SUPABASE_URL = 'https://bxsikkmqasydosmblzov.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4c2lra21xYXN5ZG9zbWJsem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTc1OTksImV4cCI6MjA5MDQ3MzU5OX0.JMEI7cx2tddmbvfqm_qxiIWp7f5Phuk5l0Y487DUSZg';
 const SB_HEADERS = { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON };
 
-// ─── DEALER CONFIG ──────────────────────────────────────────────────────────
-const DEALERS = {
-  "Davenport Motors": {
-    feedUrl: "https://davenportmotors.net/.netlify/functions/inventory",
-    phone: "", tel: "",
-    address: "3711 Mackeys Rd\nPlymouth, NC 27962",
-    mapsUrl: "https://maps.google.com/?q=3711+Mackeys+Rd+Plymouth+NC+27962"
-  },
-  "Fat Daddy's Truck Sales": {
-    feedUrl: "https://fatdaddystrucksales.netlify.app/.netlify/functions/inventory",
-    phone: "", tel: "",
-    address: "4337 Hwy 13 N\nGoldsboro, NC 27534",
-    mapsUrl: "https://maps.google.com/?q=4337+Hwy+13+N+Goldsboro+NC+27534"
-  },
-  "Wilson Trailer Sales & Service": {
-    feedUrl: "https://wilson-trailer-sales.netlify.app/.netlify/functions/inventory",
-    phone: "", tel: "",
-    address: "1605 Thorne Ave S\nWilson, NC 27893",
-    mapsUrl: "https://maps.google.com/?q=1605+Thorne+Ave+S+Wilson+NC+27893"
-  },
-  "HGR's Truck and Trailer": {
-    feedUrl: "https://hub.torquedma.com/.netlify/functions/hgr-inventory",
-    phone: "", tel: "",
-    address: "4519 Marracco Dr\nHope Mills, NC 28348",
-    mapsUrl: "https://maps.google.com/?q=4519+Marracco+Dr+Hope+Mills+NC+28348"
-  },
-  "Auto Connection 210 LLC": {
-    feedUrl: null,
-    phone: "", tel: "",
-    address: "Angier, NC",
-    mapsUrl: "https://maps.google.com/?q=Angier+NC"
-  },
-  "Dick Smith Equipment": {
-    feedUrl: null,
-    phone: "", tel: "",
-    address: "Goldsboro, NC",
-    mapsUrl: "https://maps.google.com/?q=Goldsboro+NC"
-  },
-  "Impex Heavy Metal": {
-    feedUrl: null,
-    phone: "", tel: "",
-    address: "Greensboro, NC",
-    mapsUrl: "https://maps.google.com/?q=Impex+Heavy+Metal+Greensboro+NC"
-  },
-  "Mid-Atlantic Power & Equipment": {
-    feedUrl: null,
-    phone: "", tel: "",
-    address: "North Carolina",
-    mapsUrl: "https://maps.google.com/?q=North+Carolina"
-  },
-  "Smith's Enterprise": {
-    feedUrl: null,
-    phone: "", tel: "",
-    address: "Salemburg, NC",
-    mapsUrl: "https://maps.google.com/?q=Salemburg+NC"
-  },
-  "Suttontown Repair Service": {
-    feedUrl: null,
-    phone: "", tel: "",
-    address: "North Carolina",
-    mapsUrl: "https://maps.google.com/?q=North+Carolina"
-  },
-  "Johnson Farm Service": {
-    feedUrl: null,
-    phone: "", tel: "",
-    address: "North Carolina",
-    mapsUrl: "https://maps.google.com/?q=North+Carolina"
-  },
-  "Ironworks Trading Corp": {
-    feedUrl: null,
-    phone: "", tel: "",
-    address: "Norfolk, VA",
-    mapsUrl: "https://maps.google.com/?q=Norfolk+VA"
-  },
-  "Joe's Tractor Sales": {
-    feedUrl: null,
-    phone: "", tel: "",
-    address: "Thomasville, NC",
-    mapsUrl: "https://maps.google.com/?q=Thomasville+NC"
-  },
-  "DeBary Truck Sales": {
-    feedUrl: null,
-    phone: "", tel: "",
-    address: "3400 FL-46\nSanford, FL 32771",
-    mapsUrl: "https://maps.google.com/?q=3400+FL-46+Sanford+FL+32771"
-  },
-  "A F Sales & Service": {
-    feedUrl: null,
-    phone: "", tel: "",
-    address: "7300 W. Washington St.\nIndianapolis, IN 46231",
-    mapsUrl: "https://maps.google.com/?q=7300+W+Washington+St+Indianapolis+IN+46231"
-  },
-  "The Trailer Source": {
-    feedUrl: null,
-    phone: "", tel: "",
-    address: "4060 Patterson Avenue\nWinston Salem, NC 27105",
-    mapsUrl: "https://maps.google.com/?q=4060+Patterson+Avenue+Winston+Salem+NC+27105"
-  },
-  "Allied Truck & Trailer Sales": {
-    feedUrl: null,
-    phone: "", tel: "",
-    address: "2804 US-220\nMadison, NC 27025",
-    mapsUrl: "https://maps.google.com/?q=2804+US-220+Madison+NC+27025"
-  }
-};
-
 // ─── HELPERS ────────────────────────────────────────────────────────────────
 function formatPrice(raw) {
   if (raw === null || raw === undefined || raw === '') return 'Call for Price';
@@ -944,7 +838,6 @@ function el(id) { return document.getElementById(id); }
 function render(unit, dealerKey) {
   const _live = unit._dealer || {};
   const d = {
-    ...(DEALERS[dealerKey] || DEALERS[unit.dealer] || {}),
     ...(_live.phone   && { phone: _live.phone }),
     // tel: comes ONLY from the governed cta_phone. Presence-based: an authoritative empty cta_phone
     // (retired tracking identity) yields tel:'' and the call CTAs are hidden below.
@@ -1161,15 +1054,14 @@ function render(unit, dealerKey) {
   // 2B: on historical pages the tracked dealer line stays (same governed tel:, same
   // phone_cta_click stock attribution) but no longer implies this unit is purchasable.
   const dCall = el('d-call'); if (dCall) { dCall.href = callHref; dCall.textContent = historical ? 'Call About Similar Inventory' : (d.phone ? `Call ${d.phone}` : 'Call'); dCall.style.display = hasCta ? '' : 'none'; if (hasCta) wirePhoneCta(dCall, 'dealer_card'); }
-  // Package 1.2: governed geography outranks the static registry mapsUrl. Mid-Atlantic's
-  // registry mapsUrl points at "North Carolina" — leaving it first would keep a legacy
-  // geography authority alive. The static mapsUrl survives ONLY as the true failure
-  // fallback, when no governed geography reached the client at all.
+  // GIP Phase 3: Directions exists ONLY for a governed public destination. No governed
+  // geography → the control is hidden (never a dead '#' link, never a legacy registry URL).
   const dirQuery = [d.address, loc].filter(Boolean).join(', ');
   const dDir  = el('d-directions');
-  if (dDir) dDir.href = dirQuery
-    ? 'https://maps.google.com/?q=' + encodeURIComponent(dirQuery)
-    : (d.mapsUrl || '#');
+  if (dDir) {
+    if (dirQuery) { dDir.href = 'https://maps.google.com/?q=' + encodeURIComponent(dirQuery); dDir.style.display = ''; }
+    else { dDir.removeAttribute('href'); dDir.style.display = 'none'; }
+  }
 
   // Description. Historical pages: the SSR-rendered Key Details body (edge desc-render
   // with the historical suppression rule) is authoritative and is NOT re-rendered here;

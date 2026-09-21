@@ -41,7 +41,9 @@ exports.handler = async (event) => {
     //   served internal fields (notes, raw_description, description_source,
     //   dx_locked, sold_type, provenance, etc.) to the public payload.
     //   Withdrawal tombstones in `notes` were reaching buyers.
-    const PUBLIC_COLUMNS = 'id, stock, dealer, year, make, model, trim, price, photos, category, subcategory, mileage, engine, horsepower, hours, fuel, condition, transmission, drivetrain, description, sold, vin, buyer_intelligence, contact_phone, contact_location, listing_state, public_phone, cta_phone, tracking_scope';
+    // GIP Phase 3: raw canonical contact fields (contact_phone, contact_location) are not part of
+    // the public contract. Geography arrives already resolved as public_street/city/state/zip.
+    const PUBLIC_COLUMNS = 'id, stock, dealer, year, make, model, trim, price, photos, category, subcategory, mileage, engine, horsepower, hours, fuel, condition, transmission, drivetrain, description, sold, vin, buyer_intelligence, listing_state, public_phone, cta_phone, tracking_scope, public_street, public_city, public_state, public_zip, public_geo_scope';
 
     // Pass 1: dealer-scoped if dealer provided
     if (dealerRaw) {
@@ -77,20 +79,16 @@ exports.handler = async (event) => {
       return { statusCode: 503, headers: { ...headers, 'Cache-Control': 'no-store' }, body: JSON.stringify({ error: 'lifecycle authority unavailable', stock: unit.stock }) };
     }
 
-    let dealerRow = null;
-    try {
-      const res = await supabase
-        .from('dealers')
-        .select('name, address')
-        .eq('name', unit.dealer)
-        .maybeSingle();
-      dealerRow = res.data;
-    } catch (_) {}
+    // GIP Phase 3: the SAME _dealer shape the SSR handoff builds, from the SAME projection
+    // outputs — the fallback can no longer promote contact_location into an address.
     unit._dealer = {
       phone: unit.public_phone || '',
       cta_phone: unit.cta_phone || '',
       tracking_scope: unit.tracking_scope || 'direct',
-      address: unit.contact_location || dealerRow?.address || ''
+      address: unit.public_street || '',
+      city:  unit.public_city  || '',
+      state: unit.public_state || '',
+      zip:   unit.public_zip   || ''
     };
 
     return { statusCode: 200, headers, body: JSON.stringify(unit) };
