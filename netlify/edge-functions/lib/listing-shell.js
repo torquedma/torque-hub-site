@@ -2,7 +2,7 @@
 // (category hubs/leaves and the inventory directory). Moved verbatim from
 // category.js so both routes render identical cards from one source of truth.
 import { buildDisplayTitle } from './title-helpers.js';
-import { showMileage, showHours } from './usage-display.esm.js';
+import { buildCardChips } from './card-facts.esm.js';
 
 // Shell HTML embedded directly — no context.next() dependency on a static file at the route path.
 // (Cause B fix: context.next() for /trucks-for-sale finds no static file → 404 shell.
@@ -263,70 +263,6 @@ function getPhotos(unit) {
   return Array.isArray(p) ? p : [];
 }
 
-// Mirrors trimEngine() in inventory-engine.js line 263–266.
-function trimEngine(val) {
-  if (!val) return '';
-  let s = val.split(/\s+[-–—]\s+/)[0].replace(/\s+Engine\s*$/i, '').trim();
-  // strip trailing torque (e.g. "660-1050ft. lbs.", "850ft. lbs.")
-  s = s.replace(/\s*\d+(?:[.,]\d+)?(?:-\d+(?:[.,]\d+)?)?\s*ft\.?\s*lbs?\.?\s*$/i, '').trim();
-  // strip trailing horsepower (e.g. "260-360hp", "370hp", "455 HP")
-  s = s.replace(/\s*\d+(?:[.,]\d+)?(?:-\d+(?:[.,]\d+)?)?\s*hp\b\.?\s*$/i, '').trim();
-  // strip leading horsepower (e.g. "400 HP Cummins ISX12", "455hp Detroit DD15")
-  s = s.replace(/^\d+(?:[.,]\d+)?(?:-\d+(?:[.,]\d+)?)?\s*hp\b\.?\s*/i, '').trim();
-  // if nothing meaningful remains (e.g. "74hp" -> "", or it was just a number/junk), return empty so no chip renders
-  if (!s || /^\d+(?:[.,]\d+)?$/.test(s)) return '';
-  return s;
-}
-
-function buildCardChips(u) {
-  const JUNK = {'':1,'—':1,'-':1,'--':1,'n/a':1,'na':1,'none':1,'unknown':1,'null':1};
-  function badText(v){ return !v || JUNK[String(v).trim().toLowerCase()]; }
-  function num(v){
-    if (v === null || v === undefined) return null;
-    const s = String(v).trim();
-    if (/\bto\b/i.test(s)) return null;
-    const m = s.replace(/[, ]/g,'').match(/^-?\d+(\.\d+)?/);
-    if (!m) return null;
-    const n = parseFloat(m[0]);
-    return (isFinite(n) && n > 0) ? n : null;
-  }
-  function fmtNum(n){ return n.toLocaleString('en-US'); }
-  const F = {
-    mileage:          () => { if (!showMileage(u)) return null; const n=num(u.mileage); return n? fmtNum(n)+' mi':null; },
-    hours:            () => { if (!showHours(u))   return null; const n=num(u.hours);   return n? fmtNum(n)+' hrs':null; },
-    engine:           () => badText(u.engine)? null : trimEngine(u.engine),
-    transmission:     () => badText(u.transmission)? null : String(u.transmission).trim(),
-    drivetrain:       () => badText(u.drivetrain)? null : String(u.drivetrain).trim(),
-    fuel:             () => { if(badText(u.fuel)) return null; const f=String(u.fuel).trim(); return /diesel/i.test(f)? null : f; },
-    horsepower:       () => { const n=num(u.horsepower); return n? fmtNum(n)+' HP':null; },
-    operating_weight: () => { const n=num(u.operating_weight); return n? fmtNum(n)+' lb':null; },
-    length:           () => badText(u.length)? null : String(u.length).trim(),
-    gvwr:             () => badText(u.gvwr)? null : String(u.gvwr).trim(),
-    axles:            () => badText(u.axles)? null : String(u.axles).trim(),
-    deck_width:       () => badText(u.deck_width)? null : String(u.deck_width).trim()
-  };
-  const sub = (u.subcategory||'').toLowerCase();
-  const cat = (u.category||'').toLowerCase();
-  const MOWERS = {'zero turn mower':1,'walk behind mower':1,'lawn tractor':1,'front deck mower':1};
-  let order;
-  if (sub === 'tractor')           order = ['horsepower','hours'];
-  else if (MOWERS[sub])            order = ['deck_width','hours','horsepower'];
-  else if (sub === 'crane truck')  order = ['mileage','engine'];
-  else if (cat === 'trailers')     order = ['length','gvwr','axles'];
-  else if (cat === 'trucks')       order = ['mileage','engine','transmission','drivetrain','fuel'];
-  else if (cat === 'construction') order = ['horsepower','hours','operating_weight'];
-  else if (cat === 'farm')         order = ['horsepower','hours'];
-  else                             order = ['mileage','fuel'];
-  const isNew = !badText(u.condition) && String(u.condition).trim().toLowerCase() === 'new';
-  const chips = [];
-  if (isNew) chips.push('NEW');
-  for (let i=0;i<order.length && chips.length<2;i++){
-    const v = F[order[i]] && F[order[i]]();
-    if (v) chips.push(v);
-  }
-  return chips;
-}
-
 function buildCardGrid(units) {
   if (!units.length) return '';
   return units.map(u => {
@@ -350,4 +286,4 @@ function buildCardGrid(units) {
   }).join('\n');
 }
 
-export { SHELL, esc, escAttr, safeJson, formatPrice, getPhotos, trimEngine, buildCardChips, buildCardGrid };
+export { SHELL, esc, escAttr, safeJson, formatPrice, getPhotos, buildCardGrid };

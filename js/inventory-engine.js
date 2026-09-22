@@ -282,20 +282,6 @@ window.InventoryEngine = (function () {
     return base || 'Unit Available';
   }
 
-  function trimEngine(val) {
-    if (!val) return '';
-    let s = val.split(/\s+[-–—]\s+/)[0].replace(/\s+Engine\s*$/i, '').trim();
-    // strip trailing torque (e.g. "660-1050ft. lbs.", "850ft. lbs.")
-    s = s.replace(/\s*\d+(?:[.,]\d+)?(?:-\d+(?:[.,]\d+)?)?\s*ft\.?\s*lbs?\.?\s*$/i, '').trim();
-    // strip trailing horsepower (e.g. "260-360hp", "370hp", "455 HP")
-    s = s.replace(/\s*\d+(?:[.,]\d+)?(?:-\d+(?:[.,]\d+)?)?\s*hp\b\.?\s*$/i, '').trim();
-    // strip leading horsepower (e.g. "400 HP Cummins ISX12", "455hp Detroit DD15")
-    s = s.replace(/^\d+(?:[.,]\d+)?(?:-\d+(?:[.,]\d+)?)?\s*hp\b\.?\s*/i, '').trim();
-    // if nothing meaningful remains (e.g. "74hp" -> "", or it was just a number/junk), return empty so no chip renders
-    if (!s || /^\d+(?:[.,]\d+)?$/.test(s)) return '';
-    return s;
-  }
-
   function pp(p) { return parseFloat(String(p || '').replace(/[^0-9.]/g, '')) || 0; }
 
   function financeUrl(u, src) {
@@ -409,67 +395,6 @@ window.InventoryEngine = (function () {
       // SSR cards present on first default-view render — preserve them, skip wholesale replace.
     } else {
       _ssrHandedOff = true;
-      function buildCardChips(u) {
-        var JUNK = {'':1,'—':1,'-':1,'--':1,'n/a':1,'na':1,'none':1,'unknown':1,'null':1};
-        function badText(v){ return !v || JUNK[String(v).trim().toLowerCase()]; }
-        function num(v){
-          if (v === null || v === undefined) return null;
-          var s = String(v).trim();
-          if (/\bto\b/i.test(s)) return null;
-          var m = s.replace(/[, ]/g,'').match(/^-?\d+(\.\d+)?/);
-          if (!m) return null;
-          var n = parseFloat(m[0]);
-          return (isFinite(n) && n > 0) ? n : null;
-        }
-        function fmtNum(n){ return n.toLocaleString('en-US'); }
-        var UD = (typeof window !== 'undefined' && window.UsageDisplay) || null;
-        var F = {
-          mileage:          function(){ if(UD && !UD.showMileage(u)) return null; var n=num(u.mileage); return n? fmtNum(n)+' mi':null; },
-          hours:            function(){ if(UD && !UD.showHours(u))   return null; var n=num(u.hours);   return n? fmtNum(n)+' hrs':null; },
-          engine:           function(){ return badText(u.engine)? null : (typeof trimEngine==='function'?trimEngine(u.engine):String(u.engine).trim()); },
-          transmission:     function(){ return badText(u.transmission)? null : String(u.transmission).trim(); },
-          drivetrain:       function(){ return badText(u.drivetrain)? null : String(u.drivetrain).trim(); },
-          fuel:             function(){ if(badText(u.fuel)) return null; var f=String(u.fuel).trim(); return /diesel/i.test(f)? null : f; },
-          horsepower:       function(){ var n=num(u.horsepower); return n? fmtNum(n)+' HP':null; },
-          operating_weight: function(){ var n=num(u.operating_weight); return n? fmtNum(n)+' lb':null; },
-          length:           function(){ return badText(u.length)? null : String(u.length).trim(); },
-          gvwr:             function(){ return badText(u.gvwr)? null : String(u.gvwr).trim(); },
-          axles:            function(){ return badText(u.axles)? null : String(u.axles).trim(); },
-          deck_width:       function(){ return badText(u.deck_width)? null : String(u.deck_width).trim(); }
-        };
-        var sub = (u.subcategory||'').toLowerCase();
-        var cat = (u.category||'').toLowerCase();
-        var MOWERS = {'zero turn mower':1,'walk behind mower':1,'lawn tractor':1,'front deck mower':1};
-        var order;
-        if (sub === 'tractor')           order = ['horsepower','hours'];
-        else if (MOWERS[sub])            order = ['deck_width','hours','horsepower'];
-        else if (sub === 'crane truck')  order = ['mileage','engine'];
-        else if (cat === 'trailers')     order = ['length','gvwr','axles'];
-        else if (cat === 'trucks')       order = ['mileage','engine','transmission','drivetrain','fuel'];
-        else if (cat === 'construction') order = ['horsepower','hours','operating_weight'];
-        else if (cat === 'farm')         order = ['horsepower','hours'];
-        else                             order = ['mileage','fuel'];
-        var isNew = !badText(u.condition) && String(u.condition).trim().toLowerCase() === 'new';
-        // search_pills override: if curated buyer-search hooks exist, show those (up to 3) and skip
-        // the category-default spec pills entirely.
-        if (Array.isArray(u.search_pills) && u.search_pills.length) {
-          var sp = u.search_pills.filter(function(x){ return x && String(x).trim(); }).slice(0,3);
-          if (sp.length) {
-            var spChips = [];
-            if (isNew) spChips.push('NEW');
-            for (var k=0;k<sp.length && spChips.length<3;k++){ spChips.push(String(sp[k]).trim()); }
-            return spChips;
-          }
-        }
-        var chips = [];
-        if (isNew) chips.push('NEW');
-        for (var i=0;i<order.length && chips.length<2;i++){
-          var v = F[order[i]] && F[order[i]]();
-          if (v) chips.push(v);
-        }
-        return chips;
-      }
-
       grid.innerHTML = slice.map(function(u, _i) {
         var d          = u._dealer || DEALERS.find(function(x) { return x.key === u.dealer; }) || {};
         var photoRaw   = u.photos && u.photos.length ? (u.photos[0].url || u.photos[0].dataUrl || '') : '';
@@ -487,7 +412,7 @@ window.InventoryEngine = (function () {
                            ? '$' + Number(String(u.price).replace(/[^0-9.]/g, '')).toLocaleString()
                            : (u.price && u.price !== '0' ? u.price : 'Call');
         var dealerLine = [d.name || u.dealer, d.location || ''].filter(Boolean).join(' &middot; ');
-        var chips = buildCardChips(u);
+        var chips = window.CardFacts.buildCardChips(u);
         // Stock # pill (/inventory full mode only): first, outside the chip cap; stored value, trimmed only to detect presence.
         var stockPill = (_cfg.mode === 'full' && u.stock != null && String(u.stock).trim())
           ? '<span class="inv-spec">STOCK # ' + String(u.stock).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') + '</span>'
