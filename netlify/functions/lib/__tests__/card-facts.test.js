@@ -18,6 +18,7 @@ const EXPORTS = [
   'parseGvwrClass', 'parseFuel', 'parseEngine', 'VOCAB', 'VOCAB_KEYS', 'profileOf',
   'tempCompatible', 'TEMP_columnAgreementGuardrail', 'TEMP_GUARDRAIL_MIRRORED',
   'governedCandidates', 'formatFact', 'FORMAT', 'identityProfile',
+  'GOVERNED_COHORT_SUBCATEGORIES', 'inGovernedCohort',
   'engineTokens', 'duplicateVerdict', 'selectBestFacts'
 ];
 
@@ -659,6 +660,137 @@ TESTS.push(['T33 generated card-facts.generated.js matches the source on every f
     eq(G.selectBestFacts(input), M.selectBestFacts(input), 'selectBestFacts fixture ' + i);
     eq(G.buildCardChips(f), M.buildCardChips(f), 'buildCardChips fixture ' + i);
   });
+}]);
+
+// ── T34-T41: GOVERNED COHORT PILOT (forklift). Static fixtures only — nothing below
+//    reads the database or a production census. ──────────────────────────────────
+// A cohort card as a card-rendering request delivers it.
+// usage-display legitimately warns on unmapped subcategories; the fixtures below use some
+// on purpose, so the warning is captured rather than printed.
+function quiet(fn) { const w = console.warn; console.warn = () => {}; try { return fn(); } finally { console.warn = w; } }
+function fork(extra) {
+  return payload(Object.assign({ category: 'Construction', subcategory: 'Forklift', condition: 'Used' }, extra));
+}
+// The legacy reference: the SAME source with the cohort predicate forced false, so the
+// cohort branch can never be taken. Any fixture whose chips differ between M and LEGACY
+// is, by construction, a fixture the cohort branch changed.
+const LEGACY = loadSource({
+  file: SRC,
+  transform: t => t.replace('return gHas(GOVERNED_COHORT_SUBCATEGORIES, sub);', 'return false;')
+});
+// The browser IIFE mirror, loaded exactly as a page loads it.
+function loadBrowserMirror() {
+  const win = { UsageDisplay: { showMileage: usage.showMileage, showHours: usage.showHours } };
+  const ctx = { window: win, globalThis: win, console: { warn: () => {}, log: () => {}, error: () => {} } };
+  vm.createContext(ctx);
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '..', '..', '..', '..', 'js', 'card-facts.browser.js'), 'utf8'), ctx);
+  return win.CardFacts;
+}
+
+TESTS.push(['T34 cohort forklift: governed picks replace the legacy emitters (HRS + the Propane gain)', M => {
+  // (a) the Propane gain: no usable hours column, governed fuel agrees with the column
+  const propane = fork({ fuel: 'Propane', governed_facts: { fuel: 'Propane' } });
+  eq(M.buildCardChips(propane, { title: '2014 Hyster S60FT' }), ['Propane'], 'governed fuel becomes a pill');
+  eq(LEGACY.buildCardChips(propane, { title: '2014 Hyster S60FT' }), [], 'CONTROL: legacy emitted nothing here');
+  // (b) HRS formatting — the governed formatter, not the legacy ' hrs' suffix
+  const hrs = fork({ hours: '4,173', fuel: 'Diesel', governed_facts: { fuel: 'Diesel', hours: '4,173' } });
+  eq(M.buildCardChips(hrs, { title: '2015 Moffett M8 55.4' }), ['4,173 HRS'], 'governed HRS');
+  eq(LEGACY.buildCardChips(hrs, { title: '2015 Moffett M8 55.4' }), ['4,173 hrs'], 'CONTROL: legacy lowercase hrs');
+  // (c) comma-less governed hours vs a comma-bearing column: gNum agrees, both format the same
+  const comma = fork({ hours: '2,333', fuel: 'Diesel', governed_facts: { fuel: 'Diesel', hours: '2333' } });
+  eq(M.buildCardChips(comma, { title: '2006 Moffett M50P' }), ['2,333 HRS'], 'gNum comparison, one format');
+}]);
+
+TESTS.push(['T35 NEW is OUTSIDE the cohort cap (M3) — three chips, two informational', M => {
+  const card = fork({ condition: 'New', hours: '1,000', fuel: 'Propane',
+    governed_facts: { hours: '1,000', fuel: 'Propane' } });
+  eq(M.buildCardChips(card, { title: '2026 Hyster S60FT' }), ['NEW', '1,000 HRS', 'Propane'], 'NEW outside the cap');
+  eq(M.INFO_CAP, 2, 'the cap itself is still 2');
+  // CONTROL: same card, not new → exactly the two informational pills
+  const used = fork({ condition: 'Used', hours: '1,000', fuel: 'Propane',
+    governed_facts: { hours: '1,000', fuel: 'Propane' } });
+  eq(M.buildCardChips(used, { title: '2026 Hyster S60FT' }), ['1,000 HRS', 'Propane'], 'control: no NEW');
+}]);
+
+TESTS.push(['T36 every NON-cohort subcategory is byte-identical to the legacy path', M => quiet(() => {
+  const cases = [
+    ['truck',            payload({ category: 'Trucks', subcategory: 'Box Truck', condition: 'Used', mileage: '184,014', engine: '6.0L V8 Gasoline', fuel: 'Gasoline', governed_facts: { mileage: '184,014', engine: '6.0L V8', fuel: 'Gasoline' } })],
+    ['tractor',          payload({ category: 'Farm', subcategory: 'Tractor', condition: 'Used', hours: '2,628', horsepower: '74', governed_facts: { hours: '2,628', horsepower: '74' } })],
+    ['trailer',          payload({ category: 'Trailers', subcategory: 'Dump Trailer', condition: 'New', governed_facts: { gvwr_lb: '14000' } })],
+    ['TELEHANDLER',      payload({ category: 'Construction', subcategory: 'Telehandler', condition: 'Used', hours: '3,100', fuel: 'Propane', governed_facts: { hours: '3,100', fuel: 'Propane' } })],
+    ['blank subcategory',payload({ category: 'Construction', subcategory: '', condition: 'Used', hours: '900', governed_facts: { hours: '900' } })],
+    ['null subcategory', payload({ category: 'Trucks', subcategory: null, condition: 'Used', mileage: '90000', governed_facts: { mileage: '90000' } })],
+    ['mower',            payload({ category: 'Landscape', subcategory: 'Zero Turn Mower', condition: 'Used', hours: '402', fuel: 'Gasoline', governed_facts: { hours: '402', fuel: 'Gasoline' } })],
+  ];
+  let anyNonEmpty = 0;
+  cases.forEach(([label, card]) => {
+    const withTitle = M.buildCardChips(card, { title: 'T', searchPills: true });
+    const legacy    = LEGACY.buildCardChips(card, { title: 'T', searchPills: true });
+    eq(withTitle, legacy, label + ' must equal the legacy path');
+    eq(M.buildCardChips(card), LEGACY.buildCardChips(card), label + ' (no opts) must equal the legacy path');
+    if (legacy.length) anyNonEmpty++;
+  });
+  ok(anyNonEmpty >= 4, 'CONTROL: the comparison is not vacuous — ' + anyNonEmpty + ' cases emit pills');
+  notOk(M.inGovernedCohort({ subcategory: 'Telehandler' }), 'telehandler is NOT adjudicated into the cohort');
+  ok(M.inGovernedCohort({ subcategory: '  FORKLIFT ' }), 'CONTROL: forklift is, case- and space-insensitively');
+})]);
+
+TESTS.push(['T37 search_pills wins over the cohort path, with NEW inside its 3-slot limit (L2)', M => {
+  const card = fork({ condition: 'New', hours: '4,173', fuel: 'Propane',
+    governed_facts: { hours: '4,173', fuel: 'Propane' },
+    search_pills: ['Side Shift', 'Triple Mast', 'Cab Heat'] });
+  eq(M.buildCardChips(card, { title: 'x', searchPills: true }),
+     ['NEW', 'Side Shift', 'Triple Mast'], 'search_pills branch, NEW inside the 3 slots');
+  // CONTROL: the same card with the branch not enabled falls to the cohort path
+  eq(M.buildCardChips(card, { title: 'x' }), ['NEW', '4,173 HRS', 'Propane'], 'control: cohort path');
+}]);
+
+TESTS.push(['T38 opts.title drives duplicate suppression; omitting it must not throw', M => {
+  const card = fork({ horsepower: '74', governed_facts: { horsepower: '74' } });
+  eq(M.buildCardChips(card, { title: '2016 Toyota 74hp' }), [], 'title duplicates the fact → suppressed');
+  eq(M.buildCardChips(card, { title: '2016 Toyota 8FDU30' }), ['74 HP'], 'CONTROL: unrelated title → pill shows');
+  eq(M.buildCardChips(card, {}), ['74 HP'], 'opts without title: no throw, no suppression');
+  eq(M.buildCardChips(card), ['74 HP'], 'no opts at all: no throw, no suppression');
+  eq(M.buildCardChips(card, { title: null }), ['74 HP'], 'null title: no throw');
+}]);
+
+TESTS.push(['T39 the browser mirror MERGES caller opts onto { searchPills: true }', M => {
+  const B = loadBrowserMirror();
+  const card = fork({ horsepower: '74', governed_facts: { horsepower: '74' } });
+  eq(B.buildCardChips(card, { title: '2016 Toyota 74hp' }), [], 'caller title reached the mirror');
+  eq(B.buildCardChips(card, { title: '2016 Toyota 8FDU30' }), ['74 HP'], 'CONTROL: unrelated title');
+  eq(B.buildCardChips(card), ['74 HP'], 'no opts: still works');
+  // searchPills must SURVIVE the merge — it is not overwritten by caller opts
+  const sp = fork({ governed_facts: { hours: '900' }, hours: '900', search_pills: ['Side Shift'] });
+  eq(B.buildCardChips(sp, { title: 'x' }), ['Side Shift'], 'searchPills default survives the merge');
+  // and the mirror agrees with the source on every cohort fixture
+  [card, sp, fork({ fuel: 'Propane', governed_facts: { fuel: 'Propane' } })].forEach((f, i) =>
+    eq(B.buildCardChips(f, { title: 'x' }), M.buildCardChips(f, { title: 'x', searchPills: true }), 'mirror parity ' + i));
+}]);
+
+TESTS.push(['T40 cohort membership is an OWN-property lookup (no Object.prototype walk)', M => quiet(() => {
+  ['constructor', '__proto__', 'toString', 'hasOwnProperty', 'valueOf'].forEach(k => {
+    notOk(M.inGovernedCohort({ subcategory: k }), k + ' must not be in the cohort');
+    const card = payload({ category: 'Trucks', subcategory: k, condition: 'Used', mileage: '90000',
+      governed_facts: { mileage: '90000' } });
+    eq(M.buildCardChips(card), LEGACY.buildCardChips(card), k + ' takes the legacy path');
+  });
+  eq(Object.keys(M.GOVERNED_COHORT_SUBCATEGORIES), ['forklift'], 'the table is exactly one adjudicated key');
+  // the table carries no stock / dealer / VIN term
+  notOk(/stock|dealer|vin/i.test(JSON.stringify(M.GOVERNED_COHORT_SUBCATEGORIES)), 'table is product-rational');
+})]);
+
+TESTS.push(['T41 M1 — no fallback to the legacy emitters inside the cohort', M => {
+  // rich legacy columns, empty governed_facts: the cohort card shows NO informational pill
+  const card = fork({ hours: '5,000', fuel: 'Propane', horsepower: '90', governed_facts: {} });
+  eq(M.buildCardChips(card, { title: 'x' }), [], 'no governed pick → no pill');
+  eq(LEGACY.buildCardChips(card, { title: 'x' }), ['90 HP', '5,000 hrs'], 'CONTROL: legacy would have emitted two');
+  // NEW still renders on a cohort card with no governed pick
+  const isNew = fork({ condition: 'New', hours: '5,000', governed_facts: {} });
+  eq(M.buildCardChips(isNew, { title: 'x' }), ['NEW'], 'NEW is a status badge, not an informational pill');
+  // a governed value the guardrail HOLDS does not fall back either
+  const held = fork({ hours: '5,000', governed_facts: { hours: '9,999' } });
+  eq(M.buildCardChips(held, { title: 'x' }), [], 'HOLD → no pill, no fallback');
 }]);
 
 // ── runner ───────────────────────────────────────────────────────────────────

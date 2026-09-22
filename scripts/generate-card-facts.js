@@ -92,8 +92,9 @@ function buildBrowser() {
 ${indent(BODY, '  ')}
   root.CardFacts = {
     // The client is the only caller that SELECTs search_pills, so it is the only caller that
-    // enables that branch.
-    buildCardChips: function (u) { return buildCardChips(u, { searchPills: true }); },
+    // enables that branch. Caller opts (e.g. { title }) are MERGED on top, so the browser
+    // wrapper carries the same opts surface as the edge/CJS mirrors.
+    buildCardChips: function (u, o) { return buildCardChips(u, Object.assign({ searchPills: true }, o || {})); },
 ${EXPORTS.filter((e) => e !== 'buildCardChips').map((e) => `    ${e}: ${e}`).join(',\n')}
   };
 })(typeof window !== 'undefined' ? window : globalThis);

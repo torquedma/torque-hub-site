@@ -134,7 +134,7 @@ function buildSixCards(units) {
     const dealerLine = [d.name, d.location].filter(Boolean).join(' &middot; ');
 
     // Spec chips: category-aware profiles via buildCardChips.
-    const chips = buildCardChips(u);
+    const chips = buildCardChips(u, { title });
 
     const imgHtml = photo
       ? `<img src="${esc(photo)}" alt="${esc(title)}" loading="eager"${fp} decoding="async">`
@@ -188,7 +188,7 @@ export default async function handler(request, context) {
     const invRes = await fetch(
       SUPABASE_URL +
         '/rest/v1/inventory_cards?sold=eq.false&limit=1000' +
-        '&select=stock,year,make,model,trim,subcategory,category,price,mileage,engine,horsepower,hours,fuel,condition,photos,dealer,created_at',
+        '&select=stock,year,make,model,trim,subcategory,category,price,mileage,engine,horsepower,hours,fuel,condition,photos,dealer,created_at,governed_facts',
       { headers: SB_HEADERS }
     ).catch(() => null);
 

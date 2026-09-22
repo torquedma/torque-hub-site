@@ -25,6 +25,12 @@
 //      truck, farm, default — are unchanged.
 //      Chief ruling L2: NEW stays INSIDE the search_pills 3-slot limit.
 //      Chief ruling L3: no switch restores superseded behaviour; opts carries only searchPills.
+//      GOVERNED COHORT PILOT (Chief, 2026-09-22): for the adjudicated cohort below, and ONLY
+//      for it, the informational pills come from Section B (governedCandidates ->
+//      selectBestFacts) instead of the legacy emitters. Outside the cohort the legacy path is
+//      byte-identical to cc687342/eb268691. opts also carries `title`, supplied by the caller
+//      from the display title it has already computed, so Section B's duplicate suppression
+//      can see the visible identity. No new title logic exists here.
 //   B. DARK  — governed best-fact selection (governedCandidates → selectBestFacts → formatFact).
 //      Not called by any renderer. Activation is a separate Chief gate.
 //      Qualification (fact key + source + trust) is owned by the inventory_cards.governed_facts
@@ -60,6 +66,18 @@ function chipFmtNum(n) { return n.toLocaleString('en-US'); }
 var CHIP_MOWERS = {'zero turn mower':1,'walk behind mower':1,'lawn tractor':1,'front deck mower':1};
 var INFO_CAP = 2;
 
+// Governed-cohort activation table. STATIC and product-rational: keyed only by canonical
+// subcategory, never by stock, dealer or VIN. Telehandler shares the forklift order profile in
+// Section B but was NOT adjudicated for this pilot, so it is deliberately absent.
+var GOVERNED_COHORT_SUBCATEGORIES = { forklift: 1 };
+// Own-property lookup only, for the same reason gHas() exists in Section B: the key is DATA.
+// A bare table[k] on 'constructor' or '__proto__' walks Object.prototype and returns a truthy
+// function — exactly the defect the gHas() patch closed.
+function inGovernedCohort(u) {
+  var sub = (u && u.subcategory != null ? String(u.subcategory) : '').trim().toLowerCase();
+  return gHas(GOVERNED_COHORT_SUBCATEGORIES, sub);
+}
+
 function buildCardChips(u, opts) {
   opts = opts || {};
   var F = {
@@ -93,6 +111,23 @@ function buildCardChips(u, opts) {
       for (var k = 0; k < sp.length && spChips.length < 3; k++) spChips.push(String(sp[k]).trim());
       return spChips;
     }
+  }
+  // Governed cohort: Section B owns the informational pills. NEW stays OUTSIDE the cap (M3).
+  // Stock # is never produced here — the callers render it. No fallback to the legacy
+  // emitters inside the cohort (Chief ruling M1): a cohort card with no governed pick shows
+  // no informational pill.
+  if (inGovernedCohort(u)) {
+    var gChips = [];
+    if (isNew) gChips.push('NEW');
+    var gPicks = selectBestFacts({
+      category: u.category,
+      subcategory: u.subcategory,
+      title: opts.title || '',
+      subLabel: (u.subcategory || '').toString().trim(),
+      candidates: governedCandidates(u).candidates
+    }).picks;
+    for (var gi = 0; gi < gPicks.length; gi++) gChips.push(gPicks[gi].display);
+    return gChips;
   }
   var chips = [];
   if (isNew) chips.push('NEW');

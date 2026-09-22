@@ -64,14 +64,14 @@ export default async function handler(request) {
     let query;
     if (isHub) {
       query = SUPABASE_URL + '/rest/v1/inventory_cards?category=eq.' + encodeURIComponent(hub.category) +
-        '&sold=eq.false&order=created_at.desc&limit=250&select=stock,year,make,model,price,mileage,subcategory,category,engine,horsepower,hours,fuel,condition,photos';
+        '&sold=eq.false&order=created_at.desc&limit=250&select=stock,year,make,model,price,mileage,subcategory,category,engine,horsepower,hours,fuel,condition,photos,governed_facts';
     } else {
       // Variant B encoding: encodeURIComponent each value, join with literal commas, no quotes.
       // SAFE because no subcategory value contains a comma. If a comma-containing value is ever
       // added, switch to quoted form ("val1","val2").
       const inList = leaf.subs.map(s => encodeURIComponent(s)).join(',');
       query = SUPABASE_URL + '/rest/v1/inventory_cards?subcategory=in.(' + inList + ')' +
-        '&sold=eq.false&order=created_at.desc&limit=250&select=stock,year,make,model,price,mileage,subcategory,category,engine,horsepower,hours,fuel,condition,photos';
+        '&sold=eq.false&order=created_at.desc&limit=250&select=stock,year,make,model,price,mileage,subcategory,category,engine,horsepower,hours,fuel,condition,photos,governed_facts';
     }
 
     const invRes = await fetch(query, { headers: SB_HEADERS }).catch(() => null);

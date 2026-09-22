@@ -271,7 +271,7 @@ function buildCardGrid(units) {
     const title = buildDisplayTitle(u);
     const price = formatPrice(u.price);
     const href = '/vehicle.html?stock=' + encodeURIComponent(u.stock);
-    const chips = buildCardChips(u);
+    const chips = buildCardChips(u, { title });
     const chipsHtml = chips.length ? '<div class="cat-card-chips">' + chips.map(c => '<span class="cat-card-chip">' + esc(c) + '</span>').join('') + '</div>' : '';
     return (
       '<a class="cat-card" href="' + escAttr(href) + '">' +

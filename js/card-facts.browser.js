@@ -43,6 +43,18 @@
   var CHIP_MOWERS = {'zero turn mower':1,'walk behind mower':1,'lawn tractor':1,'front deck mower':1};
   var INFO_CAP = 2;
 
+  // Governed-cohort activation table. STATIC and product-rational: keyed only by canonical
+  // subcategory, never by stock, dealer or VIN. Telehandler shares the forklift order profile in
+  // Section B but was NOT adjudicated for this pilot, so it is deliberately absent.
+  var GOVERNED_COHORT_SUBCATEGORIES = { forklift: 1 };
+  // Own-property lookup only, for the same reason gHas() exists in Section B: the key is DATA.
+  // A bare table[k] on 'constructor' or '__proto__' walks Object.prototype and returns a truthy
+  // function — exactly the defect the gHas() patch closed.
+  function inGovernedCohort(u) {
+    var sub = (u && u.subcategory != null ? String(u.subcategory) : '').trim().toLowerCase();
+    return gHas(GOVERNED_COHORT_SUBCATEGORIES, sub);
+  }
+
   function buildCardChips(u, opts) {
     opts = opts || {};
     var F = {
@@ -76,6 +88,23 @@
         for (var k = 0; k < sp.length && spChips.length < 3; k++) spChips.push(String(sp[k]).trim());
         return spChips;
       }
+    }
+    // Governed cohort: Section B owns the informational pills. NEW stays OUTSIDE the cap (M3).
+    // Stock # is never produced here — the callers render it. No fallback to the legacy
+    // emitters inside the cohort (Chief ruling M1): a cohort card with no governed pick shows
+    // no informational pill.
+    if (inGovernedCohort(u)) {
+      var gChips = [];
+      if (isNew) gChips.push('NEW');
+      var gPicks = selectBestFacts({
+        category: u.category,
+        subcategory: u.subcategory,
+        title: opts.title || '',
+        subLabel: (u.subcategory || '').toString().trim(),
+        candidates: governedCandidates(u).candidates
+      }).picks;
+      for (var gi = 0; gi < gPicks.length; gi++) gChips.push(gPicks[gi].display);
+      return gChips;
     }
     var chips = [];
     if (isNew) chips.push('NEW');
@@ -336,8 +365,9 @@
 
   root.CardFacts = {
     // The client is the only caller that SELECTs search_pills, so it is the only caller that
-    // enables that branch.
-    buildCardChips: function (u) { return buildCardChips(u, { searchPills: true }); },
+    // enables that branch. Caller opts (e.g. { title }) are MERGED on top, so the browser
+    // wrapper carries the same opts surface as the edge/CJS mirrors.
+    buildCardChips: function (u, o) { return buildCardChips(u, Object.assign({ searchPills: true }, o || {})); },
     trimEngine: trimEngine,
     profileOf: profileOf,
     governedCandidates: governedCandidates,

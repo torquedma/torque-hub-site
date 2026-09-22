@@ -302,7 +302,7 @@ window.InventoryEngine = (function () {
       { headers: SB_HDRS }
     ).then(function(r) { return r.json(); }).catch(function() { return []; });
 
-    var cols = 'id,stock,vin,year,make,model,trim,subcategory,category,dealer,price,mileage,engine,horsepower,hours,fuel,condition,photos,featured,search_pills,created_at,updated_at';
+    var cols = 'id,stock,vin,year,make,model,trim,subcategory,category,dealer,price,mileage,engine,horsepower,hours,fuel,condition,photos,featured,search_pills,governed_facts,created_at,updated_at';
     var invP = fetch(
       SB_URL + '/rest/v1/inventory_cards?select=' + cols + '&sold=eq.false&limit=1000',
       { headers: SB_HDRS }
@@ -412,7 +412,7 @@ window.InventoryEngine = (function () {
                            ? '$' + Number(String(u.price).replace(/[^0-9.]/g, '')).toLocaleString()
                            : (u.price && u.price !== '0' ? u.price : 'Call');
         var dealerLine = [d.name || u.dealer, d.location || ''].filter(Boolean).join(' &middot; ');
-        var chips = window.CardFacts.buildCardChips(u);
+        var chips = window.CardFacts.buildCardChips(u, { title: title });
         // Stock # pill (/inventory full mode only): first, outside the chip cap; stored value, trimmed only to detect presence.
         var stockPill = (_cfg.mode === 'full' && u.stock != null && String(u.stock).trim())
           ? '<span class="inv-spec">STOCK # ' + String(u.stock).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') + '</span>'

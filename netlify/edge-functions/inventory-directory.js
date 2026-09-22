@@ -29,7 +29,7 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 const BASE = 'https://hub.torquedma.com';
 const PATH = '/inventory-directory';
 const PAGE_SIZE = 60;
-const SELECT = 'stock,year,make,model,price,mileage,subcategory,category,engine,horsepower,hours,fuel,condition,photos';
+const SELECT = 'stock,year,make,model,price,mileage,subcategory,category,engine,horsepower,hours,fuel,condition,photos,governed_facts';
 
 function pageHref(n) { return n === 1 ? PATH : PATH + '?page=' + n; }
 
