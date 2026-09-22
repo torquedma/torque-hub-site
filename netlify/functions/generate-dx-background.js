@@ -244,6 +244,15 @@ exports.handler = async (event) => {
             .eq('sold', false);
           if (wErr) { console.error(`[LIFECYCLE-WRITE-FAIL] ${unit.stock}:`, wErr.message); skipped_error++; }
           else { console.log(`[LIFECYCLE-HOLD-EVIDENCE] ${unit.stock} (${unit.dealer}) — ${reason}`); lifecycle_hold_evidence++; }
+          // SHAPE DIAGNOSTIC (2026-09-22) — one extra log line, nothing else.
+          // Fires only for OVERVIEW_GROUNDING_FAILED errors that carry shape
+          // metrics (the six SHAPE predicates); every other hold reason is
+          // untouched, as is [LIFECYCLE-HOLD-EVIDENCE] above. Counts and flags
+          // only — the rejected overview text is never logged or stored.
+          const sm = err.code === 'OVERVIEW_GROUNDING_FAILED' ? err.shapeMetrics : null;
+          if (sm) {
+            console.log(`[LIFECYCLE-HOLD-SHAPE] ${unit.stock} (${unit.dealer}) empty=${sm.empty} len=${sm.length} sentences=${sm.sentences} bullet=${sm.bullet} heading=${sm.heading} markdown=${sm.markdown}`);
+          }
         } else {
           const cls = (err && err.name) || 'Error';
           const { error: wErr } = await supabase
