@@ -93,6 +93,12 @@ test('T4 — invariant: only letter case changes (every spec line of the five re
   assert.ok(lines > 90, 'corpus exercised: ' + lines);
 });
 
+// Local expected map for T5 — intentionally NOT imported from production.
+const GOVERNED_HGR_DISPLAY = {
+  '(7)WAY PLUG': '7-Way Plug',
+  '(4)5000LB DRINGS': '(4) 5,000 LB D-Rings',
+};
+
 test('T5 — normalizedLine untouched; displayLine additive; classification unchanged', () => {
   for (const [stock, raw] of Object.entries(RAW)) {
     const n = normalizeTrailerSpecs(raw, 'Trailers');
@@ -102,7 +108,14 @@ test('T5 — normalizedLine untouched; displayLine additive; classification unch
       // normalizedLine is exactly what normalizeLine produced pre-patch: delimiter stripped, whitespace collapsed
       assert.equal(k.normalizedLine, k.originalLine.replace(/^\s*[-·•]\s*/, '').replace(/\s+/g, ' ').trim(), stock);
       assert.equal(typeof k.displayLine, 'string');
-      assert.equal(k.displayLine.toLowerCase(), k.normalizedLine.toLowerCase(), stock);
+      // Chief-governed HGR display exceptions (2026-09-23): these two EXACT
+      // normalizedLine values render their governed display; every other line
+      // keeps the case-only contract below, unchanged.
+      if (Object.prototype.hasOwnProperty.call(GOVERNED_HGR_DISPLAY, k.normalizedLine)) {
+        assert.equal(k.displayLine, GOVERNED_HGR_DISPLAY[k.normalizedLine], stock);
+      } else {
+        assert.equal(k.displayLine.toLowerCase(), k.normalizedLine.toLowerCase(), stock);
+      }
       assert.ok(['high', 'low'].includes(k.confidence));
       assert.equal(typeof k.group, 'string');
     }
