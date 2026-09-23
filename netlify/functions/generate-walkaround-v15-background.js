@@ -1,8 +1,9 @@
 // generate-walkaround-v15-background.js — Walk Around v1.5, GOVERNED EVIDENCE BUNDLE.
 //
-// Trigger: HTTP background function. ?engine=<label>&stocks=A,B,C
-//   engine MUST be one of the two allowlisted labels in lib/walkaround-v15-screens.js;
-//   the label determines the model. A ?model= parameter is refused outright.
+// Trigger: HTTP background function. ?engine=walkaround-v1.5-opus-5-5-geb&stocks=A,B,C
+//   engine is REQUIRED and pinned: the only accepted label is the production engine
+//   (walkaround-v1.5-opus-5-5-geb → claude-opus-5-5). A missing or any other label is refused.
+//   The label determines the model. A ?model= parameter is refused outright.
 //
 // Evidence: the frozen public.understanding_snapshot row for (stock, 'walkaround', engine).
 //   The snapshot's database-computed bundle_md5 must equal its stored fingerprint, or the
@@ -57,7 +58,7 @@ exports.handler = async (event) => {
     return { statusCode: 400, body: JSON.stringify({ error: 'model parameter is not accepted; use an allowlisted engine label' }) };
   }
   let engine, model;
-  try { engine = qs.engine; model = resolveEngine(engine); }
+  try { ({ engine, model } = resolveEngine(qs.engine)); }
   catch (e) { return { statusCode: 400, body: JSON.stringify({ error: 'unsupported engine label' }) }; }
 
   const stocksList = (qs.stocks || '').split(',').map(s => s.trim()).filter(Boolean);

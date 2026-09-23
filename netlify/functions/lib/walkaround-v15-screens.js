@@ -3,7 +3,13 @@
 // producer (walkaround-v1.5-*-geb). No I/O, no network, no database.
 //
 //   ENGINES             fixed allowlist: engine label → model id. Nothing else accepted.
-//   resolveEngine       hard-rejects any label not in ENGINES.
+//                       Pinned to the accepted production translator (Chief model ruling
+//                       2026-09-23: walkaround-v1.5-opus-5-5-geb). The Fable comparison
+//                       engine was removed; its rows remain in the queue as evidence.
+//   PRODUCTION_ENGINE   the only engine ordinary generation may use.
+//   resolveEngine       the label is REQUIRED and must be in ENGINES; anything else
+//                       (including a missing label) is rejected, so a stray or mistyped
+//                       call is refused rather than spending money and writing rows.
 //   renderBundle        turns a frozen understanding_snapshot bundle into the model's
 //                       user message, tier by tier, with claim ids.
 //   validateShape       the v1.4 rendered contract (same rules as ADMIN publish_walkaround).
@@ -15,9 +21,9 @@
 //                       reputation/durability, productivity/speed, generalizations, age,
 //                       Markdown.
 
+const PRODUCTION_ENGINE = 'walkaround-v1.5-opus-5-5-geb';
 const ENGINES = Object.freeze({
-  'walkaround-v1.5-fable-5-1-geb': 'claude-fable-5-1',
-  'walkaround-v1.5-opus-5-5-geb': 'claude-opus-5-5',
+  [PRODUCTION_ENGINE]: 'claude-opus-5-5',
 });
 
 function resolveEngine(label) {
@@ -26,7 +32,7 @@ function resolveEngine(label) {
     err.code = 'ENGINE_REJECTED';
     throw err;
   }
-  return ENGINES[label];
+  return { engine: label, model: ENGINES[label] };
 }
 
 const TIER_HEADINGS = {
@@ -107,13 +113,21 @@ function validateGrounding(p, g, bundle) {
 // ---- content screens -------------------------------------------------------
 const SCREENS = [
   ['MAINTENANCE_7A', /\b(service|maintenance)\s+(record|records|history|log|logs|documentation)|\brepair history|\breceipts?\b|\binvoices?\b|last serviced/i],
-  ['COST_VALUE_MARKET', /\b(cost|costs|costly|money|cheap|expensive|value|worth|resale|bargain|deal|priced|affordable|savings?|save you)\b/i],
+  ['COST_VALUE_MARKET', /\b(cost|costs|costly|money|cheap|expensive|value|worth|resale|bargain|deal|priced|affordable|savings?|save you|discount|discounted|market)\b/i],
   ['REPUTATION_DURABILITY', /\b(reliab\w*|durab\w*|proven|known for|legendary|long[- ]lasting|lifespan|longevity|dependab\w*|bulletproof|workhorse)\b/i],
   ['PRODUCTIVITY_SPEED', /\b(faster|quicker|productiv\w*|efficien\w*|saves? (?:you )?time|more work|in less time)\b/i],
   ['GENERALIZATION', /\b(usually|typically|tends? to|generally|most buyers|experienced (?:crews|buyers|operators)|first-time buyers)\b/i],
   ['AGE_ARITHMETIC', /\b\d+[- ]year[- ]old\b|\bdecades? old\b/i],
   ['MARKDOWN', /(\*\*|__|^#|`|^\s*[-*•]\s)/m],
 ];
+// Chief-accepted idioms (2026-09-23 model ruling) — EXACTLY the two phrasings accepted as
+// false positives, and nothing broader:
+//   "worth seeing in person"                    (not "worth seeing," followed by anything else)
+//   "<is|are|was|were|be> part of the deal"     (not "the best part of the deal", etc.)
+// Removed ONLY from the text the COST_VALUE_MARKET screen reads; every other screen sees
+// the full text, and any other value wording in the sentence still fires.
+const COST_VALUE_IDIOMS = /\bworth seeing in person\b|\b(?:is|are|was|were|be) part of the deal\b/gi;
+
 const PHOTO_WORDS = /\b(photo|photos|pictured|picture|image|images|shown in)\b/i;
 
 function numbersIn(s) {
@@ -138,7 +152,10 @@ function screenContent(p, g, bundle, mxClaims) {
   if (p.decision_factors) units.push({ where: 'footer', text: p.decision_factors.makes_it_a_yes_footer || '', ids: (g && g.footer) || [] });
 
   for (const u of units) {
-    for (const [name, re] of SCREENS) if (re.test(u.text)) findings.push({ screen: name, where: u.where, match: (u.text.match(re) || [''])[0] });
+    for (const [name, re] of SCREENS) {
+      const txt = name === 'COST_VALUE_MARKET' ? u.text.replace(COST_VALUE_IDIOMS, ' ') : u.text;
+      if (re.test(txt)) findings.push({ screen: name, where: u.where, match: (txt.match(re) || [''])[0] });
+    }
     for (const n of numbersIn(u.text)) if (!evidenceNums.has(n)) findings.push({ screen: 'NUMBER_NOT_IN_EVIDENCE', where: u.where, match: n });
     if (PHOTO_WORDS.test(u.text) && !u.ids.some(id => photoIds.has(id))) findings.push({ screen: 'PHOTO_CLAIM_UNGROUNDED', where: u.where, match: (u.text.match(PHOTO_WORDS) || [''])[0] });
     for (const mx of (mxClaims || [])) {
@@ -152,4 +169,4 @@ function screenContent(p, g, bundle, mxClaims) {
   return findings;
 }
 
-module.exports = { ENGINES, resolveEngine, renderBundle, validateShape, validateGrounding, screenContent, verifyIds };
+module.exports = { ENGINES, PRODUCTION_ENGINE, resolveEngine, renderBundle, validateShape, validateGrounding, screenContent, verifyIds };

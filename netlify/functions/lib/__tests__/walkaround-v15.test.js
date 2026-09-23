@@ -39,11 +39,11 @@ const GOOD = {
 const GOOD_G = { torque_take: [[M1, P1]], checklist: [[C1], [C2], [M1], ['V1']], footer: [C1] };
 
 // ---------- engine allowlist ----------
-test('engine allowlist: exactly two labels map to fixed models', () => {
-  assert.deepEqual(Object.keys(S.ENGINES).sort(), ['walkaround-v1.5-fable-5-1-geb', 'walkaround-v1.5-opus-5-5-geb']);
-  assert.equal(S.resolveEngine('walkaround-v1.5-fable-5-1-geb'), 'claude-fable-5-1');
-  assert.equal(S.resolveEngine('walkaround-v1.5-opus-5-5-geb'), 'claude-opus-5-5');
-  for (const bad of ['claude-opus-5-5', 'walkaround-v1.4.3-fable-5-1-ep', 'walkaround-v1.5-haiku-geb', '', undefined, 'constructor', '__proto__']) {
+test('engine pin: exactly one production engine, fixed to Opus 5.5', () => {
+  assert.deepEqual(Object.keys(S.ENGINES), ['walkaround-v1.5-opus-5-5-geb']);
+  assert.equal(S.PRODUCTION_ENGINE, 'walkaround-v1.5-opus-5-5-geb');
+  assert.deepEqual(S.resolveEngine('walkaround-v1.5-opus-5-5-geb'), { engine: 'walkaround-v1.5-opus-5-5-geb', model: 'claude-opus-5-5' });
+  for (const bad of [undefined, null, '', '   ', 'walkaround-v1.5-fable-5-1-geb', 'claude-fable-5-1', 'claude-opus-5-5', 'walkaround-v1.4.3-fable-5-1-ep', 'walkaround-v1.5-haiku-geb', 'constructor', '__proto__']) {
     assert.throws(() => S.resolveEngine(bad), /unsupported engine/);
   }
 });
@@ -201,21 +201,24 @@ test('handler: engine label fixes the model; writes queue + snapshot only, never
   assert.equal(r.generated[0].pass, true);
 });
 
-test('handler: both engines send byte-identical system prompt and user message', async () => {
-  const bodies = [];
-  for (const eng of ['walkaround-v1.5-fable-5-1-geb', 'walkaround-v1.5-opus-5-5-geb']) {
-    const st = baseState(); st.snapshots = [st.snapFor(eng)];
-    stubFetch(st, { ...GOOD, _grounding: GOOD_G }); const h = loadHandler(st);
-    await h({ queryStringParameters: { engine: eng, stocks: 'TST-1' } });
-    bodies.push(st.calls[0]);
+test('handler: the Fable comparison engine is refused before any call or write', async () => {
+  const st = baseState(); stubFetch(st, { ...GOOD, _grounding: GOOD_G }); const h = loadHandler(st);
+  const res = await h({ queryStringParameters: { engine: 'walkaround-v1.5-fable-5-1-geb', stocks: 'TST-1' } });
+  assert.equal(res.statusCode, 400); assert.equal(st.calls.length, 0); assert.equal(st.writes.length, 0);
+});
+test('handler: a missing engine parameter is refused before any call or write', async () => {
+  const st = baseState(); stubFetch(st, { ...GOOD, _grounding: GOOD_G }); const h = loadHandler(st);
+  for (const qs of [{ stocks: 'TST-1' }, { engine: '', stocks: 'TST-1' }]) {
+    assert.equal((await h({ queryStringParameters: qs })).statusCode, 400);
   }
-  assert.equal(bodies[0].system, bodies[1].system);
-  assert.deepEqual(bodies[0].messages, bodies[1].messages);
-  assert.equal(bodies[0].max_tokens, bodies[1].max_tokens);
-  assert.notEqual(bodies[0].model, bodies[1].model);
+  assert.equal(st.calls.length, 0); assert.equal(st.writes.length, 0);
+});
+test('handler: the pinned Opus engine label runs on claude-opus-5-5', async () => {
+  const st = baseState(); stubFetch(st, { ...GOOD, _grounding: GOOD_G }); const h = loadHandler(st);
+  const r = JSON.parse((await h({ queryStringParameters: { engine: 'walkaround-v1.5-opus-5-5-geb', stocks: 'TST-1' } })).body);
+  assert.equal(r.engine, 'walkaround-v1.5-opus-5-5-geb'); assert.equal(st.calls[0].model, 'claude-opus-5-5');
 });
 
-// ---------- v1.4.3 path unchanged ----------
 test('v1.4.3 producer and prompt are byte-identical to production 1738e02', () => {
   const sha = p => crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex');
   const fnDir = path.join(__dirname, '..', '..');
@@ -240,7 +243,7 @@ test('one-shot: existing queue row for (stock, engine) → refused, model NOT ca
   assert.deepEqual(r.refused, [{ stock: 'TST-1', reason: 'queue_row_exists' }]);
   assert.equal(st.calls.length, 0); assert.equal(st.writes.length, 0);
 });
-test('one-shot: a queue row under a DIFFERENT engine does not block (per-engine key)', async () => {
+test('one-shot: the preserved Fable comparison row does not block production (per-engine key)', async () => {
   const st = baseState({ queue: [{ id: 'q', stock: 'TST-1', engine_version: 'walkaround-v1.5-fable-5-1-geb' }] });
   const r = await runOnce(st);
   assert.equal(r.generated.length, 1); assert.equal(st.calls.length, 1);
@@ -349,4 +352,56 @@ test('raw scoring: Markdown returned by the model is recorded even though storag
   assert.ok(su.payload.generation_metrics.checks.screens.some(f => f.screen === 'MARKDOWN'), 'raw Markdown recorded');
   assert.match(q.payload.review_notes, /checks FAIL/);
   assert.equal(r.generated[0].pass, false);
+});
+
+// ---------- cost/value screen: accepted idioms vs genuine claims ----------
+const costScreen = text => S.screenContent(withItem(0, text), GOOD_G, BUNDLE, []).filter(f => f.screen === 'COST_VALUE_MARKET');
+test('accepted idiom (verbatim, Fable MPX-645867): "worth seeing in person" does not fire', () => {
+  assert.deepEqual(costScreen('Because the platform is shown folded, the listing photos do not show it in the down position you would actually work from, which is worth seeing in person.'), []);
+});
+test('accepted idiom (verbatim, Opus ATT footer): "part of the deal" does not fire', () => {
+  assert.deepEqual(costScreen('Once the dealer confirms whether the bed and crane are part of the deal, you know which truck you are actually weighing against those ratings.'), []);
+});
+test('ONLY the two accepted phrasings are exempt: other "worth …" idioms still fire', () => {
+  for (const s of ['That is worth checking on the unit.', 'It is worth confirming on the plate.', 'It is worth asking about the platform.']) assert.ok(costScreen(s).length >= 1, s);
+});
+const genuine = [
+  'This truck is worth the money.',
+  'At this price it is worth paying for.',
+  'It is worth every penny.',
+  'That makes it a good deal.',
+  'A great deal for a crane truck.',
+  'These choices would cost real money to add later.',
+  'The rear lockers are costly to retrofit.',
+  'It holds strong resale value.',
+  'It is priced below market.',
+  'The market for these is strong.',
+  'You get it at a discount.',
+  'A discounted crane truck.',
+  'An affordable way into a stand-on.',
+  'This is a bargain.',
+  'It will save you on fuel.',
+  // a genuine claim is NOT hidden by an accepted idiom in the same sentence
+  'It is worth seeing in person and worth the money.',
+  'The crane is part of the deal and a great deal at that.',
+  // CC independent review (2026-09-23): value claims that leaked through the broader exemption
+  'The best part of the deal is the price.',
+  'Honestly the machine is worth seeing, and the price reflects it.',
+  'Part of the deal is a lower price.',
+];
+for (const s of genuine) {
+  test(`genuine cost/value claim still fires: ${s}`, () => { assert.ok(costScreen(s).length >= 1, s); });
+}
+test('idiom exemption is local to the cost screen: other screens still see the full text', () => {
+  const f = S.screenContent(withItem(0, 'It is worth seeing in person how much faster it is.'), GOOD_G, BUNDLE, []);
+  assert.ok(f.some(x => x.screen === 'PRODUCTIVITY_SPEED'));
+  assert.ok(!f.some(x => x.screen === 'COST_VALUE_MARKET'));
+});
+
+test('documented behavior: "market" wording fires even when innocent (known, accepted false-positive surface)', () => {
+  assert.ok(costScreen('This model is new to the market.').length >= 1);
+});
+test('the six accepted comparison outputs contain no newly screened word (replay facts pinned)', () => {
+  // Verbatim sentences carrying the only cost/value-adjacent words in the six outputs.
+  assert.deepEqual(costScreen('Ask the dealer directly whether the flatbed body and knuckle-boom crane shown in photos 2 to 5 are included in the sale, or whether the offering is the bare cab and chassis shown in photo 1, and get the answer in writing with the price.'), []);
 });
