@@ -253,6 +253,15 @@ exports.handler = async (event) => {
           if (sm) {
             console.log(`[LIFECYCLE-HOLD-SHAPE] ${unit.stock} (${unit.dealer}) empty=${sm.empty} len=${sm.length} sentences=${sm.sentences} bullet=${sm.bullet} heading=${sm.heading} markdown=${sm.markdown}`);
           }
+          // IDENTITY DIAGNOSTIC (2026-09-22) — one extra log line, nothing else.
+          // Fires only for OVERVIEW_GROUNDING_FAILED errors that carry identity
+          // metrics (the three IDENTITY predicates); every other hold reason is
+          // untouched, as are the two log lines above. Booleans only — the
+          // rejected overview text, the year and the stock are never logged.
+          const im = err.code === 'OVERVIEW_GROUNDING_FAILED' ? err.identityMetrics : null;
+          if (im) {
+            console.log(`[LIFECYCLE-HOLD-IDENTITY] ${unit.stock} (${unit.dealer}) opensWithThis=${im.opensWithThis} containsYear=${im.containsYear} containsStock=${im.containsStock}`);
+          }
         } else {
           const cls = (err && err.name) || 'Error';
           const { error: wErr } = await supabase
