@@ -1,6 +1,7 @@
 const { createClient } = require('@supabase/supabase-js');
 const { generateDescription } = require('./lib/generate-description.generated');
 const { CANONICAL_SUBCATEGORIES, SUBCATEGORY_ALIASES, canonicalize } = require('./lib/taxonomy.generated.js');
+const { parentOf } = require('./lib/taxonomy-parents.generated.js');
 const { isPhantom } = require('./lib/phantom-fields');
 const { isKnownSuppressMileage, isKnownSuppressHours } = require('./lib/usage-display.generated.js');
 const { stampFacts } = require('./lib/provenance');
@@ -746,6 +747,11 @@ exports.handler = async (event) => {
         else if (CONSTRUCTION_SUBS.some(function(k){ return subLower.includes(k); })) derivedCategory = 'Construction';
         else if (FARM_SUBS.some(function(k){ return subLower.includes(k); })) derivedCategory = 'Farm';
         else if (subLower === 'truck body') derivedCategory = 'Other';
+        // 2026-09-24 (Allied taxonomy defect): a canonical truck subcategory's parent is 'Trucks'
+        // per js/taxonomy-data.js. A raw source category (Allied's direct site sends 'Trailers')
+        // must not override it — 24 Allied rows carried Dump/Flatbed/Box/Service Truck,
+        // Cab & Chassis and Yard Spotter under 'Trailers'.
+        else if (parentOf(sub) === 'Trucks') derivedCategory = 'Trucks';
         else if (item.category) derivedCategory = item.category;
         else derivedCategory = 'Trucks';
         const unit = {
