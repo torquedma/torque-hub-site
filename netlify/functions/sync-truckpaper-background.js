@@ -5,6 +5,7 @@ const { isPhantom } = require('./lib/phantom-fields');
 const { isKnownSuppressMileage, isKnownSuppressHours } = require('./lib/usage-display.generated.js');
 const { stampFacts } = require('./lib/provenance');
 const { isValidVin } = require('./lib/vin-decode');
+const { isDraftLifecycleDealer } = require('./lib/draft-lifecycle-dealers');
 
 // Strip marketing filler after a dash/em-dash separator, e.g.
 // "Cummins ISB 6.7L - Powerful and efficient" → "Cummins ISB 6.7L"
@@ -535,6 +536,36 @@ exports.handler = async (event) => {
 
   const dealer = items.find(i => i.dealer)?.dealer || dealerName;
 
+  // S1 (2026-09-24) APIFY DRAFT-TO-LIVE. For lifecycle dealers (the single list
+  // in lib/draft-lifecycle-dealers.js, shared with generate-dx-background), a
+  // NEW row is INSERTed with explicit status='draft' and a feed_removed row
+  // RESURRECTED by this feed returns as status='draft'. Routine UPDATEs of an
+  // existing row never carry status. Every other dealer is untouched. Each
+  // draft entry appends one audit row to unit_lifecycle_event; the audit row
+  // carries NO publication authority. The DB default status is not changed.
+  const lifecycleDealer = isDraftLifecycleDealer(dealer);
+  const lifecycleCounts = { drafts_inserted: 0, drafts_resurrected: 0, events_written: 0, event_write_errors: 0, audit_failures: [], clean: true };
+  // A draft transition whose audit row is missing is NOT a clean run (Chief 2026-09-24):
+  // the unit stays draft (publication safety wins; nothing is undone), but the run
+  // counts an error and names the affected stock in the log and the returned result.
+  function recordAuditFailure(stock, eventType, message) {
+    lifecycleCounts.audit_failures.push({ stock, dealer, event_type: eventType, message });
+    lifecycleCounts.clean = false;
+    errors++;
+    console.error(`[LIFECYCLE-AUDIT-FAILURE] ${eventType} stock=${stock} dealer=${dealer}: ${message} — unit remains draft; lifecycle audit row MISSING`);
+  }
+  async function writeLifecycleEvent(ev) {
+    const row = Object.assign({ to_state: 'draft', actor: 'sync-truckpaper-background' }, ev);
+    const { error: evErr } = await supabase.from('unit_lifecycle_event').insert([row]);
+    if (evErr) {
+      lifecycleCounts.event_write_errors++;
+      recordAuditFailure(row.stock, row.event_type, evErr.message);
+    } else {
+      lifecycleCounts.events_written++;
+      console.log(`[LIFECYCLE-EVENT] ${row.event_type} ${row.stock} (${row.dealer})`);
+    }
+  }
+
   // Pre-dedupe items by source_url. Same listing can appear twice if the
   // actor's stock-derivation falls back to listingId on one pass and reads
   // the dealer-style stock on another. Pick the best item per source_url.
@@ -826,7 +857,11 @@ exports.handler = async (event) => {
             : (isExisting
               ? (matchedExistingStock && incomingListingId ? 'update-by-listing-id' : 'update-by-stock')
               : 'insert');
-          dryRunLog.push({ path, stock, dealer, unit });
+          const dryEntry = { path, stock, dealer, unit };
+          if (lifecycleDealer && (path === 'insert' || path === 'resurrect')) {
+            dryEntry.lifecycle = { status: 'draft', event_type: path === 'insert' ? 'ingested_draft' : 'resurrected_draft' };
+          }
+          dryRunLog.push(dryEntry);
           if (isResurrection) resurrected++;
         } else if (isExisting) {
           // 2026-09-16 IDENTITY GUARD. Once a row exists and is recognized as that row
@@ -905,14 +940,37 @@ exports.handler = async (event) => {
             // Guards, all four required together: the stable listing id, this
             // dealer, sold=true, and sold_type='feed_removed'. A genuine sale or a
             // 'dedup_hidden' row therefore cannot be revived by this path.
-            const revived = Object.assign({}, unit, { sold: false, sold_type: null });
-            result = await supabase.from('inventory').update(revived)
+            // S1: a lifecycle dealer's resurrected row re-enters as DRAFT.
+            const revived = Object.assign({}, unit, { sold: false, sold_type: null }, lifecycleDealer ? { status: 'draft' } : {});
+            let resurrectQuery = supabase.from('inventory').update(revived)
               .eq('source_listing_id', incomingListingId)
               .eq('dealer', dealer)
               .eq('sold', true)
               .eq('sold_type', 'feed_removed');
+            if (lifecycleDealer) resurrectQuery = resurrectQuery.select('stock');
+            result = await resurrectQuery;
             if (!(result && result.error)) resurrected++;
             console.log(`D1 RESURRECT ${matchedExistingStock} listing_id=${incomingListingId} ${dealer}`);
+            if (lifecycleDealer && !(result && result.error)) {
+              const revivedRows = Array.isArray(result.data) ? result.data : [];
+              if (revivedRows.length === 1) {
+                lifecycleCounts.drafts_resurrected++;
+                await writeLifecycleEvent({
+                  stock: revivedRows[0].stock, dealer, event_type: 'resurrected_draft', from_state: 'feed_removed',
+                  reason: 'receiver_resurrect', source: unit.source_type || 'unknown',
+                  evidence: { dataset_id: datasetId, actor_run_id: actorRunId || null, source_listing_id: String(incomingListingId), source_url: unit.source_url || null },
+                });
+              } else if (revivedRows.length > 1) {
+                // More than one row became draft for one listing id: each is a draft
+                // transition without a single unambiguous audit row → audit failure.
+                for (const r of revivedRows) {
+                  lifecycleCounts.drafts_resurrected++;
+                  recordAuditFailure(r.stock, 'resurrected_draft', `ambiguous resurrection: ${revivedRows.length} rows revived for listing_id=${incomingListingId}; no event written`);
+                }
+              } else {
+                console.warn(`[LIFECYCLE-RESURRECT-UNCONFIRMED] listing_id=${incomingListingId} ${dealer}: 0 rows returned; no transition, no event written`);
+              }
+            }
           } else if (matchedExistingStock && incomingListingId) {
             // Match by source_listing_id (stable Sandhills ID, robust against stock-derivation changes)
             result = await supabase.from('inventory').update(unit).eq('source_listing_id', incomingListingId).eq('dealer', dealer).eq('sold', false);
@@ -925,7 +983,16 @@ exports.handler = async (event) => {
           // a pasted digit string) is not a VIN. On INSERT store NULL rather than the placeholder; the UPDATE path
           // already refuses to overwrite a valid stored VIN with an invalid incoming one (guard above).
           if (unit.vin !== undefined && unit.vin !== null && !isValidVin(unit.vin)) unit.vin = null;
-          result = await supabase.from('inventory').insert([unit]);
+          // S1: a lifecycle dealer's NEW row is INSERTed as DRAFT (never via the DB default).
+          result = await supabase.from('inventory').insert([lifecycleDealer ? Object.assign({}, unit, { status: 'draft' }) : unit]);
+          if (lifecycleDealer && !(result && result.error)) {
+            lifecycleCounts.drafts_inserted++;
+            await writeLifecycleEvent({
+              stock, dealer, event_type: 'ingested_draft', from_state: null,
+              reason: 'receiver_insert', source: unit.source_type || 'unknown',
+              evidence: { dataset_id: datasetId, actor_run_id: actorRunId || null, source_listing_id: incomingListingId ? String(incomingListingId) : null, source_url: unit.source_url || null },
+            });
+          }
         }
         const { error } = result || {};
 
@@ -1001,6 +1068,12 @@ exports.handler = async (event) => {
   }
 
   const result = { synced, errors, resurrected, markedSold, total: items.length, dealer };
+  if (lifecycleDealer && !dryRun) {
+    result.lifecycle = lifecycleCounts;
+    if (!lifecycleCounts.clean) {
+      console.error(`[LIFECYCLE-RUN-NOT-CLEAN] ${dealer}: lifecycle audit missing for ${lifecycleCounts.audit_failures.map(f => f.stock).join(', ')}`);
+    }
+  }
   if (dryRun) {
     result.dryRun = true;
     result.dryRunLog = dryRunLog;
