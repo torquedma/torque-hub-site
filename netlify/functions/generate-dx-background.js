@@ -1,6 +1,7 @@
 const { createClient } = require('@supabase/supabase-js');
 const { generateDescription } = require('./lib/generate-description.generated');
 const { checkPublicationEligibility } = require('./lib/publication-eligibility');
+const { dxMayPromoteDraft } = require('./lib/draft-lifecycle-dealers');
 
 exports.handler = async (event) => {
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
@@ -112,6 +113,9 @@ exports.handler = async (event) => {
   // Lifecycle counters — legacy NULL rows use the pre-existing counters above.
   let lifecycle_complete = 0, lifecycle_hold_validation = 0,
       lifecycle_hold_evidence = 0, lifecycle_retryable = 0;
+  // S2 (2026-09-24): drafts whose DX was written but whose promotion was
+  // withheld because the dealer is on the Draft-to-Live lifecycle.
+  let draft_promotion_withheld = 0;
 
   // Dealer allowlist for publication eligibility. dealers.name is UNIQUE and
   // is the same relationship inventory_public_detail uses; inventory has no
@@ -200,7 +204,11 @@ exports.handler = async (event) => {
           completion_attempted_at: nowIso,
         };
         if (gate.eligible) {
-          if (unit.status === 'draft') payload.status = 'published';
+          // S2: Draft-to-Live lifecycle dealers are never promoted by DX.
+          if (unit.status === 'draft') {
+            if (dxMayPromoteDraft(unit)) payload.status = 'published';
+            else { draft_promotion_withheld++; console.log(`[DRAFT-LIFECYCLE-NO-PROMOTE] ${unit.stock} (${unit.dealer}) — DX written; status stays draft`); }
+          }
           payload.completion_state = 'complete';
           payload.completion_reason = null;
         } else {
@@ -306,7 +314,11 @@ exports.handler = async (event) => {
         description_source: 'torque_hub_dx',
         description_generated_at: new Date().toISOString(),
       };
-      if (unit.status === 'draft') payload.status = 'published';
+      // S2: Draft-to-Live lifecycle dealers are never promoted by DX.
+      if (unit.status === 'draft') {
+        if (dxMayPromoteDraft(unit)) payload.status = 'published';
+        else { draft_promotion_withheld++; console.log(`[DRAFT-LIFECYCLE-NO-PROMOTE] ${unit.stock} (${unit.dealer}) — DX written; status stays draft`); }
+      }
 
       const { error: writeError } = await supabase
         .from('inventory')
@@ -332,7 +344,7 @@ exports.handler = async (event) => {
     }
   }
 
-  const summary = { total_candidates, processed, skipped_error, skipped_insufficient_evidence, lifecycle_complete, lifecycle_hold_validation, lifecycle_hold_evidence, lifecycle_retryable, limit_applied: stocksList ? 'n/a (stocks mode)' : (limit ?? 'none'), stocks_requested: stocksList ? stocksList.length : null, stock_filter: stocksList ? stocksList : stockParam, force: forceAll };
+  const summary = { total_candidates, processed, skipped_error, skipped_insufficient_evidence, lifecycle_complete, lifecycle_hold_validation, lifecycle_hold_evidence, lifecycle_retryable, draft_promotion_withheld, limit_applied: stocksList ? 'n/a (stocks mode)' : (limit ?? 'none'), stocks_requested: stocksList ? stocksList.length : null, stock_filter: stocksList ? stocksList : stockParam, force: forceAll };
   console.log('generate-dx-background complete:', JSON.stringify(summary));
   return { statusCode: 200, body: JSON.stringify(summary) };
 };
