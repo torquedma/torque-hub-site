@@ -82,6 +82,7 @@ export const CANONICAL_SUBCATEGORIES = new Set([
   'Air Compressor',
   'Motor Grader',
   'Backhoe Attachment',
+  'Skid Steer Attachment',
   'Crawler Loader',
   'Tractor',
   'Lawn Tractor',

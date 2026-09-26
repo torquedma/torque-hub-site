@@ -48,6 +48,7 @@ const SUBCATEGORY_PARENT = Object.freeze({
   "Scissor Lift": "Construction",
   "Service Truck": "Trucks",
   "Skid Steer": "Construction",
+  "Skid Steer Attachment": "Construction",
   "Sleeper Tractor": "Trucks",
   "Tractor": "Farm",
   "Utility Trailer": "Trailers",

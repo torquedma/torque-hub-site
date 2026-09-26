@@ -238,6 +238,10 @@
   function = "category"
 
 [[edge_functions]]
+  path = "/skid-steer-attachments-for-sale"
+  function = "category"
+
+[[edge_functions]]
   path = "/loaders-for-sale"
   function = "category"
 

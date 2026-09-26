@@ -192,6 +192,7 @@ window.InventoryEngine = (function () {
     'Construction': [
       { label: 'Skid Steers', kw: 'skid', subs: ['Skid Steer', 'Compact Track Loader', 'Mini Skid Steer', 'Track Skid Steer', 'Wheel Skid Steer'], slug: 'skid-steers-for-sale', ssr: true },
       { label: 'Mini Skid Steers', kw: 'mini skid steer', subs: ['Mini Skid Steer'], slug: 'mini-skid-steers-for-sale', ssr: true },
+      { label: 'Skid Steer Attachments', kw: 'skid steer attachment', subs: ['Skid Steer Attachment'], slug: 'skid-steer-attachments-for-sale', ssr: true },
       { label: 'Excavators', kw: 'excavator', subs: ['Excavator', 'Crawler Excavator', 'Mini Excavator'], slug: 'excavators-for-sale', ssr: true },
       { label: 'Mini Excavators', kw: 'mini excavator', subs: ['Mini Excavator'], slug: 'mini-excavators-for-sale', ssr: true },
       { label: 'Loaders', kw: 'loader', subs: ['Wheel Loader', 'Crawler Loader'], slug: 'loaders-for-sale', ssr: true },

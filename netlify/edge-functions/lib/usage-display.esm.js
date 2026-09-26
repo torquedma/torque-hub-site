@@ -122,7 +122,8 @@ const SUPPRESS_BOTH = new Set([
   'Belt Trailer',
   'Boat',
   'Engine',
-  'Truck Body'
+  'Truck Body',
+  'Skid Steer Attachment'
 ]);
 
 export function normalizeSubcategory(unit) {

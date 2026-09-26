@@ -58,9 +58,10 @@ const TAXONOMY_DATA = [
   { category: 'Trailers', slug: 'hopper-bottom-trailers-for-sale',   label: 'Hopper Bottom Trailers',   kw: 'hopper',          subs: ['Hopper Bottom Trailer'],   ssr: true },
   { category: 'Trailers', slug: 'belt-trailers-for-sale',            label: 'Belt Trailers',            kw: 'belt',            subs: ['Belt Trailer'],            ssr: true },
 
-  // ── Construction (8 SSR + 1 kw-only) ──
+  // ── Construction (9 SSR + 1 kw-only) ──
   { category: 'Construction', slug: 'skid-steers-for-sale',      label: 'Skid Steers',      kw: 'skid',            subs: ['Skid Steer', 'Compact Track Loader', 'Mini Skid Steer'],                                         ssr: true },
   { category: 'Construction', slug: 'mini-skid-steers-for-sale', label: 'Mini Skid Steers', kw: 'mini skid steer', subs: ['Mini Skid Steer'],                       ssr: true },
+  { category: 'Construction', slug: 'skid-steer-attachments-for-sale', label: 'Skid Steer Attachments', kw: 'skid steer attachment', subs: ['Skid Steer Attachment'], ssr: true },
   { category: 'Construction', slug: 'excavators-for-sale',       label: 'Excavators',       kw: 'excavator',       subs: ['Excavator', 'Crawler Excavator', 'Mini Excavator'], ssr: true },
   { category: 'Construction', slug: 'mini-excavators-for-sale',  label: 'Mini Excavators',  kw: 'mini excavator',  subs: ['Mini Excavator'],                        ssr: true },
   { category: 'Construction', slug: 'loaders-for-sale',          label: 'Loaders',          kw: 'loader',          subs: ['Wheel Loader', 'Crawler Loader'],        ssr: true },
