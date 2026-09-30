@@ -70,7 +70,7 @@ const TAXONOMY_DATA = [
   { category: 'Construction', slug: 'scissor-lifts-for-sale',    label: 'Scissor Lifts',    kw: 'scissor',         subs: ['Scissor Lift'],                          ssr: true  },
   { category: 'Construction', slug: 'backhoes',                  label: 'Backhoes',         kw: 'backhoe',         subs: [],                                        ssr: false },
 
-  // ── Farm (6 SSR + 4 kw-only) ──
+  // ── Farm (6 SSR + 5 kw-only) ──
   { category: 'Farm', slug: 'tractors-for-sale',       label: 'Tractors',         kw: 'tractor',        subs: ['Tractor'],       ssr: true },
   { category: 'Farm', slug: 'rotary-cutters-for-sale', label: 'Rotary Cutters',   kw: 'rotary',         subs: ['Rotary Cutter'], ssr: true },
   { category: 'Farm', slug: 'boom-mowers-for-sale',    label: 'Boom Mowers',      kw: 'boom mower',     subs: ['Boom Mower'],    ssr: true },
@@ -81,6 +81,7 @@ const TAXONOMY_DATA = [
   { category: 'Farm', slug: 'utility-vehicles-for-sale', label: 'Utility Vehicles', kw: 'utility vehicle', subs: ['Utility Vehicle'], ssr: true  },
   { category: 'Farm', slug: 'harrows',                 label: 'Harrows',          kw: 'harrow',         subs: [],                ssr: false },
   { category: 'Farm', slug: 'disks',                   label: 'Disks',            kw: 'disk',           subs: [],                ssr: false },
+  { category: 'Farm', slug: 'grain-drills', label: 'Grain Drills', kw: 'grain drill', subs: ['Grain Drill'], ssr: false },
 
   // ── Landscape (2 SSR + 4 kw-only) ──
   { category: 'Landscape', slug: 'zero-turn-mowers-for-sale', label: 'Zero Turn Mowers',     kw: 'zero turn',    subs: ['Zero Turn Mower'], ssr: true },
