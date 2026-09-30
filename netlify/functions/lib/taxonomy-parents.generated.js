@@ -30,6 +30,7 @@ const SUBCATEGORY_PARENT = Object.freeze({
   "Flatbed Truck": "Trucks",
   "Forklift": "Construction",
   "Gooseneck Trailer": "Trailers",
+  "Grain Drill": "Farm",
   "Grain Dump Truck": "Trucks",
   "Hay Rake": "Farm",
   "Hopper Bottom Trailer": "Trailers",

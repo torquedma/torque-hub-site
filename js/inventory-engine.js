@@ -211,7 +211,8 @@ window.InventoryEngine = (function () {
       { label: 'Field Mowers', kw: 'field mower', slug: 'field-mowers' },
       { label: 'Utility Vehicles', kw: 'utility vehicle', slug: 'utility-vehicles-for-sale' },
       { label: 'Harrows', kw: 'harrow', slug: 'harrows' },
-      { label: 'Disks', kw: 'disk', slug: 'disks' }
+      { label: 'Disks', kw: 'disk', slug: 'disks' },
+      { label: 'Grain Drills', kw: 'grain drill', slug: 'grain-drills' }
     ],
     'Landscape': [
       { label: 'Zero Turn Mowers', kw: 'zero turn', subs: ['Zero Turn Mower'], slug: 'zero-turn-mowers-for-sale', ssr: true },
