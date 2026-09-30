@@ -378,6 +378,32 @@ function deriveSubcategory(item) {
   return '';
 }
 
+// Category for a unit from its (canonical) subcategory, make and raw feed item.
+// Earlier rules win; the raw source category is only a fallback.
+function deriveCategory(sub, make, item) {
+  const subLower = (sub || '').toLowerCase();
+  const CONSTRUCTION_SUBS = ['skid steer','excavator','wheel loader','crawler dozer','forklift','scissor lift','boom lift','air compressor','mini dumper','crane','backhoe','telehandler','grader','asphalt'];
+  const FARM_SUBS = ['utility vehicle','tractor','mower','hay','baler','tedder','rake','planter','combine','sprayer','tillage'];
+  let derivedCategory;
+  if (subLower.includes('trailer')) derivedCategory = 'Trailers';
+  else if (['suv','sedan','coupe','classic car','motorcycle','engine','power plant','boat'].some(function(k){ return subLower.includes(k); })) derivedCategory = 'Other';
+  else if (subLower.includes('day cab') || subLower.includes('sleeper')) derivedCategory = 'Trucks';
+  else if (subLower.includes('crane') && (function(){ const mn = (make || '').toLowerCase().replace(/[\s-]+/g,''); return KNOWN_EQUIPMENT_CRANE_MAKES.some(function(em){ return mn === em.replace(/[\s-]+/g,''); }); }())) derivedCategory = 'Construction';
+  else if (subLower.includes('crane')) derivedCategory = 'Trucks';
+  else if (CONSTRUCTION_SUBS.some(function(k){ return subLower.includes(k); })) derivedCategory = 'Construction';
+  else if (FARM_SUBS.some(function(k){ return subLower.includes(k); })) derivedCategory = 'Farm';
+  else if (subLower === 'truck body') derivedCategory = 'Other';
+  // Canonical parent beats a contradictory source category, for any dealer: when the canonical
+  // subcategory has a parent in js/taxonomy-data.js (parentOf), that parent is the category.
+  // 2026-09-24 (Allied): 24 rows carried Dump/Flatbed/Box/Service Truck, Cab & Chassis and
+  // Yard Spotter under a raw 'Trailers'; 2026-09-30 (Chief): generalized to every parent (Farm Disk).
+  else if (parentOf(sub)) derivedCategory = parentOf(sub);
+  else if (item.category) derivedCategory = item.category;
+  else derivedCategory = 'Trucks';
+  return derivedCategory;
+}
+exports.deriveCategory = deriveCategory;
+
 
 // 2026-09-04 INVENTORY AUTHORITY FREEZE. The marketplace-feed (and Mid-Atlantic
 // dealer-site) actors have been shown to return incomplete populations that the
@@ -735,25 +761,7 @@ exports.handler = async (event) => {
         if ((BODY_MAKERS.has(_mk) && /^[0-9]+\.?[0-9]* ?ft\b/i.test(_md)) || /\bbody\b/i.test(_md)) {
           sub = 'Truck Body';
         }
-        const subLower = (sub || '').toLowerCase();
-        const CONSTRUCTION_SUBS = ['skid steer','excavator','wheel loader','crawler dozer','forklift','scissor lift','boom lift','air compressor','mini dumper','crane','backhoe','telehandler','grader','asphalt'];
-        const FARM_SUBS = ['utility vehicle','tractor','mower','hay','baler','tedder','rake','planter','combine','sprayer','tillage'];
-        let derivedCategory;
-        if (subLower.includes('trailer')) derivedCategory = 'Trailers';
-        else if (['suv','sedan','coupe','classic car','motorcycle','engine','power plant','boat'].some(function(k){ return subLower.includes(k); })) derivedCategory = 'Other';
-        else if (subLower.includes('day cab') || subLower.includes('sleeper')) derivedCategory = 'Trucks';
-        else if (subLower.includes('crane') && (function(){ const mn = (make || '').toLowerCase().replace(/[\s-]+/g,''); return KNOWN_EQUIPMENT_CRANE_MAKES.some(function(em){ return mn === em.replace(/[\s-]+/g,''); }); }())) derivedCategory = 'Construction';
-        else if (subLower.includes('crane')) derivedCategory = 'Trucks';
-        else if (CONSTRUCTION_SUBS.some(function(k){ return subLower.includes(k); })) derivedCategory = 'Construction';
-        else if (FARM_SUBS.some(function(k){ return subLower.includes(k); })) derivedCategory = 'Farm';
-        else if (subLower === 'truck body') derivedCategory = 'Other';
-        // 2026-09-24 (Allied taxonomy defect): a canonical truck subcategory's parent is 'Trucks'
-        // per js/taxonomy-data.js. A raw source category (Allied's direct site sends 'Trailers')
-        // must not override it — 24 Allied rows carried Dump/Flatbed/Box/Service Truck,
-        // Cab & Chassis and Yard Spotter under 'Trailers'.
-        else if (parentOf(sub) === 'Trucks') derivedCategory = 'Trucks';
-        else if (item.category) derivedCategory = item.category;
-        else derivedCategory = 'Trucks';
+        const derivedCategory = deriveCategory(sub, make, item);
         const unit = {
           stock, dealer,
           year: item.year ? String(item.year) : '',
