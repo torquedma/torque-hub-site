@@ -388,7 +388,7 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
     var params = new URLSearchParams(window.location.search);
     var cat    = params.get('cat');
     var sub    = params.get('sub') || params.get('type');
-    var dealer = params.get('dealer');
+    var dealer = params.get('seller') || params.get('dealer');
     var q         = params.get('q');
     var condition = params.get('condition');
     var sort      = params.get('sort');
@@ -412,12 +412,13 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
       var visibleAt = visEl ? visEl.querySelectorAll('.inv-card').length : 24;
       _saveInvScroll(visibleAt);
     }, true);
-    // ── Shareable seller links: ?dealer=<seller-slug> ──────────────────────
-    // The dropdown writes the seller's slug (e.g. ?dealer=allied-truck-trailer-sales).
-    // Incoming values resolve against the live #dealer-filter options, which are
-    // built from inventory data — no separate seller registry: exact seller value
-    // first (older links, homepage dealer cards, search, engine footer), then a
-    // unique case/punctuation-insensitive match. Either form is rewritten to the slug.
+    // ── Shareable seller links: ?seller=<seller-slug> ──────────────────────
+    // The dropdown writes the seller's slug (e.g. ?seller=allied-truck-trailer-sales).
+    // The older ?dealer= param (links already shared, homepage dealer cards, engine
+    // footer) is still read and rewritten to ?seller=. Incoming values resolve against
+    // the live #dealer-filter options, which are built from inventory data — no separate
+    // seller registry: exact seller value first, then a unique case/punctuation-
+    // insensitive match. Every resolved value is rewritten to the slug.
     var _sellerReady = false;
     function _sellerNorm(v) {
       return String(v).toLowerCase().replace(/['\u2019]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -442,17 +443,19 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
     }
     function _sellerUrl(key) {
       var u = new URL(window.location.href);
-      if (key) u.searchParams.set('dealer', _sellerParam(key)); else u.searchParams.delete('dealer');
+      u.searchParams.delete('dealer');
+      if (key) u.searchParams.set('seller', _sellerParam(key)); else u.searchParams.delete('seller');
       return u.pathname + u.search + u.hash;
     }
     // URL -> dropdown. Unknown / removed / malformed values fall back to
     // All Sellers and are dropped from the address bar; resolved values are
     // rewritten to the canonical slug. Other query params are untouched.
     function _syncSellerFromUrl() {
-      var raw = new URLSearchParams(window.location.search).get('dealer');
+      var sp = new URLSearchParams(window.location.search);
+      var raw = sp.has('seller') ? sp.get('seller') : sp.get('dealer');
       var key = _resolveSeller(raw);
       document.getElementById('dealer-filter').value = key;
-      if (raw !== null && (!key || raw !== _sellerParam(key))) history.replaceState(history.state, '', _sellerUrl(key));
+      if (raw !== null && (!key || sp.has('dealer') || raw !== _sellerParam(key))) history.replaceState(history.state, '', _sellerUrl(key));
     }
     // Dropdown -> URL: one history entry per seller change.
     window.onSellerChange = function () {
@@ -614,7 +617,7 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
       if (type==='units'||type==='stock') window.location.href='vehicle.html?stock='+encodeURIComponent(item.unit.stock);
       else if (type==='make') { document.getElementById('inv-search').value=item.make; applyFilters(); }
       else if (type==='category') window.location.href=(item.tile.ssr?'/'+item.tile.slug:'/inventory.html?type='+item.tile.slug);
-      else if (type==='dealer')   window.location.href='/inventory.html?dealer='+encodeURIComponent(item.dealer.key);
+      else if (type==='dealer')   window.location.href='/inventory.html?seller='+encodeURIComponent(item.dealer.key);
     });
 
     window.clearFilters   = function() {
