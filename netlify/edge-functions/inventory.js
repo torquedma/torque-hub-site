@@ -172,6 +172,11 @@ export default async function handler(request, context) {
   const response = await context.next();
 
   try {
+    // Seller links (?dealer=...) skip SSR: the injected grid is the all-seller
+    // "Recently Added" view, which would flash other sellers' units before the
+    // client renders the seller-filtered grid.
+    if (new URL(request.url).searchParams.get('dealer')) return response;
+
     // Clone before reading — the original body must stay unconsumed so `return response`
     // in any error branch still delivers an intact page.
     const html = await response.clone().text();

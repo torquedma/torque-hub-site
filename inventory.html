@@ -281,7 +281,7 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
             <input type="text" id="inv-search" placeholder="Search year, make, model, stock..." oninput="applyFilters()" style="width:100%;min-width:0;" />
             <div id="inv-suggestions" class="search-suggestions" hidden></div>
           </div>
-          <select id="dealer-filter" onchange="applyFilters()">
+          <select id="dealer-filter" onchange="onSellerChange()">
             <option value="">All Sellers</option>
           </select>
           <select id="condition-filter" onchange="applyFilters()">
@@ -394,12 +394,14 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
     var sort      = params.get('sort');
 
     // ── Scroll restoration on return from VDP ──────────────────────────────
+    // INV_SIG = URL state this page loaded with; the saved signature is taken at
+    // save time because seller selection now rewrites the URL in-page.
     var INV_SIG = location.search || '';
     function _saveInvScroll(visibleAt) {
       try {
         sessionStorage.setItem('inv_scroll_y', String(window.scrollY));
         sessionStorage.setItem('inv_visible_count', String(visibleAt));
-        sessionStorage.setItem('inv_sig', INV_SIG);
+        sessionStorage.setItem('inv_sig', location.search || '');
       } catch (e) {}
     }
     // Save on any card click that leads to a VDP
@@ -410,6 +412,51 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
       var visibleAt = visEl ? visEl.querySelectorAll('.inv-card').length : 24;
       _saveInvScroll(visibleAt);
     }, true);
+    // ── Shareable seller links: ?dealer=<seller> ───────────────────────────
+    // Contract = the existing ?dealer= param (also emitted by the homepage
+    // dealer cards, search suggestions and engine footer). Values resolve
+    // against the live #dealer-filter options, which are built from inventory
+    // data — no separate seller registry. Exact value first; then a unique
+    // case/punctuation-insensitive match (e.g. ?dealer=the-trailer-source).
+    var _sellerReady = false;
+    function _sellerNorm(v) {
+      return String(v).toLowerCase().replace(/['\u2019]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    }
+    function _resolveSeller(raw) {
+      var v = String(raw == null ? '' : raw).trim();
+      if (!v) return '';
+      var vals = Array.prototype.map.call(document.getElementById('dealer-filter').options,
+        function (o) { return o.value; }).filter(Boolean);
+      if (vals.indexOf(v) !== -1) return v;
+      var n = _sellerNorm(v);
+      var hits = n ? vals.filter(function (x) { return _sellerNorm(x) === n; }) : [];
+      return hits.length === 1 ? hits[0] : '';
+    }
+    function _sellerUrl(key) {
+      var u = new URL(window.location.href);
+      if (key) u.searchParams.set('dealer', key); else u.searchParams.delete('dealer');
+      return u.pathname + u.search + u.hash;
+    }
+    // URL -> dropdown. Unknown / removed / malformed values fall back to
+    // All Sellers and are dropped from the address bar; tolerant matches are
+    // rewritten to the exact seller value. Other query params are untouched.
+    function _syncSellerFromUrl() {
+      var raw = new URLSearchParams(window.location.search).get('dealer');
+      var key = _resolveSeller(raw);
+      document.getElementById('dealer-filter').value = key;
+      if (raw !== null && (!key || raw !== key)) history.replaceState(history.state, '', _sellerUrl(key));
+    }
+    // Dropdown -> URL: one history entry per seller change.
+    window.onSellerChange = function () {
+      history.pushState(null, '', _sellerUrl(document.getElementById('dealer-filter').value));
+      InventoryEngine.applyFilters();
+    };
+    window.addEventListener('popstate', function () {
+      if (!_sellerReady) return;
+      _syncSellerFromUrl();
+      InventoryEngine.applyFilters();
+    });
+
     // Also save on history navigation away
     window.addEventListener('pagehide', function () {
       var visEl = document.getElementById('inventory-grid');
@@ -423,7 +470,8 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
       if (q)         document.getElementById('inv-search').value = q;
       if (condition) document.getElementById('condition-filter').value = condition;
       if (sort)      document.getElementById('sort-filter').value = sort;
-      if (dealer)    document.getElementById('dealer-filter').value = dealer;
+      _syncSellerFromUrl();
+      _sellerReady = true;
       if (cat || sub) {
         InventoryEngine.filterByCatSub(cat || '', sub || '');
       } else if (q || condition || sort || dealer) {
