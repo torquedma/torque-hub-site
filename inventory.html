@@ -278,18 +278,18 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
 
         <div class="filter-row">
           <div class="search-suggestions-wrap" style="flex:1;min-width:220px;">
-            <input type="text" id="inv-search" placeholder="Search year, make, model, stock..." oninput="applyFilters()" style="width:100%;min-width:0;" />
+            <input type="text" id="inv-search" placeholder="Search year, make, model, stock..." oninput="onSearchInput()" style="width:100%;min-width:0;" />
             <div id="inv-suggestions" class="search-suggestions" hidden></div>
           </div>
           <select id="dealer-filter" onchange="onSellerChange()">
             <option value="">All Sellers</option>
           </select>
-          <select id="condition-filter" onchange="applyFilters()">
+          <select id="condition-filter" onchange="onFilterChange()">
             <option value="">All Conditions</option>
             <option value="Used">Used</option>
             <option value="New">New</option>
           </select>
-          <select id="sort-filter" onchange="applyFilters()"></select>
+          <select id="sort-filter" onchange="onFilterChange()"></select>
         </div>
 
         <div class="chip-row">
@@ -349,7 +349,8 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
     </a>
   </nav>
 
-  <!-- Defer order is execution order: taxonomy → usage-display → card-facts → title-helpers → inventory-engine. -->
+  <!-- Defer order is execution order: taxonomy-data (module) → taxonomy → usage-display → card-facts → title-helpers → inventory-engine. -->
+  <script type="module" src="/js/taxonomy-data.js"></script>
   <script src="/js/taxonomy.browser.js" defer></script>
   <script src="/js/usage-display.browser.js" defer></script>
   <script src="/js/card-facts.browser.js" defer></script>
@@ -385,13 +386,12 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
       }
     });
 
+    // Legacy ?type=<SSR tile slug> → that tile's own leaf route.
     var params = new URLSearchParams(window.location.search);
-    var cat    = params.get('cat');
-    var sub    = params.get('sub') || params.get('type');
-    var dealer = params.get('seller') || params.get('dealer');
-    var q         = params.get('q');
-    var condition = params.get('condition');
-    var sort      = params.get('sort');
+    if (params.get('type') && !params.get('sub')) {
+      var _legacyTile = InventoryEngine.findTileBySlug(params.get('type'));
+      if (_legacyTile && _legacyTile.tile.ssr) { location.replace('/' + _legacyTile.tile.slug); return; }
+    }
 
     // ── Scroll restoration on return from VDP ──────────────────────────────
     // INV_SIG = URL state this page loaded with; the saved signature is taken at
@@ -412,59 +412,86 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
       var visibleAt = visEl ? visEl.querySelectorAll('.inv-card').length : 24;
       _saveInvScroll(visibleAt);
     }, true);
-    // ── Shareable seller links: ?seller=<seller-slug> ──────────────────────
-    // The dropdown writes the seller's slug (e.g. ?seller=allied-truck-trailer-sales).
-    // The older ?dealer= param (links already shared, homepage dealer cards, engine
-    // footer) is still read and rewritten to ?seller=. Incoming values resolve against
-    // the live #dealer-filter options, which are built from inventory data — no separate
-    // seller registry: exact seller value first, then a unique case/punctuation-
-    // insensitive match. Every resolved value is rewritten to the slug.
-    var _sellerReady = false;
-    function _sellerNorm(v) {
-      return String(v).toLowerCase().replace(/['\u2019]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-    }
+    // ── Shareable inventory state ──────────────────────────────────────────
+    // The address bar carries the current filter state in the canonical form built by
+    // InventoryEngine.inventoryUrl(): seller, cat, sub, q, condition, sort. Older forms
+    // are still read and rewritten in place: ?dealer=<name|slug> → ?seller=<slug>;
+    // ?type=<tile slug> → ?cat=&sub= (SSR tiles redirect to their route above); an old
+    // homepage "Other" ?type= slug → ?cat=Other&sub=<subcategory>. Unknown sellers,
+    // categories, conditions and sorts fall back to their defaults. Query params this
+    // page does not own (utm_*, fbclid, audit …) are left untouched.
+    var OWNED = ['seller', 'dealer', 'cat', 'sub', 'type', 'q', 'condition', 'sort'];
+    var _stateReady = false;
     function _resolveSeller(raw) {
       var v = String(raw == null ? '' : raw).trim();
       if (!v) return '';
       var vals = Array.prototype.map.call(document.getElementById('dealer-filter').options,
         function (o) { return o.value; }).filter(Boolean);
       if (vals.indexOf(v) !== -1) return v;
-      var n = _sellerNorm(v);
-      var hits = n ? vals.filter(function (x) { return _sellerNorm(x) === n; }) : [];
+      var n = InventoryEngine.sellerSlug(v);
+      var hits = n ? vals.filter(function (x) { return InventoryEngine.sellerSlug(x) === n; }) : [];
       return hits.length === 1 ? hits[0] : '';
     }
-    // Canonical URL value = the seller's slug; the exact seller value is used
-    // instead if two live sellers ever share a slug.
-    function _sellerParam(key) {
-      var n = _sellerNorm(key);
-      var same = Array.prototype.filter.call(document.getElementById('dealer-filter').options,
-        function (o) { return o.value && _sellerNorm(o.value) === n; });
-      return n && same.length === 1 ? n : key;
+    function _selectOrDefault(id, raw, dflt) {
+      var el = document.getElementById(id), v = raw == null ? dflt : String(raw);
+      el.value = v;
+      if (el.value !== v) el.value = dflt;
     }
-    function _sellerUrl(key) {
-      var u = new URL(window.location.href);
-      u.searchParams.delete('dealer');
-      if (key) u.searchParams.set('seller', _sellerParam(key)); else u.searchParams.delete('seller');
+    function _resolveLegacyType(t) {
+      var hit = InventoryEngine.findTileBySlug(t);
+      if (hit) return { cat: hit.cat, sub: hit.tile.kw };
+      var MAIN = InventoryEngine.MAIN_CATS, found = '';
+      InventoryEngine.ALL_INV.forEach(function (u) {
+        if (found || MAIN.indexOf(u.category || '') !== -1) return;
+        var label = (u.subcategory || u.category || '').trim();
+        if (label && label.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') === t) found = label;
+      });
+      return found ? { cat: 'Other', sub: found } : null;
+    }
+    // URL → filter controls; returns the category state for the caller to apply.
+    function _readUrlState() {
+      var sp = new URLSearchParams(window.location.search);
+      document.getElementById('dealer-filter').value = _resolveSeller(sp.has('seller') ? sp.get('seller') : sp.get('dealer'));
+      document.getElementById('inv-search').value = sp.get('q') || '';
+      _selectOrDefault('condition-filter', sp.get('condition'), '');
+      _selectOrDefault('sort-filter', sp.get('sort'), 'created-desc');
+      var c = sp.get('cat') || '', s = sp.get('sub') || '';
+      if (!s && sp.get('type')) { var lt = _resolveLegacyType(sp.get('type')); if (lt) { c = lt.cat; s = lt.sub; } }
+      var cats = InventoryEngine.MAIN_CATS.concat(['Other']);
+      var ci = cats.map(function (x) { return x.toLowerCase(); }).indexOf(c.toLowerCase());
+      return { cat: ci === -1 ? '' : cats[ci], sub: s };
+    }
+    // Filter controls + category state → canonical URL (params this page does not own are kept).
+    function _stateUrl() {
+      var st = InventoryEngine.getState();
+      var canon = new URL(InventoryEngine.inventoryUrl({
+        seller:    document.getElementById('dealer-filter').value,
+        cat:       st.cat,
+        sub:       st.sub,
+        q:         document.getElementById('inv-search').value.trim(),
+        condition: document.getElementById('condition-filter').value,
+        sort:      document.getElementById('sort-filter').value
+      }), location.origin);
+      var u = new URL(location.href);
+      OWNED.forEach(function (k) { u.searchParams.delete(k); });
+      canon.searchParams.forEach(function (v, k) { u.searchParams.append(k, v); });
       return u.pathname + u.search + u.hash;
     }
-    // URL -> dropdown. Unknown / removed / malformed values fall back to
-    // All Sellers and are dropped from the address bar; resolved values are
-    // rewritten to the canonical slug. Other query params are untouched.
-    function _syncSellerFromUrl() {
-      var sp = new URLSearchParams(window.location.search);
-      var raw = sp.has('seller') ? sp.get('seller') : sp.get('dealer');
-      var key = _resolveSeller(raw);
-      document.getElementById('dealer-filter').value = key;
-      if (raw !== null && (!key || sp.has('dealer') || raw !== _sellerParam(key))) history.replaceState(history.state, '', _sellerUrl(key));
+    // 'push' = one history entry (discrete changes); 'replace' = rewrite in place (typing, canonicalizing).
+    function _commitUrl(mode) {
+      if (!_stateReady) return;
+      var next = _stateUrl();
+      if (next === location.pathname + location.search + location.hash) return;
+      history[mode === 'push' ? 'pushState' : 'replaceState'](null, '', next);
     }
-    // Dropdown -> URL: one history entry per seller change.
-    window.onSellerChange = function () {
-      history.pushState(null, '', _sellerUrl(document.getElementById('dealer-filter').value));
-      InventoryEngine.applyFilters();
-    };
+    window.onSellerChange = function () { InventoryEngine.applyFilters(); _commitUrl('push'); };
+    window.onFilterChange = function () { InventoryEngine.applyFilters(); _commitUrl('push'); };
+    window.onSearchInput  = function () { InventoryEngine.applyFilters(); _commitUrl('replace'); };
     window.addEventListener('popstate', function () {
-      if (!_sellerReady) return;
-      _syncSellerFromUrl();
+      if (!_stateReady) return;
+      var st = _readUrlState();
+      InventoryEngine.setCatSub(st.cat, st.sub);
+      updateCatHubLink(st.cat);
       InventoryEngine.applyFilters();
     });
 
@@ -478,16 +505,16 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
 
     InventoryEngine.loadAll().then(function() {
       initDealerFilter();
-      if (q)         document.getElementById('inv-search').value = q;
-      if (condition) document.getElementById('condition-filter').value = condition;
-      if (sort)      document.getElementById('sort-filter').value = sort;
-      _syncSellerFromUrl();
-      _sellerReady = true;
-      if (cat || sub) {
-        InventoryEngine.filterByCatSub(cat || '', sub || '');
-      } else if (q || condition || sort || dealer) {
+      var _st = _readUrlState();
+      _stateReady = true;
+      updateCatHubLink(_st.cat);
+      if (_st.cat || _st.sub) {
+        InventoryEngine.filterByCatSub(_st.cat, _st.sub);
+      } else if (document.getElementById('dealer-filter').value || document.getElementById('inv-search').value ||
+                 document.getElementById('condition-filter').value || document.getElementById('sort-filter').value !== 'created-desc') {
         InventoryEngine.applyFilters();
       }
+      _commitUrl('replace');
 
       // Restore scroll position if we returned from a VDP on the same filter state
       try {
@@ -533,7 +560,7 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
         el.style.display = 'none';
       }
     }
-    window.setCat         = function(cat, el) { InventoryEngine.setCat(cat, el); updateCatHubLink(cat); };
+    window.setCat         = function(cat, el) { InventoryEngine.setCat(cat, el); updateCatHubLink(cat); _commitUrl('push'); };
     window.filterByCatSub = function(cat, sub) { InventoryEngine.filterByCatSub(cat, sub); };
     window.applyFilters   = function() { InventoryEngine.applyFilters(); };
     window.goToPage       = function(n) { InventoryEngine.goToPage(n); };
@@ -615,9 +642,9 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
 
     _initTypeahead('inv-search','inv-suggestions',function(type,item){
       if (type==='units'||type==='stock') window.location.href='vehicle.html?stock='+encodeURIComponent(item.unit.stock);
-      else if (type==='make') { document.getElementById('inv-search').value=item.make; applyFilters(); }
-      else if (type==='category') window.location.href=(item.tile.ssr?'/'+item.tile.slug:'/inventory.html?type='+item.tile.slug);
-      else if (type==='dealer')   window.location.href='/inventory.html?seller='+encodeURIComponent(item.dealer.key);
+      else if (type==='make') { document.getElementById('inv-search').value=item.make; applyFilters(); _commitUrl('push'); }
+      else if (type==='category') window.location.href=InventoryEngine.tileUrl(item.cat, item.tile);
+      else if (type==='dealer')   window.location.href=InventoryEngine.inventoryUrl({ seller: item.dealer.key });
     });
 
     window.clearFilters   = function() {
@@ -627,7 +654,6 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
       document.getElementById('sort-filter').value = 'created-desc';
       setCat('', document.querySelector('.chip-row .chip'));
       history.replaceState(null, '', '/inventory.html');
-      InventoryEngine.applyFilters();
     };
     });
   </script>

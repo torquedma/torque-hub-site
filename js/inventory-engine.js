@@ -153,77 +153,79 @@ window.InventoryEngine = (function () {
     'landscaper truck':      ['landscape truck']
   };
 
-  var CAT_SUBS = {
-    'Trucks': [
-      { label: 'Box Trucks', kw: 'box', subs: ['Box Truck'], slug: 'box-trucks-for-sale', ssr: true },
-      { label: 'Refrigerated Trucks', kw: 'refrigerated', subs: ['Refrigerated Truck'], slug: 'refrigerated-trucks-for-sale', ssr: true },
-      { label: 'Semi Trucks', kw: 'tractor', subs: ['Day Cab Tractor', 'Sleeper Tractor'], slug: 'semi-trucks-for-sale', ssr: true },
-      { label: 'Dump Trucks', kw: 'dump', subs: ['Dump Truck', 'Grain Dump Truck'], slug: 'dump-trucks-for-sale', ssr: true },
-      { label: 'Flatbed Trucks', kw: 'flatbed', subs: ['Flatbed Truck'], slug: 'flatbed-trucks-for-sale', ssr: true },
-      { label: 'Service Trucks', kw: 'service', subs: ['Service Truck'], slug: 'service-trucks-for-sale', ssr: true },
-      { label: 'Cab & Chassis Trucks', kw: 'chassis', subs: ['Cab & Chassis'], slug: 'cab-and-chassis-trucks-for-sale', ssr: true },
-      { label: 'Rollback Tow Trucks', kw: 'rollback', subs: ['Rollback Tow Truck'], slug: 'rollback-tow-trucks-for-sale', ssr: true },
-      { label: 'Boom Trucks', kw: 'boom', subs: ['Boom Truck'], slug: 'boom-trucks-for-sale', ssr: true },
-      { label: 'Vacuum Trucks', kw: 'vacuum', subs: ['Vacuum Truck'], slug: 'vacuum-trucks-for-sale', ssr: true },
-      { label: 'Landscape Trucks', kw: 'landscape truck', subs: ['Landscape Truck'], slug: 'landscape-trucks-for-sale', ssr: true },
-      { label: 'Yard Spotters', kw: 'spotter', subs: ['Yard Spotter'], slug: 'yard-spotters-for-sale', ssr: true },
-      { label: 'Car Carrier Trucks', kw: 'car carrier', subs: ['Car Carrier Truck'], slug: 'car-carrier-trucks-for-sale', ssr: true },
-      { label: 'Cargo Vans', kw: 'cargo van', subs: ['Cargo Van'], slug: 'cargo-vans-for-sale', ssr: true },
-      { label: 'Pickup Trucks',   kw: 'pickup',       slug: 'pickup-trucks-for-sale' },
-      { label: 'Bucket Trucks',   kw: 'bucket truck', subs: ['Bucket Truck'], slug: 'bucket-trucks-for-sale',   ssr: true },
-      { label: 'Roll-Off Trucks', kw: 'roll off',     subs: ['Roll-Off'],     slug: 'roll-off-trucks-for-sale', ssr: true }
-    ],
-    'Trailers': [
-      { label: 'Reefer Trailers', kw: 'reefer', subs: ['Reefer Trailer'], slug: 'reefer-trailers-for-sale', ssr: true },
-      { label: 'Dry Van Trailers', kw: 'dry van', subs: ['Dry Van Trailer'], slug: 'dry-van-trailers-for-sale', ssr: true },
-      { label: 'Flatbed Trailers', kw: 'flatbed', subs: ['Flatbed Trailer'], slug: 'flatbed-trailers-for-sale', ssr: true },
-      { label: 'Conestoga Trailers', kw: 'conestoga', subs: ['Conestoga Trailer'], slug: 'conestoga-trailers-for-sale', ssr: true },
-      { label: 'Equipment Trailers', kw: 'equipment', subs: ['Equipment Trailer'], slug: 'equipment-trailers-for-sale', ssr: true },
-      { label: 'Dump Trailers', kw: 'dump', subs: ['Dump Trailer'], slug: 'dump-trailers-for-sale', ssr: true },
-      { label: 'Enclosed Trailers', kw: 'enclosed', subs: ['Enclosed Trailer'], slug: 'enclosed-trailers-for-sale', ssr: true },
-      { label: 'Car Haulers', kw: 'car', subs: ['Car Hauler Trailer'], slug: 'car-hauler-trailers-for-sale', ssr: true },
-      { label: 'Race Trailers', kw: 'race trailer', subs: ['Race Trailer'], slug: 'race-trailers-for-sale', ssr: true },
-      { label: 'Living Quarters Trailers', kw: 'living quarters', subs: ['Living Quarters Trailer'], slug: 'living-quarters-trailers-for-sale', ssr: true },
-      { label: 'Gooseneck Trailers', kw: 'gooseneck', subs: ['Gooseneck Trailer'], slug: 'gooseneck-trailers-for-sale', ssr: true },
-      { label: 'Utility Trailers', kw: 'utility', subs: ['Utility Trailer'], slug: 'utility-trailers-for-sale', ssr: true },
-      { label: 'Deckover Trailers', kw: 'deckover', slug: 'deckover-trailers-for-sale' },
-      { label: 'Concession Trailers', kw: 'concession', slug: 'concession-trailers-for-sale' }
-    ],
-    'Construction': [
-      { label: 'Skid Steers', kw: 'skid', subs: ['Skid Steer', 'Compact Track Loader', 'Mini Skid Steer', 'Track Skid Steer', 'Wheel Skid Steer'], slug: 'skid-steers-for-sale', ssr: true },
-      { label: 'Mini Skid Steers', kw: 'mini skid steer', subs: ['Mini Skid Steer'], slug: 'mini-skid-steers-for-sale', ssr: true },
-      { label: 'Skid Steer Attachments', kw: 'skid steer attachment', subs: ['Skid Steer Attachment'], slug: 'skid-steer-attachments-for-sale', ssr: true },
-      { label: 'Excavators', kw: 'excavator', subs: ['Excavator', 'Crawler Excavator', 'Mini Excavator'], slug: 'excavators-for-sale', ssr: true },
-      { label: 'Mini Excavators', kw: 'mini excavator', subs: ['Mini Excavator'], slug: 'mini-excavators-for-sale', ssr: true },
-      { label: 'Loaders', kw: 'loader', subs: ['Wheel Loader', 'Crawler Loader'], slug: 'loaders-for-sale', ssr: true },
-      { label: 'Crane Trucks', kw: 'crane truck', subs: ['Crane Truck'], slug: 'crane-trucks-for-sale', ssr: true },
-      { label: 'Forklifts', kw: 'forklift', slug: 'forklifts-for-sale' },
-      { label: 'Backhoes', kw: 'backhoe', slug: 'backhoes' },
-      { label: 'Scissor Lifts', kw: 'scissor', slug: 'scissor-lifts-for-sale' }
-    ],
-    'Farm': [
-      { label: 'Tractors', kw: 'tractor', subs: ['Tractor'], slug: 'tractors-for-sale', ssr: true },
-      { label: 'Rotary Cutters', kw: 'rotary', subs: ['Rotary Cutter'], slug: 'rotary-cutters-for-sale', ssr: true },
-      { label: 'Boom Mowers', kw: 'boom mower', subs: ['Boom Mower'], slug: 'boom-mowers-for-sale', ssr: true },
-      { label: 'Drum Mowers', kw: 'drum mower', subs: ['Drum Mower'], slug: 'drum-mowers-for-sale', ssr: true },
-      { label: 'Hay Rakes', kw: 'hay rake', slug: 'hay-rakes-for-sale' },
-      { label: 'Balers', kw: 'baler', slug: 'balers' },
-      { label: 'Field Mowers', kw: 'field mower', slug: 'field-mowers' },
-      { label: 'Utility Vehicles', kw: 'utility vehicle', slug: 'utility-vehicles-for-sale' },
-      { label: 'Harrows', kw: 'harrow', slug: 'harrows' },
-      { label: 'Disks', kw: 'disk', slug: 'disks' },
-      { label: 'Grain Drills', kw: 'grain drill', slug: 'grain-drills' }
-    ],
-    'Landscape': [
-      { label: 'Zero Turn Mowers', kw: 'zero turn', subs: ['Zero Turn Mower'], slug: 'zero-turn-mowers-for-sale', ssr: true },
-      { label: 'Lawn Tractors', kw: 'lawn tractor', subs: ['Lawn Tractor'], slug: 'lawn-tractors-for-sale', ssr: true },
-      { label: 'Walk Behind Mowers', kw: 'walk behind', slug: 'walk-behind-mowers' },
-      { label: 'Front Mounted Mowers', kw: 'front mounted', slug: 'front-mounted-mowers' },
-      { label: 'Turf & Grounds Care', kw: 'turf', slug: 'turf-grounds-care' },
-      { label: 'Finish Mowers', kw: 'finish', slug: 'finish-mowers' }
-    ],
-    'Other': []
-  };
+  // Category tiles come from js/taxonomy-data.js (window.TAXONOMY_DATA), the canonical
+  // taxonomy source, loaded as a module on every page that loads this engine. Built on
+  // first use and only cached once the data is present: index.html loads this engine
+  // synchronously, before the module has run.
+  var _catSubs = null;
+  function catSubs() {
+    if (_catSubs) return _catSubs;
+    var data = window.TAXONOMY_DATA;
+    if (!Array.isArray(data) || !data.length) return { 'Other': [] };
+    var out = {};
+    (window.TAXONOMY_CATEGORY_ORDER || MAIN_CATS.concat(['Other'])).forEach(function (c) { out[c] = []; });
+    data.forEach(function (e) {
+      (out[e.category] = out[e.category] || []).push({ label: e.label, kw: e.kw, subs: e.subs || [], slug: e.slug, ssr: !!e.ssr });
+    });
+    return (_catSubs = out);
+  }
+
+  // ── Canonical buyer-facing inventory links — every page builds them here ──
+  //   seller:        /inventory.html?seller=<seller-slug>
+  //   main category: hub route (/trucks-for-sale …); Other → /inventory.html?cat=Other
+  //   SSR tile:      its leaf route (/<slug>)
+  //   non-SSR tile:  /inventory.html?cat=<Category>&sub=<tile kw>  (the tile's filter value)
+  //   other filters: q, condition, sort (sort omitted when it is the default)
+  function sellerSlug(name) {
+    return String(name || '').toLowerCase().replace(/['\u2019]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  }
+  // Canonical ?seller= value: the slug, or the exact seller value if two live sellers share a slug.
+  function sellerParam(name) {
+    var n = sellerSlug(name), seen = {}, same = 0;
+    ALL_INV.forEach(function (u) {
+      if (u.dealer && !seen[u.dealer]) { seen[u.dealer] = true; if (sellerSlug(u.dealer) === n) same++; }
+    });
+    return n && same <= 1 ? n : String(name);
+  }
+  function inventoryUrl(st) {
+    st = st || {};
+    var p = new URLSearchParams();
+    if (st.seller)    p.set('seller', sellerParam(st.seller));
+    if (st.cat)       p.set('cat', st.cat);
+    if (st.sub)       p.set('sub', st.sub);
+    if (st.q)         p.set('q', st.q);
+    if (st.condition) p.set('condition', st.condition);
+    if (st.sort && st.sort !== 'created-desc') p.set('sort', st.sort);
+    var qs = p.toString();
+    return '/inventory.html' + (qs ? '?' + qs : '');
+  }
+  function categoryUrl(cat) {
+    var hub = (window.TAXONOMY_CATEGORY_HUB || {})[cat];
+    return hub ? '/' + hub : inventoryUrl({ cat: cat });
+  }
+  function tileUrl(cat, tile) {
+    return tile.ssr ? '/' + tile.slug : inventoryUrl({ cat: cat, sub: tile.kw });
+  }
+  function findTileBySlug(slug) {
+    var all = catSubs();
+    for (var c in all) {
+      for (var i = 0; i < all[c].length; i++) if (all[c][i].slug === slug) return { cat: c, tile: all[c][i] };
+    }
+    return null;
+  }
+  // The current filter state of this page as one canonical URL (a lone main category → its hub).
+  function currentUrl() {
+    var f = _cfg.filterIds || {};
+    var st = {
+      seller:    (_el(f.dealer)    || { value: '' }).value,
+      q:         (_el(f.search)    || { value: '' }).value.trim(),
+      condition: (_el(f.condition) || { value: '' }).value,
+      sort:      (_el(f.sort)      || { value: '' }).value,
+      cat: currentCat, sub: currentSub
+    };
+    var onlyCat = st.cat && !st.sub && !st.seller && !st.q && !st.condition && (!st.sort || st.sort === 'created-desc');
+    return onlyCat ? categoryUrl(st.cat) : inventoryUrl(st);
+  }
 
   var CAT_DISPLAY = {
     'Trucks':       'Commercial Trucks',
@@ -459,9 +461,7 @@ window.InventoryEngine = (function () {
           var linkLabel = labels ? ('View all ' + labels.link + ' →') : 'View all inventory →';
           countEl.textContent = 'Showing ' + Math.min(PAGE_SIZE, total) + ' of ' + total + ' ' + catLabel;
           linkEl.textContent = linkLabel;
-          var ffids = _cfg.filterIds || {};
-          var fdealer = (_el(ffids.dealer) || { value: '' }).value;
-          linkEl.href = fdealer ? ('/inventory.html?dealer=' + encodeURIComponent(fdealer)) : '/inventory.html';
+          linkEl.href = currentUrl();
           footer.style.display = 'block';
         } else {
           footer.style.display = 'none';
@@ -591,6 +591,20 @@ window.InventoryEngine = (function () {
     _scrollToTarget();
   }
 
+  // Restore category/subcategory from URL state without scrolling (Back/Forward).
+  function setCatSub(cat, sub) {
+    currentCat   = cat || '';
+    currentSub   = sub || '';
+    currentPage  = 1;
+    visibleCount = PAGE_SIZE_INF;
+    autoLoads    = 0;
+    document.querySelectorAll('.chip').forEach(function(c) { c.classList.remove('active'); });
+    var want = currentCat || 'All';
+    var chip = Array.from(document.querySelectorAll('.chip')).find(function(c) { return c.textContent.trim() === want; });
+    if (chip) chip.classList.add('active');
+  }
+  function getState() { return { cat: currentCat, sub: currentSub }; }
+
   function heroSearch() {
     var kw     = (_el('hero-kw')  || { value: '' }).value.trim();
     var cat    = (_el('hero-cat') || { value: '' }).value;
@@ -669,7 +683,7 @@ window.InventoryEngine = (function () {
     // Group 4: Category tiles (label or kw contains q)
     var cHits=[],_catKeys=['Trucks','Trailers','Construction','Farm','Landscape'];
     for (var _ci=0;_ci<_catKeys.length&&cHits.length<3;_ci++) {
-      var _tiles=CAT_SUBS[_catKeys[_ci]]||[];
+      var _tiles=catSubs()[_catKeys[_ci]]||[];
       for (var _ti=0;_ti<_tiles.length&&cHits.length<3;_ti++) {
         var _t=_tiles[_ti];
         if ((_t.label||'').toLowerCase().includes(q)||(_t.kw||'').toLowerCase().includes(q))
@@ -711,7 +725,16 @@ window.InventoryEngine = (function () {
     get ALL_INV()   { return ALL_INV; },
     DEALERS:        DEALERS,
     MAIN_CATS:      MAIN_CATS,
-    CAT_SUBS:       CAT_SUBS,
+    get CAT_SUBS()  { return catSubs(); },
+    sellerSlug:     sellerSlug,
+    sellerParam:    sellerParam,
+    inventoryUrl:   inventoryUrl,
+    categoryUrl:    categoryUrl,
+    tileUrl:        tileUrl,
+    findTileBySlug: findTileBySlug,
+    currentUrl:     currentUrl,
+    setCatSub:      setCatSub,
+    getState:       getState,
     CAT_DISPLAY:    CAT_DISPLAY,
     PAGE_SIZE:      PAGE_SIZE,
     SORT_OPTIONS:   SORT_OPTIONS,

@@ -172,11 +172,11 @@ export default async function handler(request, context) {
   const response = await context.next();
 
   try {
-    // Seller links (?seller=..., or the older ?dealer=...) skip SSR: the injected
-    // grid is the all-seller "Recently Added" view, which would flash other sellers'
-    // units before the client renders the seller-filtered grid.
+    // Filtered links (?seller=, ?cat=, ?q= … or the older ?dealer= / ?type=) skip SSR:
+    // the injected grid is the unfiltered "Recently Added" view, which would flash
+    // non-matching units before the client renders the filtered grid.
     const sp = new URL(request.url).searchParams;
-    if (sp.get('seller') || sp.get('dealer')) return response;
+    if (['seller', 'dealer', 'cat', 'sub', 'type', 'q', 'condition', 'sort'].some(k => sp.get(k))) return response;
 
     // Clone before reading — the original body must stay unconsumed so `return response`
     // in any error branch still delivers an intact page.

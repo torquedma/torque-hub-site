@@ -2,6 +2,22 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <script>
+    // Legacy /?cat=<Category> links (emitted by the financing pages until Task D; some are
+    // shared or indexed) → the canonical category URL. Replace navigation: no history entry.
+    // Closed table of the six emitted forms; other query params (utm_*, fbclid …) carry over.
+    (function () {
+      var LEGACY_CAT = { trucks: '/trucks-for-sale', trailers: '/trailers-for-sale',
+        construction: '/construction-equipment-for-sale', farm: '/farm-equipment-for-sale',
+        landscape: '/landscape-equipment-for-sale', other: '/inventory.html?cat=Other' };
+      var sp = new URLSearchParams(location.search);
+      var to = LEGACY_CAT[(sp.get('cat') || '').toLowerCase()];
+      if (!to) return;
+      sp.delete('cat');
+      var rest = sp.toString();
+      location.replace(to + (rest ? (to.indexOf('?') === -1 ? '?' : '&') + rest : '') + location.hash);
+    })();
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Torque Hub — Money-Making Trucks & Equipment</title>
   <meta name="description" content="Torque Hub is a commercial marketplace for buyers shopping work trucks, trailers, and equipment. Real seller inventory, direct financing, and serious buyer tools." />
@@ -1029,7 +1045,7 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
         <!--
           Static crawler fallback for category discovery.
           JS replaces this grid after inventory loads via renderCategoryDiscovery().
-          Keep this fallback in sync with CAT_SUBS in js/inventory-engine.js.
+          Keep this fallback in sync with js/taxonomy-data.js (the engine's category tiles come from it).
           SSR-only: include only subcategories that have a real /{slug}-for-sale SSR route.
         -->
         <div class="cat-discovery-grid" id="cat-discovery-grid">
@@ -1275,7 +1291,9 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
       box-shadow: none;
     }
 </style>
-<!-- Order matters: taxonomy → usage-display → card-facts → title-helpers → inventory-engine. -->
+<!-- taxonomy-data is a module: it runs after parsing and the engine reads it on first use.
+     Order matters for the rest: taxonomy → usage-display → card-facts → title-helpers → inventory-engine. -->
+<script type="module" src="/js/taxonomy-data.js"></script>
 <script src="/js/taxonomy.browser.js"></script>
 <script src="/js/usage-display.browser.js"></script>
 <script src="/js/card-facts.browser.js"></script>
@@ -1308,22 +1326,7 @@ function filterByCatSub(cat, sub) { InventoryEngine.filterByCatSub(cat, sub); }
 function filterByMainCat(cat)     { InventoryEngine.filterByMainCat(cat); }
 function heroSearch()             { InventoryEngine.heroSearch(); }
 
-function buildInventoryURL() {
-  var p = new URLSearchParams();
-  var q         = (document.getElementById('inv-search')       || {}).value || '';
-  var dealer    = (document.getElementById('dealer-filter')    || {}).value || '';
-  var condition = (document.getElementById('condition-filter') || {}).value || '';
-  var sort      = (document.getElementById('sort-filter')      || {}).value || '';
-  var activeChip = document.querySelector('.chip.active');
-  var cat = activeChip && activeChip.textContent.trim() !== 'All' ? activeChip.textContent.trim() : '';
-  if (q)                           p.set('q', q);
-  if (dealer)                      p.set('dealer', dealer);
-  if (condition)                   p.set('condition', condition);
-  if (sort && sort !== 'created-desc') p.set('sort', sort);
-  if (cat)                         p.set('cat', cat);
-  var qs = p.toString();
-  return qs ? '/inventory.html?' + qs : '/inventory.html';
-}
+function buildInventoryURL() { return InventoryEngine.currentUrl(); }
 
 function initDealerFilter() {
   var sel = document.getElementById('dealer-filter');
@@ -1354,7 +1357,7 @@ function _dealerCardHTML(d) {
       '<div>' + d.phone + '</div>' +
       '<div style="color:#cbd5e1;font-weight:700">' + count + ' units available</div>' +
     '</div>' +
-    '<a class="btn btn-primary" href="/inventory.html?dealer=' + encodeURIComponent(d.key) + '">View Inventory</a>' +
+    '<a class="btn btn-primary" href="' + InventoryEngine.inventoryUrl({ seller: d.key }) + '">View Inventory</a>' +
   '</article>';
 }
 
@@ -1418,6 +1421,7 @@ function renderCategoryDiscovery() {
   var CAT_SUBS    = InventoryEngine.CAT_SUBS;
   var MAIN_CATS   = InventoryEngine.MAIN_CATS;
   var CAT_DISPLAY = InventoryEngine.CAT_DISPLAY;
+  if (!MAIN_CATS.some(function (c) { return (CAT_SUBS[c] || []).length; })) return; // keep static fallback
 
   grid.innerHTML = Object.entries(CAT_SUBS).map(function(entry) {
     var cat = entry[0], subs = entry[1];
@@ -1438,15 +1442,15 @@ function renderCategoryDiscovery() {
         .map(function(e) {
           var label = e[0], count = e[1];
           var safekw = label.replace(/'/g, "\\'");
-          var slug = label.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-          return '<a class="cat-sub-item has-count" href="/inventory.html?type=' + slug + '" onclick="event.preventDefault();filterByCatSub(\'Other\',\'' + safekw + '\')">' +
+          var href = InventoryEngine.inventoryUrl({ cat: 'Other', sub: label }).replace(/"/g, '&quot;');
+          return '<a class="cat-sub-item has-count" href="' + href + '" onclick="event.preventDefault();filterByCatSub(\'Other\',\'' + safekw + '\')">' +
             '<span>' + label + '</span>' +
             '<span class="cat-sub-count">' + count + '</span>' +
           '</a>';
         }).join('') || '<span style="font-size:11px;color:#475569">No listings yet</span>';
     } else {
       subItems = subs.map(function(s) {
-        var label = s.label, kw = s.kw, slug = s.slug;
+        var label = s.label, kw = s.kw;
         var count = s.subs && s.subs.length
           ? catItems.filter(function(u) { return s.subs.indexOf(u.subcategory) !== -1; }).length
           : catItems.filter(function(u) {
@@ -1455,11 +1459,10 @@ function renderCategoryDiscovery() {
         var safecat = cat.replace(/'/g, "\\'");
         var safekw  = kw.replace(/'/g, "\\'");
         var href, onclickAttr;
+        href = InventoryEngine.tileUrl(cat, s);
         if (s.ssr) {
-          href = '/' + slug;
           onclickAttr = '';
         } else {
-          href = '/inventory.html?type=' + slug;
           onclickAttr = ' onclick="event.preventDefault();filterByCatSub(\'' + safecat + '\',\'' + safekw + '\')"';
         }
         return '<a class="cat-sub-item' + (count > 0 ? ' has-count' : '') + '" href="' + href + '"' + onclickAttr + '>' +
@@ -1585,15 +1588,15 @@ function _initTypeahead(inputId, dropdownId, onSelect, onEnterFallback) {
 _initTypeahead('hero-kw','hero-suggestions',function(type,item){
   if (type==='units'||type==='stock') window.location.href='vehicle.html?stock='+encodeURIComponent(item.unit.stock);
   else if (type==='make') { document.getElementById('hero-kw').value=item.make; heroSearch(); }
-  else if (type==='category') window.location.href=(item.tile.ssr?'/'+item.tile.slug:'/inventory.html?type='+item.tile.slug);
-  else if (type==='dealer')   window.location.href='/inventory.html?dealer='+encodeURIComponent(item.dealer.key);
+  else if (type==='category') window.location.href=InventoryEngine.tileUrl(item.cat, item.tile);
+  else if (type==='dealer')   window.location.href=InventoryEngine.inventoryUrl({ seller: item.dealer.key });
 },function(){ heroSearch(); });
 
 _initTypeahead('inv-search','inv-suggestions',function(type,item){
   if (type==='units'||type==='stock') window.location.href='vehicle.html?stock='+encodeURIComponent(item.unit.stock);
   else if (type==='make') { document.getElementById('inv-search').value=item.make; applyFilters(); }
-  else if (type==='category') window.location.href=(item.tile.ssr?'/'+item.tile.slug:'/inventory.html?type='+item.tile.slug);
-  else if (type==='dealer')   window.location.href='/inventory.html?dealer='+encodeURIComponent(item.dealer.key);
+  else if (type==='category') window.location.href=InventoryEngine.tileUrl(item.cat, item.tile);
+  else if (type==='dealer')   window.location.href=InventoryEngine.inventoryUrl({ seller: item.dealer.key });
 });
 
 </script>
