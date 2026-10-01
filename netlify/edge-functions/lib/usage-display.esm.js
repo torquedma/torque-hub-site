@@ -124,7 +124,8 @@ const SUPPRESS_BOTH = new Set([
   'Engine',
   'Truck Body',
   'Skid Steer Attachment',
-  'Grain Drill'
+  'Grain Drill',
+  'Sprayer'
 ]);
 
 export function normalizeSubcategory(unit) {
