@@ -412,12 +412,12 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
       var visibleAt = visEl ? visEl.querySelectorAll('.inv-card').length : 24;
       _saveInvScroll(visibleAt);
     }, true);
-    // ── Shareable seller links: ?dealer=<seller> ───────────────────────────
-    // Contract = the existing ?dealer= param (also emitted by the homepage
-    // dealer cards, search suggestions and engine footer). Values resolve
-    // against the live #dealer-filter options, which are built from inventory
-    // data — no separate seller registry. Exact value first; then a unique
-    // case/punctuation-insensitive match (e.g. ?dealer=the-trailer-source).
+    // ── Shareable seller links: ?dealer=<seller-slug> ──────────────────────
+    // The dropdown writes the seller's slug (e.g. ?dealer=allied-truck-trailer-sales).
+    // Incoming values resolve against the live #dealer-filter options, which are
+    // built from inventory data — no separate seller registry: exact seller value
+    // first (older links, homepage dealer cards, search, engine footer), then a
+    // unique case/punctuation-insensitive match. Either form is rewritten to the slug.
     var _sellerReady = false;
     function _sellerNorm(v) {
       return String(v).toLowerCase().replace(/['\u2019]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -432,19 +432,27 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
       var hits = n ? vals.filter(function (x) { return _sellerNorm(x) === n; }) : [];
       return hits.length === 1 ? hits[0] : '';
     }
+    // Canonical URL value = the seller's slug; the exact seller value is used
+    // instead if two live sellers ever share a slug.
+    function _sellerParam(key) {
+      var n = _sellerNorm(key);
+      var same = Array.prototype.filter.call(document.getElementById('dealer-filter').options,
+        function (o) { return o.value && _sellerNorm(o.value) === n; });
+      return n && same.length === 1 ? n : key;
+    }
     function _sellerUrl(key) {
       var u = new URL(window.location.href);
-      if (key) u.searchParams.set('dealer', key); else u.searchParams.delete('dealer');
+      if (key) u.searchParams.set('dealer', _sellerParam(key)); else u.searchParams.delete('dealer');
       return u.pathname + u.search + u.hash;
     }
     // URL -> dropdown. Unknown / removed / malformed values fall back to
-    // All Sellers and are dropped from the address bar; tolerant matches are
-    // rewritten to the exact seller value. Other query params are untouched.
+    // All Sellers and are dropped from the address bar; resolved values are
+    // rewritten to the canonical slug. Other query params are untouched.
     function _syncSellerFromUrl() {
       var raw = new URLSearchParams(window.location.search).get('dealer');
       var key = _resolveSeller(raw);
       document.getElementById('dealer-filter').value = key;
-      if (raw !== null && (!key || raw !== key)) history.replaceState(history.state, '', _sellerUrl(key));
+      if (raw !== null && (!key || raw !== _sellerParam(key))) history.replaceState(history.state, '', _sellerUrl(key));
     }
     // Dropdown -> URL: one history entry per seller change.
     window.onSellerChange = function () {
