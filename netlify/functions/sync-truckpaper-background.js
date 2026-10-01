@@ -629,7 +629,7 @@ exports.handler = async (event) => {
   // Get existing rows (stock + source_listing_id for dual-key upsert)
   const { data: existing } = await supabase
     .from('inventory')
-    .select('stock,source_listing_id,subcategory_locked,model_locked,source_url,provenance,vin,condition')
+    .select('stock,source_listing_id,subcategory_locked,model_locked,vin_locked,source_url,provenance,vin,condition')
     .eq('dealer', dealer)
     .eq('sold', false);
 
@@ -662,7 +662,7 @@ exports.handler = async (event) => {
   // feed is never read and never written.
   const { data: buried } = await supabase
     .from('inventory')
-    .select('stock,source_listing_id,subcategory_locked,model_locked,source_url,provenance,vin,condition')
+    .select('stock,source_listing_id,subcategory_locked,model_locked,vin_locked,source_url,provenance,vin,condition')
     .eq('dealer', dealer)
     .eq('sold', true)
     .eq('sold_type', 'feed_removed');
@@ -676,6 +676,7 @@ exports.handler = async (event) => {
   }
   const lockedSubcat = new Set([...(existing || []), ...(buried || [])].filter(u => u.subcategory_locked).map(u => u.stock));
   const lockedModel  = new Set([...(existing || []), ...(buried || [])].filter(u => u.model_locked).map(u => u.stock));
+  const lockedVin    = new Set([...(existing || []), ...(buried || [])].filter(u => u.vin_locked).map(u => u.stock));
   const incomingStocks = new Set();
   const incomingListingIds = new Set();
   const incomingPlatforms = new Set();
@@ -835,6 +836,23 @@ exports.handler = async (event) => {
         // T1.2-A: stamp provenance BEFORE generateDescription so the generator (first consumer) can
         // read unit.provenance for provenance-aware Mileage/Hours rendering.
         const existingRowForProv = matchedExistingRow || existingByStock.get(stock) || null;
+
+        // 2026-10-01 P4 STAGE 1 (Chief): every VIN decision is made HERE, before provFactSubset /
+        // stampFacts and before generateDescription, so provenance and the "- VIN:" DX line can
+        // never carry a value this row will not persist.
+        //   1. vin_locked = human adjudication. Automated ingestion never writes vin on a locked row:
+        //      not a placeholder, not a valid VIN (strict lock). A human admits a later VIN.
+        //   2. 2026-09-16 VIN IDENTITY GUARD (semantics unchanged, moved up): a stored valid
+        //      17-character VIN is never replaced by an incoming value that is not itself valid.
+        //   3. 2026-09-17 F2 INSERT GUARD (semantics unchanged, moved up): on INSERT a value
+        //      failing isValidVin is stored as NULL.
+        if (isExisting) {
+          if (lockedVin.has(lookupStock)) delete unit.vin;
+          else if (existingRowForProv && isValidVin(existingRowForProv.vin) && unit.vin !== undefined && !isValidVin(unit.vin)) delete unit.vin;
+        } else if (unit.vin !== undefined && unit.vin !== null && !isValidVin(unit.vin)) {
+          unit.vin = null;
+        }
+
         const provFactSubset = {};
         for (const k of ['year','make','model','trim','mileage','vin','engine','transmission','drivetrain','horsepower','hours','fuel','condition']) {
           if (unit[k] !== undefined && unit[k] !== null && unit[k] !== '') provFactSubset[k] = unit[k];
@@ -942,9 +960,6 @@ exports.handler = async (event) => {
           // 2026-09-16 SALVAGE DISCLOSURE GUARD. An adjudicated Salvaged condition cannot be
           // downgraded to Used by routine synchronization; that is a disclosure, not a preference.
           if (priorRow && priorRow.condition === 'Salvaged' && unit.condition === 'Used') delete unit.condition;
-          // 2026-09-16 VIN IDENTITY GUARD. A stored valid 17-character VIN is never replaced by
-          // an incoming value that is not itself a valid VIN (placeholders like '123', 'BOXBODY1').
-          if (priorRow && isValidVin(priorRow.vin) && unit.vin !== undefined && !isValidVin(unit.vin)) delete unit.vin;
 
           if (isResurrection) {
             // D1 RESURRECTION. The unit is in the current feed and its row is
@@ -993,10 +1008,6 @@ exports.handler = async (event) => {
             result = await supabase.from('inventory').update(unit).eq('stock', stock).eq('dealer', dealer).eq('sold', false);
           }
         } else {
-          // 2026-09-17 (Foreman F2 FIX-FORWARD): a placeholder VIN from the source ("003", "000", a stock number,
-          // a pasted digit string) is not a VIN. On INSERT store NULL rather than the placeholder; the UPDATE path
-          // already refuses to overwrite a valid stored VIN with an invalid incoming one (guard above).
-          if (unit.vin !== undefined && unit.vin !== null && !isValidVin(unit.vin)) unit.vin = null;
           // S1: a lifecycle dealer's NEW row is INSERTed as DRAFT (never via the DB default).
           result = await supabase.from('inventory').insert([lifecycleDealer ? Object.assign({}, unit, { status: 'draft' }) : unit]);
           if (lifecycleDealer && !(result && result.error)) {
