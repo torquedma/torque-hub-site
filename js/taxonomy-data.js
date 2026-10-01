@@ -70,7 +70,7 @@ const TAXONOMY_DATA = [
   { category: 'Construction', slug: 'scissor-lifts-for-sale',    label: 'Scissor Lifts',    kw: 'scissor',         subs: ['Scissor Lift'],                          ssr: true  },
   { category: 'Construction', slug: 'backhoes',                  label: 'Backhoes',         kw: 'backhoe',         subs: [],                                        ssr: false },
 
-  // ── Farm (6 SSR + 6 kw-only) ──
+  // ── Farm (6 SSR + 7 kw-only) ──
   { category: 'Farm', slug: 'tractors-for-sale',       label: 'Tractors',         kw: 'tractor',        subs: ['Tractor'],       ssr: true },
   { category: 'Farm', slug: 'rotary-cutters-for-sale', label: 'Rotary Cutters',   kw: 'rotary',         subs: ['Rotary Cutter'], ssr: true },
   { category: 'Farm', slug: 'boom-mowers-for-sale',    label: 'Boom Mowers',      kw: 'boom mower',     subs: ['Boom Mower'],    ssr: true },
@@ -83,6 +83,7 @@ const TAXONOMY_DATA = [
   { category: 'Farm', slug: 'disks',                   label: 'Disks',            kw: 'disk',           subs: ['Disk'],          ssr: false },
   { category: 'Farm', slug: 'grain-drills', label: 'Grain Drills', kw: 'grain drill', subs: ['Grain Drill'], ssr: false },
   { category: 'Farm', slug: 'sprayers', label: 'Sprayers', kw: 'sprayer', subs: ['Sprayer'], ssr: false },
+  { category: 'Farm', slug: 'land-levelers', label: 'Land Levelers', kw: 'land leveler', subs: ['Land Leveler'], ssr: false },
 
   // ── Landscape (2 SSR + 4 kw-only) ──
   { category: 'Landscape', slug: 'zero-turn-mowers-for-sale', label: 'Zero Turn Mowers',     kw: 'zero turn',    subs: ['Zero Turn Mower'], ssr: true },
@@ -91,6 +92,9 @@ const TAXONOMY_DATA = [
   { category: 'Landscape', slug: 'front-mounted-mowers',      label: 'Front Mounted Mowers', kw: 'front mounted',subs: [],                  ssr: false },
   { category: 'Landscape', slug: 'turf-grounds-care',         label: 'Turf & Grounds Care',  kw: 'turf',         subs: [],                  ssr: false },
   { category: 'Landscape', slug: 'finish-mowers',             label: 'Finish Mowers',        kw: 'finish',       subs: [],                  ssr: false },
+
+  // ── Other (0 SSR + 1 kw-only) ──
+  { category: 'Other', slug: 'golf-carts', label: 'Golf Carts', kw: 'golf cart', subs: ['Golf Cart'], ssr: false },
 ];
 
 // Category → hub slug (derived, not stored per-entry).

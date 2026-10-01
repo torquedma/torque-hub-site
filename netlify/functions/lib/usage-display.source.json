@@ -82,7 +82,8 @@
     "Water Truck",
     "SUV",
     "Motorcycle",
-    "Classic Car"
+    "Classic Car",
+    "Golf Cart"
   ],
   "suppress_both": [
     "Enclosed Trailer",
