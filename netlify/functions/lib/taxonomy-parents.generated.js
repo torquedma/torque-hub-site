@@ -11,6 +11,7 @@ const SUBCATEGORY_PARENT = Object.freeze({
   "Car Carrier Truck": "Trucks",
   "Car Hauler Trailer": "Trailers",
   "Cargo Van": "Trucks",
+  "Chip Trailer": "Trailers",
   "Compact Track Loader": "Construction",
   "Concession Trailer": "Trailers",
   "Conestoga Trailer": "Trailers",

@@ -63,6 +63,7 @@ export const CANONICAL_SUBCATEGORIES = new Set([
   'Flatbed Trailer',
   'Hopper Bottom Trailer',
   'Belt Trailer',
+  'Chip Trailer',
   'Skid Steer',
   'Mini Skid Steer',
   'Compact Track Loader',

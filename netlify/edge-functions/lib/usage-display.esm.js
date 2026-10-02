@@ -121,6 +121,7 @@ const SUPPRESS_BOTH = new Set([
   'Flatbed Trailer',
   'Hopper Bottom Trailer',
   'Belt Trailer',
+  'Chip Trailer',
   'Boat',
   'Engine',
   'Truck Body',
