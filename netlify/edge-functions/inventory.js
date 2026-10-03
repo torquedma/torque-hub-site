@@ -7,7 +7,7 @@
 // in the try block) we return the unmodified static response. Worst case = no SSR
 // benefit, never a broken page.
 
-import { buildDisplayTitle } from './lib/title-helpers.js';
+import { buildDisplayTitle, subcategoryLabel } from './lib/title-helpers.js';
 import { buildCardChips } from './lib/card-facts.esm.js';
 
 const SUPABASE_URL = 'https://bxsikkmqasydosmblzov.supabase.co';
@@ -120,7 +120,7 @@ function buildSixCards(units) {
     // Uniform display title via shared helper (year + make + model + clean
     // trim, taxonomy-firewalled). Subcategory renders below as .inv-sub.
     const title = buildDisplayTitle(u);
-    const subLabel = (u.subcategory || '').trim();
+    const subLabel = subcategoryLabel(u);
 
     const vdpUrl = '/vehicle.html?stock=' + encodeURIComponent(u.stock || '');
 

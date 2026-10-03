@@ -32,11 +32,26 @@
     return (base + (ct ? ' ' + ct : '')).trim() || 'Unit Available';
   }
 
-  // buildSeoTitle — single-descriptor SEO. Drops brand, then location, to fit ~65 chars.
+  // trimContains — true when the clean trim already names the given type.
+  function trimContains(ct, sub) {
+    return !!(ct && sub && ct.toLowerCase().indexOf(sub.toLowerCase()) !== -1);
+  }
+
+  // subcategoryLabel — subcategory text shown under a display title; '' when the
+  // clean trim already contains it, so the type never appears twice.
+  function subcategoryLabel(unit) {
+    var sub = (unit.subcategory || '').toString().trim();
+    if (!sub) return '';
+    return trimContains(cleanTrim(unit), sub) ? '' : sub;
+  }
+
+  // buildSeoTitle — clean trim plus canonical subcategory (subcategory skipped when
+  // the trim already contains it). Drops brand, then location, to fit ~65 chars.
   function buildSeoTitle(unit, cityState) {
     var base = [unit.year, unit.make, unit.model].filter(Boolean).join(' ');
     var ct = cleanTrim(unit);
-    var descriptor = ct || canonicalize(unit.subcategory || '') || '';
+    var sub = canonicalize(unit.subcategory || '') || '';
+    var descriptor = [ct, trimContains(ct, sub) ? '' : sub].filter(Boolean).join(' ');
     var core = (base + (descriptor ? ' ' + descriptor : '')).trim();
     var full = core + ' for Sale' + (cityState ? ' in ' + cityState : '') + ' | Torque Hub';
     if (full.length <= 65) return full;
@@ -48,6 +63,7 @@
   root.TITLE_HELPERS = {
     cleanTrim: cleanTrim,
     buildDisplayTitle: buildDisplayTitle,
-    buildSeoTitle: buildSeoTitle
+    buildSeoTitle: buildSeoTitle,
+    subcategoryLabel: subcategoryLabel
   };
 }(typeof window !== 'undefined' ? window : this));

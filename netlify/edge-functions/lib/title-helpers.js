@@ -37,15 +37,31 @@ export function buildDisplayTitle(unit) {
   return (base + (ct ? ' ' + ct : '')).trim() || 'Unit Available';
 }
 
-// buildSeoTitle — for <title>, og:title, SEO H2, meta description. Uses the
-// strongest SINGLE descriptor: clean trim if present, otherwise the canonical
-// subcategory. When a clean trim exists, subcategory is NOT also added.
+// trimContains — true when the clean trim already names the given type.
+function trimContains(ct, sub) {
+  return !!(ct && sub && ct.toLowerCase().indexOf(sub.toLowerCase()) !== -1);
+}
+
+// subcategoryLabel — subcategory text shown under a display title (VDP badge,
+// inventory card sub-line, similar-unit cards). Returns '' when the clean trim
+// already contains it, so the type never appears twice next to the title.
+export function subcategoryLabel(unit) {
+  const sub = (unit.subcategory || '').toString().trim();
+  if (!sub) return '';
+  return trimContains(cleanTrim(unit), sub) ? '' : sub;
+}
+
+// buildSeoTitle — for <title>, og:title, SEO H2, meta description. Descriptor =
+// clean trim (if any) followed by the canonical subcategory, except the
+// subcategory is skipped when the trim already contains it (Owner 2026-10-02:
+// search titles carry the type even when a trim is present).
 // 65-char budget: drops ' | Torque Hub' first, then location — unit +
 // descriptor always survive.
 export function buildSeoTitle(unit, cityState) {
   const base = [unit.year, unit.make, unit.model].filter(Boolean).join(' ');
   const ct = cleanTrim(unit);
-  const descriptor = ct || canonicalize(unit.subcategory || '') || '';
+  const sub = canonicalize(unit.subcategory || '') || '';
+  const descriptor = [ct, trimContains(ct, sub) ? '' : sub].filter(Boolean).join(' ');
   const core = (base + (descriptor ? ' ' + descriptor : '')).trim();
   const full = core + ' for Sale' + (cityState ? ' in ' + cityState : '') + ' | Torque Hub';
   if (full.length <= 65) return full;

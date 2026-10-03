@@ -410,7 +410,7 @@ window.InventoryEngine = (function () {
         // firewalled, no subcategory). Subcategory renders below as .inv-sub.
         // buildVehicleTitle is now used ONLY by financeUrl() (URL slug, line 303).
         var title      = window.TITLE_HELPERS.buildDisplayTitle(u);
-        var subLabel   = (u.subcategory || '').toString().trim();
+        var subLabel   = window.TITLE_HELPERS.subcategoryLabel(u);
         var vdpUrl     = 'vehicle.html?stock=' + encodeURIComponent(u.stock || '');
         var priceStr   = u.price && !isNaN(parseFloat(String(u.price).replace(/[^0-9.]/g, '')))
                            ? '$' + Number(String(u.price).replace(/[^0-9.]/g, '')).toLocaleString()

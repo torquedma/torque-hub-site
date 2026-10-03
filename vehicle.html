@@ -856,6 +856,7 @@ function render(unit, dealerKey) {
   const title = window.TITLE_HELPERS.buildDisplayTitle(unit);
   const price = formatPrice(unit.price);
   const subcat = unit.subcategory || '';
+  const subcatBadge = window.TITLE_HELPERS.subcategoryLabel(unit);
 
   // 2B PUBLIC LIFECYCLE STATE — consumed verbatim from inventory_public_detail.listing_state
   // ('live' | 'sold' | 'departed'), delivered either in the SSR handoff (window.__VDP_UNIT__)
@@ -994,8 +995,8 @@ function render(unit, dealerKey) {
   // Headline strip
   const hlEl = el('vdp-headline'); if (hlEl) hlEl.style.display = 'block';
   const hlTitle = el('hl-title');  if (hlTitle) hlTitle.textContent = title;
-  if (subcat) {
-    const hlSubcat = el('hl-subcat'); if (hlSubcat) hlSubcat.textContent = subcat;
+  if (subcatBadge) {
+    const hlSubcat = el('hl-subcat'); if (hlSubcat) hlSubcat.textContent = subcatBadge;
     const hlBadge  = el('hl-badge');  if (hlBadge)  hlBadge.style.display = 'block';
   }
   const seoH2 = el('vdp-seo-h2');
@@ -1147,8 +1148,8 @@ async function loadSimilar(currentUnit, dealerKey) {
 
       const descriptorRaw =
         u.subcategory && u.subcategory !== 'Other'
-          ? u.subcategory
-          : (u.trim && u.trim !== 'Other' ? u.trim : '');
+          ? window.TITLE_HELPERS.subcategoryLabel(u)
+          : (u.trim && u.trim !== 'Other' && !window.TITLE_HELPERS.cleanTrim(u) ? u.trim : '');
 
       const descriptor = descriptorRaw
         ? String(descriptorRaw)

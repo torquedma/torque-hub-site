@@ -3,7 +3,7 @@
 // and injects real title, meta, schema, and body content so crawlers see actual
 // listing data instead of the client-side loading state.
 
-import { buildDisplayTitle, buildSeoTitle } from './lib/title-helpers.js';
+import { buildDisplayTitle, buildSeoTitle, subcategoryLabel } from './lib/title-helpers.js';
 import { buildKeyDetailsCardHtml } from './lib/desc-render.js';
 import { showMileage, showHours } from './lib/usage-display.esm.js';
 
@@ -451,7 +451,7 @@ export default async function handler(request, context) {
 
     const title      = buildDisplayTitle(unit);
     const price      = formatPrice(unit.price);
-    const subcat     = unit.subcategory || '';
+    const subcat     = subcategoryLabel(unit);
     const photos     = getPhotos(unit);
     const firstPhoto = photos[0]?.url || photos[0]?.dataUrl || '';
 
