@@ -47,7 +47,8 @@ p{color:#94a3b8;font-size:14px;line-height:1.7}
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-X9LG1DZKDP"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
+  // Production-only measurement: on deploy previews, permalinks and localhost gtag() queues nothing, so GA4 and Google Ads receive no config or events.
+  function gtag(){ if (location.hostname === 'hub.torquedma.com') dataLayer.push(arguments); }
   gtag('js', new Date());
   gtag('config', 'G-X9LG1DZKDP');
   gtag('config', 'AW-18456519938');
