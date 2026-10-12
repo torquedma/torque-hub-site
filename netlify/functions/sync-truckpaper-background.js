@@ -4,7 +4,7 @@ const { CANONICAL_SUBCATEGORIES, SUBCATEGORY_ALIASES, canonicalize } = require('
 const { parentOf } = require('./lib/taxonomy-parents.generated.js');
 const { isPhantom } = require('./lib/phantom-fields');
 const { isKnownSuppressMileage, isKnownSuppressHours } = require('./lib/usage-display.generated.js');
-const { stampFacts } = require('./lib/provenance');
+const { stampFacts, readAdjudication } = require('./lib/provenance');
 const { isValidVin } = require('./lib/vin-decode');
 const { isDraftLifecycleDealer } = require('./lib/draft-lifecycle-dealers');
 
@@ -493,6 +493,17 @@ const PRESENTATION_HELD_LISTINGS = new Set([
   'DeBary Truck Sales|1881583',   // DBT-7887 — PRESERVE NQR (incoming model field carries make value "Isuzu")
 ]);
 
+// D1 CONDITION ADJUDICATION GUARD (Chief BIQ DATA FIRST; amended 2026-10-11). On an EXISTING row (update
+// or D1 resurrection), a field whose provenance carries an Owner adjudication marker
+// (provenance[field].adjudication — created and released ONLY by governed, Owner-authorized SQL; see
+// readAdjudication in lib/provenance.js) is not written by routine ingestion, and the incoming value is not
+// stamped. An ordinary human_admin stamp is NOT an adjudication: Admin Save & Close stamps every submitted
+// field, so source alone never makes a field feed-immune. No stock or dealer exceptions live here.
+// A disagreeing incoming value is logged; an inconsistent or malformed marker is held and logged for
+// governed reconcile. Scope is deliberately narrow: owning lanes add a field here only with their own
+// impact census and Chief GO (e.g. DeBary mileage). INSERT is unaffected (a new row has no marker).
+const ADJUDICATED_GUARD_FIELDS = Object.freeze(['condition']);
+
 // Use background function for longer timeout (15 minutes vs 10 seconds)
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method not allowed' };
@@ -755,6 +766,9 @@ exports.handler = async (event) => {
         }
 
         const rawDescription = item.description || item.title || '';
+        // D2: 'Used' below is the receiver's INSERT default, not a source statement. Provenance may only
+        // record a condition the feed actually carried.
+        const conditionFromSource = !!item.condition;
 
         let sub = deriveSubcategory(item);
         const _mk = (make || '').toLowerCase().trim();
@@ -853,8 +867,31 @@ exports.handler = async (event) => {
           unit.vin = null;
         }
 
+        // D1: adjudicated fields are dropped BEFORE provFactSubset / stampFacts, so neither the column nor
+        // provenance moves (the marker stays byte-stable; same placement rule as the locks above).
+        if (isExisting && existingRowForProv) {
+          for (const f of ADJUDICATED_GUARD_FIELDS) {
+            const adj = readAdjudication(existingRowForProv.provenance && existingRowForProv.provenance[f]);
+            if (adj.state === 'none') continue;
+            let state = adj.state, reason = adj.reason;
+            const held = state === 'malformed' ? undefined : adj.marker.value;
+            if (state === 'valid' && (f in existingRowForProv) && String(existingRowForProv[f] == null ? '' : existingRowForProv[f]) !== held) {
+              state = 'inconsistent'; reason = `column "${existingRowForProv[f]}" is not the adjudicated "${held}"`;
+            }
+            if (state !== 'valid') {
+              console.log(`[ADJUDICATION-${state.toUpperCase()}] ${lookupStock} (${dealer}) ${f}: ${reason}; held, governed reconcile required`);
+            }
+            const carried = f === 'condition' ? conditionFromSource : !(unit[f] == null || unit[f] === '');
+            if (state === 'valid' && carried && String(unit[f]) !== held) {
+              console.log(`[ADJUDICATED-HOLD] ${lookupStock} (${dealer}) ${f}: kept "${held}" (Owner adjudication); incoming "${unit[f]}" not written`);
+            }
+            delete unit[f];
+          }
+        }
+
         const provFactSubset = {};
         for (const k of ['year','make','model','trim','mileage','vin','engine','transmission','drivetrain','horsepower','hours','fuel','condition']) {
+          if (k === 'condition' && !conditionFromSource) continue;   // D2: the INSERT default is not a source claim
           if (unit[k] !== undefined && unit[k] !== null && unit[k] !== '') provFactSubset[k] = unit[k];
         }
         unit.provenance = stampFacts(

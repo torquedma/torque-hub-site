@@ -1,0 +1,905 @@
+{
+ "_about": "CAPTURED production Apify items, verbatim objects (re-serialized only), from console Export -> JSON (clean items) on 2026-10-11 by Site Tech under Chief capture authorization. Source file sha256 per dataset below. Do not edit.",
+ "datasets": {
+  "Y3baz1vYa0hABXaja": {
+   "dealer": "Impex Heavy Metal",
+   "run": "kYSENQjpgNiAU1w9d",
+   "export_file": "dataset_impex-trucks-trailers-dealer-scraper-task_2026-10-09_08-17-07-077.json",
+   "export_sha256": "1308f124d0f7b6187ec49b0370781de4001373fa2d7dd8dbcca727ad56c21393",
+   "item_count": 141
+  },
+  "ZTA5JmZNoWvI1mZAT": {
+   "dealer": "Allied Truck & Trailer Sales",
+   "run": "ImYgvl7vxpypHLEXK",
+   "export_file": "dataset_allied-truck-trailer-sales-dealer-scraper-task_2026-10-09_08-06-51-787.json",
+   "export_sha256": "5c68c656bde2cf3df97b74d00757defa5d3a9ad9538f6ca810cd1e580137ff22",
+   "item_count": 56
+  },
+  "BKcyiskGZD2enYurx": {
+   "dealer": "Mid-Atlantic Power & Equipment",
+   "run": "1yss9gbxj3aNhiSYr",
+   "export_file": "dataset_mid-atlantic-sandhills_2026-10-09_08-04-21-770.json",
+   "export_sha256": "7984ce78cf4bcfce25a560a1ed7a7f54f8d698bed53a9263bb8c64fa3ea90fdd",
+   "item_count": 38
+  },
+  "q9mXGzPpPQNq5zBEt": {
+   "dealer": "DeBary Truck Sales",
+   "run": "J09SHR8dji6OnFWMa",
+   "export_file": "debary-a2-2026-10-05-items.json (CC-captured A2 fixture, pending P2 commit 471d5e4)",
+   "export_sha256": "8f8225582cf61bd2d23e2fc4660723ac52bc6fb6e27f6eb84cf1370934b6281f",
+   "item_count": 3
+  }
+ },
+ "items": {
+  "233857493": {
+   "dataset": "Y3baz1vYa0hABXaja",
+   "item": {
+    "stock": "4LA0826",
+    "dealer": "Impex Heavy Metal",
+    "year": "2023",
+    "make": "LANDHONOR",
+    "model": "GM-12-96W",
+    "price": "4900",
+    "mileage": "",
+    "horsepower": "",
+    "hours": "",
+    "vin": "HL-00826",
+    "engine": "",
+    "transmission": "",
+    "drivetrain": "",
+    "fuel": null,
+    "condition": null,
+    "description": "2023 LandHonor GM-12-96W Skid Steer Grader\r\n\r\nQuick Highlights:\r\n• Type: Grader attachment for skid steers, designed to enhance performance.\r\n• Compatibility: Fits Bobcat T450, T770, and similar models.\r\n• Condition: Brand new and job ready.\r\n\r\nWhy Choose This Skid Steer Grader?\r\n✔️ Turns your skid steer into a high-performance grading machine.\r\n✔️ Ideal for leveling, grading, and road maintenance tasks.\r\n✔️ Durable construction ensures reliable performance in tough conditions.",
+    "category": "Construction",
+    "subcategory": "",
+    "sold": false,
+    "featured": 0,
+    "days": "0",
+    "photos": [
+     {
+      "url": "https://media.sandhills.com/img.axd?id=9004820183&wid=4326182721&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=CzR09IfNIUtwY%2fiF87O4Mt6pqofrleNJfpBPI7ZGKzQ%3d",
+      "name": "img-9004820183.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=9004815257&wid=4326182721&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=DO0LOyhmspqZZHACRK6UFEZBsvvlxI%2bTcFbM3FVH83o%3d",
+      "name": "img-9004815257.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=9004820231&wid=4326182721&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=PwtqwwtPIkd4buoz2Jz3IAWlJuRc6T2tO04Ix5EBhpE%3d",
+      "name": "img-9004820231.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=9004820688&wid=4326182721&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=eGRog%2fCYt2TDHshz4lFhao6Ux5LLwKPjI3PyW2GGS2E%3d",
+      "name": "img-9004820688.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=9004815327&wid=4326182721&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=puzQRAYsLjGBf7zG20ONBqyrjb%2bv05vqoLtIw6CI9xk%3d",
+      "name": "img-9004815327.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=9004820210&wid=4326182721&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=PwtqwwtPIkfxLJ6gqqcckB2HD4XiOhdS5xl78tgpzRY%3d",
+      "name": "img-9004820210.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=9004820262&wid=4326182721&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=PwtqwwtPIkcDezZ9OVZrJojfoDPb3sJiAz3WNSMANdI%3d",
+      "name": "img-9004820262.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=9004820083&wid=4326182721&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=%2bcKrBSVfYt5vzH9sPSvG%2b6xT53dr9suhHTBkDt6zQDw%3d",
+      "name": "img-9004820083.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=9004820106&wid=4326182721&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=CzR09IfNIUuzoJo5frWYdRRDBv4mUMmwd6QV1U47Q8U%3d",
+      "name": "img-9004820106.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=9004820147&wid=4326182721&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=CzR09IfNIUsWzVithClvovRT37VGWzTDX5Nb6vws110%3d",
+      "name": "img-9004820147.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=9004820097&wid=4326182721&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=%2bcKrBSVfYt7xthDFGfm1n084%2fkV%2b%2bPWl0v39N9e1%2b48%3d",
+      "name": "img-9004820097.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=9004820174&wid=4326182721&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=CzR09IfNIUsy4AFsDFC%2fTl%2fQVbsnAzBdHXg9AwWEZkk%3d",
+      "name": "img-9004820174.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=9004820166&wid=4326182721&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=CzR09IfNIUsAcTCB1a8zJyrnMwdwtIS50NE%2bZb1%2beqM%3d",
+      "name": "img-9004820166.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=9004820884&wid=4326182721&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=rJ2yu7HJKzSxxbtrZQcNceZszMf4soAwdyQVt5oXpyc%3d",
+      "name": "img-9004820884.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=9004814943&wid=4326182721&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=poSMtbffdJRgfMas0ZVNHri%2fmEFFMgmfqNF9iHksdro%3d",
+      "name": "img-9004814943.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=9004815161&wid=4326182721&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=6sEtovghH5r4GUYOU0oNl%2fCL5PJ7YGGCiWeTz6%2fag6s%3d",
+      "name": "img-9004815161.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=9004815007&wid=4326182721&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=KX4XZ2dHa%2f4w6K3lerp1fxLqBgD2gVW%2fahk7fa4ugGw%3d",
+      "name": "img-9004815007.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=9004821068&wid=4326182721&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=Knnofx2rpQvmr4VACtzn1hV4zbcytickvMmwc53hMbI%3d",
+      "name": "img-9004821068.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=9004820131&wid=4326182721&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=CzR09IfNIUtM0z9ppOyL8HS8BiohvaQDGT1EbSjGcNg%3d",
+      "name": "img-9004820131.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=9004820140&wid=4326182721&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=CzR09IfNIUsqAVSCbi47Pkeb5WmYjSXpbG2LLm80ogs%3d",
+      "name": "img-9004820140.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=4042601847&wid=0&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=IvJQQRPzfkXZLwxAxCC4eThEFclLC%2b%2bn",
+      "name": "img-4042601847.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=9001573637&wid=0&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=8wmUlfOb5kYVmebeDVE9Hg0pFEJbZ0id",
+      "name": "img-9001573637.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=9004948315&wid=7242988208&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=cGVCXWnG67QJaOQWGizMHpod0f87gujnFKAGT5BFEpcrGCjCdC9jdmAGyO87nbR0w03BdehMgZyZeOKv5E4X7FXWXP4SyFXBEuEljkdnzZ8D1H%2fpLzSJtNTD5ugs2C2MOVsfyHn%2fLUYyuyl41gVQTQ%3d%3d",
+      "name": "img-9004948315.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=9009670449&wid=7242988208&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=7rLSk%2f56h5YviGWhK4O7Ay8fsSBoiksJ3Gig7eGZDNczgHJko4%2bIMWkUZwgBix4Gdy96ANCBZw%2bUfm%2fbJ9fFvArNdCFV6YTurAFT0M%2fA%2b%2fOfT3%2ffeynBp34JmkTcLl83PZCWkO997VMzi%2brldiLZkg%3d%3d",
+      "name": "img-9009670449.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=8010523459&wid=7242988208&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=eUUf%2fRQkVrgJaDGxddeo%2fgNW8%2bHZXlquLST0ScFDlkU4NUEmnZT2QJtMO1d9LvsENtoRnnXY%2f%2bwtUecHcohDOE43xaGoyVN8slAq1ByohiOkt0MwVRXVd1KRkNQAyq7TISRbQekPdpB%2bE1bjIQOFbQ%3d%3d",
+      "name": "img-8010523459.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=7280009741&wid=7242988208&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=JDIoPBF3KiLMAnS3%2bzvypgDXHREIuRkyhacqnw6LvTeb7BuE5PCp46HhSF8wnoPqeCbBLO%2frEm9qWN3MWV%2bdF6s28KDBjDdpHpjL6cO6Dd1I6%2fNBfncv4gyr8ZkX9nsLCkOrstHJMykBf81DoYKQgQ%3d%3d",
+      "name": "img-7280009741.jpg",
+      "fromUrl": true
+     }
+    ],
+    "source_type": "sandhills_direct",
+    "source_url": "https://impexheavymetal.com/inventory/?/listing/for-sale/233857493/2023-landhonor-gm-12-96w-other-blades?dlr=1&dscompanyid=94878&settingscrmid=17294228",
+    "source_listing_id": "233857493"
+   }
+  },
+  "260230981": {
+   "dataset": "Y3baz1vYa0hABXaja",
+   "item": {
+    "stock": "260230981",
+    "dealer": "Impex Heavy Metal",
+    "year": "2025",
+    "make": "SDLANCH",
+    "model": "SDLGC100",
+    "price": "12000",
+    "mileage": "",
+    "horsepower": "",
+    "hours": "",
+    "vin": "LQ202501718",
+    "engine": "",
+    "transmission": "",
+    "drivetrain": "",
+    "fuel": null,
+    "condition": null,
+    "description": "2025 INGERSOLl-RAND SDLGC100 w/ Pure Energy Battery Upgrade\r\n\r\nQuick Highlights:\r\n• Transmission: Automatic – Smooth and easy to operate. \r\n• Mileage: Miles – Well-maintained for extended use.\r\n• Seats 6 Passengers\r\n\r\nWhy Choose This Tractor?\r\n✔️ Digital Display Instruments so gauges are easy to see.\r\n✔️ Third row folds into a Utility Bed to handle tasks efficiently.\r\n✔️ Upgraded to Pure Energy Battery System with warranty and upgraded suspension.",
+    "category": "Construction",
+    "subcategory": "",
+    "sold": false,
+    "featured": 0,
+    "days": "0",
+    "photos": [
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044067314&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=O%2b6C%2bkGx1ln0CHohCqhzOdERYUsVbKyK5dE5nkQGhs0%3d",
+      "name": "img-11044067314.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044067459&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=O%2b6C%2bkGx1llK%2f7o6nw%2bXklqWJSqwaoJe%2fuXpDBfo8KI%3d",
+      "name": "img-11044067459.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044067838&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=O%2b6C%2bkGx1lkw5WxLEtxuYQWHrJ6tDkdwBBSpPw6sIMA%3d",
+      "name": "img-11044067838.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044066224&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=f8g1wJepSH5g4KQ2EhEpc%2fA9tYJFWZcoky%2f85SKv6TQ%3d",
+      "name": "img-11044066224.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044066346&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=f8g1wJepSH6QpMIl1mXwesfpBknLwQYnRWiSfdZF8Rg%3d",
+      "name": "img-11044066346.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044066488&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=f8g1wJepSH6kCLbBQG5%2bzb8hlRDIjOBivJL%2b1dYPSt0%3d",
+      "name": "img-11044066488.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044066804&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=f8g1wJepSH4qFtX%2b71HcAEPaHDhB1crYw9z34L%2fDKq4%3d",
+      "name": "img-11044066804.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044067009&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=O%2b6C%2bkGx1lkQX%2bSrxVOutgqiifwmx2WOYDPfwiEti%2f0%3d",
+      "name": "img-11044067009.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044066081&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=f8g1wJepSH4MCzMMuzMWG4U5z5fIEKwvwuFwvRIzIdk%3d",
+      "name": "img-11044066081.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044066127&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=f8g1wJepSH5rZi8T0dc0ZD6uwGnJFMtuipsZtXXxWAY%3d",
+      "name": "img-11044066127.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044068360&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=vufID9xNKez7avk3AZ3xQ78VvM%2b%2bWj94uljGTXuwSEw%3d",
+      "name": "img-11044068360.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044068205&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=vufID9xNKexopwtPaSW4rOp6gZjgbGhQxSzBetTl23Q%3d",
+      "name": "img-11044068205.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044068867&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=vufID9xNKez8BAY%2f%2b6NsFLV9OKxJ91YF0zpXItMfCko%3d",
+      "name": "img-11044068867.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044069107&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=w%2baeUYIOgnjvzW9n4mRz6%2f69VlpTNMJyQOaVOf3caSw%3d",
+      "name": "img-11044069107.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044069155&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=w%2baeUYIOgnilI%2fJpVL%2b6BFzrN2LZGPGWGktWWHkSDwk%3d",
+      "name": "img-11044069155.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044069176&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=w%2baeUYIOgnjgzI1SU1ppysIdkSmDFqeDl42PFOgnipM%3d",
+      "name": "img-11044069176.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044069201&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=w%2baeUYIOgnh9AmUG0ffPbS3JWEtsUmJIs%2fbcie8MjKA%3d",
+      "name": "img-11044069201.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044069190&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=w%2baeUYIOgnjLK9h8cVAG069wOd0KmNV0qSzoFNL%2fv30%3d",
+      "name": "img-11044069190.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044069097&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=w%2baeUYIOgnhkNbKhWb3oHYIXdeqxLdLZh%2fFBJvLZ8Wc%3d",
+      "name": "img-11044069097.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044068986&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=vufID9xNKez0hZgYWvq7M4ijyQ%2bfuJnHmdjv7ZAOPe8%3d",
+      "name": "img-11044068986.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044068889&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=vufID9xNKezja9%2bNJC6DC%2fxXD%2bPQ5YTFlFYBbWxLGcQ%3d",
+      "name": "img-11044068889.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044068946&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=vufID9xNKexGdVdBnEyAmj96mBKbefCuF9L8hCtHVow%3d",
+      "name": "img-11044068946.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044068917&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=vufID9xNKexOFypt9LeQXkjiDHv0zFkrIbdU31B8s2s%3d",
+      "name": "img-11044068917.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044068844&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=vufID9xNKezbEqtvSWc3QIRJQevj35M6KoQUmf4MOYQ%3d",
+      "name": "img-11044068844.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044073324&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=Mf1wxj5x9XN%2fh%2fYbwritAduGjvrvUgERAOGek2QQbPA%3d",
+      "name": "img-11044073324.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044068460&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=vufID9xNKeztuLfUGu2W6mbAaUKCunA5Fp6Yo%2fDpZdg%3d",
+      "name": "img-11044068460.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044068429&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=vufID9xNKewr7dMG4SZkxm9u%2b973j588QWAdSpFoHIk%3d",
+      "name": "img-11044068429.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044068729&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=vufID9xNKewpDm0EU1Bdxd48sump3zQjGZ3sgHD5Vso%3d",
+      "name": "img-11044068729.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044068586&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=vufID9xNKexv4b2kPoY1I6Nil3%2fad1zEGijWhYgYGEQ%3d",
+      "name": "img-11044068586.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044068525&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=vufID9xNKeyZKHjwwMwiIIfIGRi%2fVutDHR4IW6k0tBU%3d",
+      "name": "img-11044068525.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044073362&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=Mf1wxj5x9XP4FZUdrYANvAWKRcIasN8lcP9LJB9gwOI%3d",
+      "name": "img-11044073362.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044073381&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=Mf1wxj5x9XO92RbqNwgNW0hq3rdmV0IxgG4mfXVEZdg%3d",
+      "name": "img-11044073381.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044065984&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=96px75Zi5fnAPyqyH3Zk8I73KGrdKGesCqBDhanugHU%3d",
+      "name": "img-11044065984.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044066054&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=f8g1wJepSH6GOW8A%2f0qL%2fioqnYwfJyU333ETVr1Z43s%3d",
+      "name": "img-11044066054.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044073053&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=Mf1wxj5x9XOHLa3r1K3fQpdPwOXPQmnxnxegHMLwDBE%3d",
+      "name": "img-11044073053.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044018207&wid=4326205933&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=vl8%2bNvdYz8y3wW6uTG35bD10OD3w5R23rr3WmeM6tTU%3d",
+      "name": "img-11044018207.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=4042601847&wid=0&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=IvJQQRPzfkXZLwxAxCC4eThEFclLC%2b%2bn",
+      "name": "img-4042601847.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=9001573637&wid=0&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=8wmUlfOb5kYVmebeDVE9Hg0pFEJbZ0id",
+      "name": "img-9001573637.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=10015767706&wid=7242988208&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=HaKLQ3vbUeuT1vgDnuskO%2fjz78PYw87s7f7KBjQC0SQ4ZpHdx3iP2adSq%2fuHtgGEmz3a6Ruc%2b1P78ChJUFueCENYDFpvOkpUPKN%2fLAr9ESY8IZr1TdiEJXZyL5HppbxBdbKi4Tc4hCmS0JaIJcYjaw%3d%3d",
+      "name": "img-10015767706.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=10020348459&wid=7242988208&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=eLfih8dOH6%2fsjBZ5Lvu6oYyPqgOt9uTLYEVRAdhm9fJ7wK1uaIws652RV5B2nGn9Yprq7RralWz36viSbYgdBn9JI9qafUIYlqDp3%2bi9kfHQklhgWL4zmUJmM6UxSmjxLsPbuRGQnY4n7m%2bIRiObSg%3d%3d",
+      "name": "img-10020348459.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11043761823&wid=7242988208&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=NG2vG9RnkcTNlub8E3wFo7lD8GXNFwxr6Z8Sfx458Ec5LF4bDkOrc3A3aDb8aFT%2bUyoO%2f0dkFR8LHvYDNdgZJFNO7m1Y2uQiHWjfsk8ypqI7y32DSummeOmDvSmp4RiTednCnN%2fRDFh%2fAezT8XD7jw%3d%3d",
+      "name": "img-11043761823.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044199388&wid=7242988208&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=bOF0umWYsLZVGVRMglJS11EKVgom%2fJAUNsTkwsgEef98erZVN5qRUyS%2fL0F9QI321m7psAZy32Qw7f6fP8oF2ujwkPAxZGafhdJmYDs1ujW7GJyeU5J5qOOp4HiQIJLmYUw0DommFTGpS49In7H%2fqg%3d%3d",
+      "name": "img-11044199388.jpg",
+      "fromUrl": true
+     }
+    ],
+    "source_type": "sandhills_direct",
+    "source_url": "https://impexheavymetal.com/inventory/?/listing/for-sale/260230981/2025-sdlanch-sdlgc100-electric-golf-carts-turf-equipment?dlr=1&dscompanyid=94878&settingscrmid=17294228",
+    "source_listing_id": "260230981"
+   }
+  },
+  "259947549": {
+   "dataset": "ZTA5JmZNoWvI1mZAT",
+   "item": {
+    "stock": "Boom",
+    "dealer": "Allied Truck & Trailer Sales",
+    "year": "2017",
+    "make": "HIAB",
+    "model": "K-HIPRO 285-2",
+    "price": "10000",
+    "mileage": "",
+    "horsepower": "",
+    "hours": "",
+    "vin": "",
+    "engine": "",
+    "transmission": "",
+    "drivetrain": "",
+    "fuel": null,
+    "condition": null,
+    "description": "2016 HIAB 285K-2. Fresh take off from a drywall boom truck. 45ft reach straight out. 53ft height straight up. 7,270lbs max capacity. Has a remote!! Crane operated great with remote and manually before removal. Has a few minor hydraulic leaks.",
+    "category": "Trailers",
+    "subcategory": "",
+    "sold": false,
+    "featured": 0,
+    "days": "0",
+    "photos": [
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11042484132&wid=4326182721&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=4I8l0xCGrmvnKO5fldW%2fCY2y6A2HQ94iu3bgi5OsPKI%3d",
+      "name": "img-11042484132.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11042484106&wid=4326182721&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=4I8l0xCGrmtgScgf1B2nNvTEgk3twZLGIr8KbREYm4g%3d",
+      "name": "img-11042484106.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11042484068&wid=4326182721&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=4I8l0xCGrmsZU0NCbnjMkgYHKr6PSyOF5CnP6O8zlig%3d",
+      "name": "img-11042484068.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11042483957&wid=4326182721&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=4P87CRgPsiiaq2oaAx%2bAyA683oqETh5%2bAt2TCat9Y2M%3d",
+      "name": "img-11042483957.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11042483999&wid=4326182721&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=4P87CRgPsiiaMAdbbAfs%2fHLBAMxt8qTXDtZRvy8Gqt4%3d",
+      "name": "img-11042483999.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11042483709&wid=4326182721&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=4P87CRgPsijVBK%2fmIecfzfplZ%2bOyCAfQthp%2fEngNcc8%3d",
+      "name": "img-11042483709.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11042483745&wid=4326182721&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=4P87CRgPsiiipEpYgy4PrhvU%2fXStGGIc4RZq9E7Urmo%3d",
+      "name": "img-11042483745.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11042483794&wid=4326182721&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=4P87CRgPsihlWVpVKP4LGEZIKydatSmZIFT5vRVSUck%3d",
+      "name": "img-11042483794.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11042483886&wid=4326182721&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=4P87CRgPsijdBTucGZqQaVhJ6sI%2fDwpn5wmYPySHkS8%3d",
+      "name": "img-11042483886.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11042484178&wid=4326182721&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=4I8l0xCGrmtp5d%2fwQmAsl1gkBNL1NulKxyciMxkCqU8%3d",
+      "name": "img-11042484178.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11042483671&wid=4326182721&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=4P87CRgPsigHEoC3kihby7Qz%2fTLcpFYfSJUyC8HelsM%3d",
+      "name": "img-11042483671.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=4042601847&wid=0&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=IvJQQRPzfkXZLwxAxCC4eThEFclLC%2b%2bn",
+      "name": "img-4042601847.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=9001573637&wid=0&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=8wmUlfOb5kYVmebeDVE9Hg0pFEJbZ0id",
+      "name": "img-9001573637.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11046218179&wid=7242988208&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=q1rHRNmW6R2FI%2fkW1FR4pQ%2b3NAVgdch96iQE2EwbqtOQW5BuakMPTGV8ZjQKa7TSBsXYdUYXPQbochczBQXBEa4QBhIv34hAi0pJcm7ogb%2bZ0RwY5NpxPy9nY%2bYHSOEmPJqVa70PeUEb5fVZMyrdFA%3d%3d",
+      "name": "img-11046218179.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11044284382&wid=7242988208&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=bOF0umWYsLY1Hy%2fIpPXEfuOMY%2bFW874fzxr%2bAU4bonv27LOP953Tnbs54gJGeKrV0WomglYvMeYphOZQHcnFG2y%2fGhYwqVBpqBh%2f%2frvI1vfBdZgk5HXy2ZX03xyZfp30WkUwxS7vvQ2vzVf%2fY1nH1A%3d%3d",
+      "name": "img-11044284382.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11021061393&wid=7242988208&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=DVZ86VuoBXqcr74cza9e9Yar%2bz45Yk9Bc7WFWVE2NtoNkI6RCW1G57G6C4znB1%2fyB7yi1mfCAVt7gaamziptmizrO0ilLzevUI4ZfztdpHETamvcr5%2bbViaSOo%2bpjAzXsMjsVeirPP8yWVIErUDY%2bQ%3d%3d",
+      "name": "img-11021061393.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=10013650838&wid=7242988208&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=yLVbVuJIw64qqRmjNRN%2biAmuSLIK%2bA9oXBN95TrYZTV3vPiNhtClg9i%2bUHF%2bmwAEYDE%2bAT4K%2f9ubhTODpUZ4PAUfXx07Ge77yojH2oxI3EU4230PjHKPYnuhCIuFWgu0gvPM6qbaSW88wki4IoPg%2bg%3d%3d",
+      "name": "img-10013650838.jpg",
+      "fromUrl": true
+     }
+    ],
+    "source_type": "sandhills_direct",
+    "source_url": "https://alliedtruckandtrailersales.com/inventory/?/listing/for-sale/259947549/2017-hiab-k-hipro-285-2-un-mounted-knuckle-boom-cranes?dlr=1&accountcrmid=359446&settingscrmid=359447",
+    "source_listing_id": "259947549"
+   }
+  },
+  "258245863": {
+   "dataset": "BKcyiskGZD2enYurx",
+   "item": {
+    "stock": "258245863",
+    "dealer": "Mid-Atlantic Power & Equipment",
+    "year": "1998",
+    "make": "INTERNATIONAL",
+    "model": "8100",
+    "price": "19000",
+    "mileage": "251727",
+    "horsepower": "",
+    "hours": "",
+    "vin": "1HSHBAAN1WH505222",
+    "engine": "",
+    "transmission": "",
+    "drivetrain": "",
+    "fuel": null,
+    "condition": null,
+    "description": "",
+    "category": "Trucks",
+    "subcategory": "",
+    "sold": false,
+    "featured": 0,
+    "days": "0",
+    "photos": [
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11034138654&wid=4326209787&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=XWkVBHLnMCuucExMeiKslgj7XUr5If77MFNycNTaYF4%3d",
+      "name": "img-11034138654.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11034138661&wid=4326209787&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=XWkVBHLnMCv7PVh8bP62insj8pG2JBdc240KZmX1Et8%3d",
+      "name": "img-11034138661.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11034138664&wid=4326209787&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=XWkVBHLnMCuXSkBfRePz6xtmGRsaxz9y4H%2bpnAtFdhs%3d",
+      "name": "img-11034138664.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11034138673&wid=4326209787&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=XWkVBHLnMCtfOz5hCHtnGk0vbcFZ6NwLoF9c5Z%2bmH60%3d",
+      "name": "img-11034138673.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11034138686&wid=4326209787&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=XWkVBHLnMCskatWVu26ZSiLyrVq0da%2fXD9Y53UnnpQo%3d",
+      "name": "img-11034138686.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11034138691&wid=4326209787&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=XWkVBHLnMCt07PSJKmbFwxDAvyqlAaSKIfmxRmo5Nrk%3d",
+      "name": "img-11034138691.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11034138701&wid=4326209787&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=XWkVBHLnMCsvl3QOiLrii73ovVnlwu%2buLXVCupk5yuE%3d",
+      "name": "img-11034138701.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11034138722&wid=4326209787&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=XWkVBHLnMCuvu%2fmJQAzFHMlHiVQATnhgkJWsiuUEABY%3d",
+      "name": "img-11034138722.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11034138731&wid=4326209787&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=XWkVBHLnMCupYe5apR0cPDASaSk0%2fj9LHXflYm8OcvU%3d",
+      "name": "img-11034138731.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11034138754&wid=4326209787&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=XWkVBHLnMCu6Gux3QeSOcSv6b3ohJu6IyicBTxtw%2bWA%3d",
+      "name": "img-11034138754.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11034138771&wid=4326209787&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=XWkVBHLnMCu0eBI5rDg7Ut1aKI3dVoyO%2fbsbsJFjtns%3d",
+      "name": "img-11034138771.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11034138781&wid=4326209787&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=XWkVBHLnMCtbotnetpcbwQE%2fMd%2fIDEwX318ZDNEqhCM%3d",
+      "name": "img-11034138781.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11034138784&wid=4326209787&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=XWkVBHLnMCtQeae%2fWCsJ3v%2bNXw2eYMWbjczadWF4ngs%3d",
+      "name": "img-11034138784.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11034138788&wid=4326209787&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=XWkVBHLnMCvMsU74SnQwi2XdNe2mKEtzrJpdb74TVzw%3d",
+      "name": "img-11034138788.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11034138792&wid=4326209787&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=XWkVBHLnMCt1shal7yiQW%2f%2fmd54OnwNOGgn9fXtS1k4%3d",
+      "name": "img-11034138792.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11034138798&wid=4326209787&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=XWkVBHLnMCvyGnGf%2byox7xX1CKhPKwVPIHR3ZQdJDRo%3d",
+      "name": "img-11034138798.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11034138811&wid=4326209787&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=XWkVBHLnMCtVHzE48SyQlz233H4rK9BbDf6UPsy4GN8%3d",
+      "name": "img-11034138811.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11034138860&wid=4326209787&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=XWkVBHLnMCt4yCXJkBtL2cdzJO3GUDgpUWHmaz1hSTM%3d",
+      "name": "img-11034138860.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11034138877&wid=4326209787&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=XWkVBHLnMCs%2fzzlKjK%2bdWPgwRQvGIECrrRIhmBxv8hg%3d",
+      "name": "img-11034138877.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11034138882&wid=4326209787&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=XWkVBHLnMCsjtNcKcrTEK4xgUHYeMx%2bEO3zKtSNmqJc%3d",
+      "name": "img-11034138882.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11034138899&wid=4326209787&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=XWkVBHLnMCskDIEnrUX6gpmXlixD9J%2fRQ9FxCkCMWc0%3d",
+      "name": "img-11034138899.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11034138923&wid=4326209787&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=XWkVBHLnMCvcNlcYpnttzO4lK2SlFX0DRxtmmtx0%2bz4%3d",
+      "name": "img-11034138923.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11034138934&wid=4326209787&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=XWkVBHLnMCtelQPk4cbZnzj%2fhY%2bbQPkTJf6%2fx9C1XFs%3d",
+      "name": "img-11034138934.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11034138946&wid=4326209787&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=XWkVBHLnMCsi4TGZ2lfpesFvjzCbCCE452DqnvIB9ig%3d",
+      "name": "img-11034138946.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11034138967&wid=4326209787&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=XWkVBHLnMCtHJ%2bhrA3hz2%2fEnNA9fzGPiwqbvlNwSyk4%3d",
+      "name": "img-11034138967.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11034138979&wid=4326209787&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=XWkVBHLnMCvuy8kAi2gAA%2flHJIULtHMteajBjlx5BCc%3d",
+      "name": "img-11034138979.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=4042601847&wid=0&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=IvJQQRPzfkXZLwxAxCC4eThEFclLC%2b%2bn",
+      "name": "img-4042601847.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=9001573637&wid=0&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=8wmUlfOb5kYVmebeDVE9Hg0pFEJbZ0id",
+      "name": "img-9001573637.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11013608764&wid=7242988208&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=2ISnfCw3iDy7RO2PXPU0yHtv6FOwnmZlI20iF8r8Ksnv4T8CC15E2T5fn1h3jsz05RjolSF%2fH6UZTGjWStbxjKrKltDN%2fbXcyJPmEBBzzZ21b0GCLV8hvw6Uqug7Lmm4BLU9%2fW3rGYEuxVBQf48G8A%3d%3d",
+      "name": "img-11013608764.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11013610247&wid=7242988208&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=2ISnfCw3iDzgpyC5EVZaLFUGBZWphcyPcH%2fa%2bLEncVnPvWG1GOhQ9ywDAXPNdW8lYsccfE0fHhQbyU916J1cHcHpr89yXRSh74UYSabwKILiZ8eF3JrRa8Cd6lV1DWEnNL1pmGsmHbqcpbN5ze%2fbZQ%3d%3d",
+      "name": "img-11013610247.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11038858280&wid=7242988208&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=n%2bFpQSVDlq14yxK9W9e%2bD24NUBJgsqWXLUlumKnx73LG6wouvRdWxYhVls%2fn7x8V5MatoboE4mJjBR90jav%2fVdQn82x1%2blDH1O189tVWxetJNqqKqfaQX6PhJGBj88Y0pEk7%2fHxBpo0yiM7u7oMCNA%3d%3d",
+      "name": "img-11038858280.jpg",
+      "fromUrl": true
+     },
+     {
+      "url": "https://media.sandhills.com/img.axd?id=11040133408&wid=7242988208&rwl=False&p=&ext=&w=1200&h=900&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=ItspO2C%2foaRG%2b5wYYZtNGAVYkTa29MqmR2oiK94v8480faVE95mw0EWQb%2bsFiXN0yz0h0DoOTjYfyxaTEx9ZfLgD3tU33hPEeXBbOFZYqjro%2bXTcrKxbKCJ4eQIhol3rJ%2bCCXspU1VQ1bu1Cj5Afrg%3d%3d",
+      "name": "img-11040133408.jpg",
+      "fromUrl": true
+     }
+    ],
+    "source_type": "sandhills_direct",
+    "source_url": "https://www.midatlanticnc.com/inventory/?/listing/for-sale/258245863/1998-international-8100-water-tank-trucks?dlr=1&dscompanyid=4492&settingscrmid=16884",
+    "source_listing_id": "258245863"
+   }
+  },
+  "2024795": {
+   "dataset": "q9mXGzPpPQNq5zBEt",
+   "item": {
+    "stock": "7926",
+    "source_listing_id": "2024795",
+    "source_url": "https://www.debarytrucksales.com/inventory/used-2018-international-4300-7926-in-sanford-fl",
+    "source_type": "sandhills_direct",
+    "dealer": "DeBary Truck Sales",
+    "year": "2018",
+    "make": "International",
+    "model": "4300",
+    "trim": "",
+    "vin": "7926",
+    "price": "36900",
+    "mileage": "",
+    "hours": "",
+    "condition": "Used",
+    "fuel": "",
+    "transmission": "",
+    "drivetrain": "",
+    "engine": "",
+    "engine_raw": "",
+    "photos": [
+     {
+      "url": "https://static.overfuel.com/photos-overlay/1320/2024795/60370aca-e2b4-4531-ae21-a70f33b19425-28.webp?v=d59ad6d7",
+      "sortorder": 1,
+      "isstock": 0
+     },
+     {
+      "url": "https://static.overfuel.com/photos-overlay/1320/2024795/3f854804-e60b-4008-85fe-975dba49a4e4-2.webp?v=d59ad6d7",
+      "sortorder": 2,
+      "isstock": 0
+     },
+     {
+      "url": "https://static.overfuel.com/photos-overlay/1320/2024795/680565ec-78ef-427c-aa69-776d44b7f26d-3.webp?v=d59ad6d7",
+      "sortorder": 3,
+      "isstock": 0
+     },
+     {
+      "url": "https://static.overfuel.com/photos-overlay/1320/2024795/d358313f-038a-46e9-b14a-e6532652779d-4.webp?v=d59ad6d7",
+      "sortorder": 4,
+      "isstock": 0
+     },
+     {
+      "url": "https://static.overfuel.com/photos-overlay/1320/2024795/05e38ae7-588c-4a4e-acba-1678b605ed3e-5.webp?v=d59ad6d7",
+      "sortorder": 5,
+      "isstock": 0
+     },
+     {
+      "url": "https://static.overfuel.com/photos-overlay/1320/2024795/6a537f2d-ba52-4520-89cb-d1f3fb567f03-6.webp?v=d59ad6d7",
+      "sortorder": 6,
+      "isstock": 0
+     },
+     {
+      "url": "https://static.overfuel.com/photos-overlay/1320/2024795/5d726d4c-848d-4928-97fa-bc2b2f0fd01f-7.webp?v=d59ad6d7",
+      "sortorder": 7,
+      "isstock": 0
+     },
+     {
+      "url": "https://static.overfuel.com/photos-overlay/1320/2024795/28c57099-4eca-4373-898a-7af61d7d36f7-8.webp?v=d59ad6d7",
+      "sortorder": 8,
+      "isstock": 0
+     },
+     {
+      "url": "https://static.overfuel.com/photos-overlay/1320/2024795/3e9834f9-648b-4d43-b3f2-5a24137b1619-9.webp?v=d59ad6d7",
+      "sortorder": 9,
+      "isstock": 0
+     },
+     {
+      "url": "https://static.overfuel.com/photos-overlay/1320/2024795/8c230d9d-4195-4dd7-b129-eb3c9fa305d2-10.webp?v=d59ad6d7",
+      "sortorder": 10,
+      "isstock": 0
+     },
+     {
+      "url": "https://static.overfuel.com/photos-overlay/1320/2024795/9e86689f-dbe1-45eb-b5c5-81717593dacc-11.webp?v=d59ad6d7",
+      "sortorder": 11,
+      "isstock": 0
+     },
+     {
+      "url": "https://static.overfuel.com/photos-overlay/1320/2024795/dd4359d1-d44e-4fcb-9f4f-3d961ac00c90-13.webp?v=d59ad6d7",
+      "sortorder": 12,
+      "isstock": 0
+     },
+     {
+      "url": "https://static.overfuel.com/photos-overlay/1320/2024795/1396b257-ca29-49f7-956c-3e531db42c7f-14.webp?v=d59ad6d7",
+      "sortorder": 13,
+      "isstock": 0
+     },
+     {
+      "url": "https://static.overfuel.com/photos-overlay/1320/2024795/b4c6e062-7bfd-45b3-80bd-97894410c4d2-15.webp?v=d59ad6d7",
+      "sortorder": 14,
+      "isstock": 0
+     },
+     {
+      "url": "https://static.overfuel.com/photos-overlay/1320/2024795/fbac5344-cecf-49b9-b330-0611248e018e-16.webp?v=d59ad6d7",
+      "sortorder": 15,
+      "isstock": 0
+     },
+     {
+      "url": "https://static.overfuel.com/photos-overlay/1320/2024795/899e36ae-8179-492b-a149-673d4120e39e-17.webp?v=d59ad6d7",
+      "sortorder": 16,
+      "isstock": 0
+     },
+     {
+      "url": "https://static.overfuel.com/photos-overlay/1320/2024795/6ad8a655-0eb9-4e5d-8f14-001c4aff0489-18.webp?v=d59ad6d7",
+      "sortorder": 17,
+      "isstock": 0
+     },
+     {
+      "url": "https://static.overfuel.com/photos-overlay/1320/2024795/dc9b54e2-1116-4706-a728-bd5b6fc561ef-19.webp?v=d59ad6d7",
+      "sortorder": 18,
+      "isstock": 0
+     },
+     {
+      "url": "https://static.overfuel.com/photos-overlay/1320/2024795/ad5c0b8f-5b96-499c-9613-d3908df3a6a2-20.webp?v=d59ad6d7",
+      "sortorder": 19,
+      "isstock": 0
+     },
+     {
+      "url": "https://static.overfuel.com/photos-overlay/1320/2024795/20b01f1a-53d4-417e-9f5b-feaeca2386d9-21.webp?v=d59ad6d7",
+      "sortorder": 20,
+      "isstock": 0
+     },
+     {
+      "url": "https://static.overfuel.com/photos-overlay/1320/2024795/79ed8d3d-494b-490d-b913-67b0e3494b08-22.webp?v=d59ad6d7",
+      "sortorder": 21,
+      "isstock": 0
+     },
+     {
+      "url": "https://static.overfuel.com/photos-overlay/1320/2024795/4525c685-5877-4620-a2f5-746931642ef7-23.webp?v=d59ad6d7",
+      "sortorder": 22,
+      "isstock": 0
+     },
+     {
+      "url": "https://static.overfuel.com/photos-overlay/1320/2024795/3e1d2bd5-7fd6-483f-9dea-ebe095b96c69-24.webp?v=d59ad6d7",
+      "sortorder": 23,
+      "isstock": 0
+     },
+     {
+      "url": "https://static.overfuel.com/photos-overlay/1320/2024795/8c86bea4-8a46-4ee4-9c7c-b97e99d80bed-25.webp?v=d59ad6d7",
+      "sortorder": 24,
+      "isstock": 0
+     },
+     {
+      "url": "https://static.overfuel.com/photos-overlay/1320/2024795/5a32f75c-b95e-4b3b-9bd0-6a87426f531e-26.webp?v=d59ad6d7",
+      "sortorder": 25,
+      "isstock": 0
+     },
+     {
+      "url": "https://static.overfuel.com/photos-overlay/1320/2024795/327c6df5-3138-46a5-be6e-9e956974d45a-27.webp?v=d59ad6d7",
+      "sortorder": 26,
+      "isstock": 0
+     }
+    ],
+    "photo_count": 26,
+    "description": "BRAND NEW ARRIVAL * ONLY 90,0000 MILES * BOX TRUCK *\n\n2018 International 4300 – 26’ Box Truck • High Cube • Anthony Railgate • Only 90K Miles\nFamily Owned • Over 30 Years in Business\n One Owner • Fleet Maintained • Never from Auction\nCall: 407-321-4244 | Text: 407-212-6120\n2018 International 4300\nOnly 90,000 Original Miles\n Power Windows | Power Locks | Heated Mirrors\n Cruise Control\n LED Lights\n Absolutely No Rust\n Super Clean\n One Owner | Fleet Maintained\n Low Miles for the Year\n26’ x 102” x 103” High Cube Dry Van Body\n No Leaks | No Cracks\n Large 4,500 lb Anthony Railgate\n (Can Be Removed If Not Needed and Swapped Out for a DOT Bumper)\nBrand New Arrival | Turnkey Fleet-Ready Box Truck\nPreventive maintenance always performed on schedule – Turnkey Fleet-Ready Box Truck\nLocated in Sanford/Orlando, FL\n Nationwide Delivery and Flexible Financing Available\nVisit: www.UsedTruckBodies.com\nWe stock and build 10'–26' dry vans, refrigerated boxes, dump bodies, flatbeds, liftgates, and railgates. On-site fabrication, installation, repair, and nationwide delivery available.\n\"Don't waste your time with the rest, come straight to the best!\" – DeBary Truck Sales\nFollow us on Instagram and Facebook: @DeBaryTruckSales\nDeBary Truck Sales in Sanford, Florida offers a huge selection of commercial trucks from top manufacturers including Freightliner, International, Kenworth, Hino, Mack, Ford, Isuzu, GMC, Chevrolet, Volvo, Mitsubishi Fuso, Peterbilt, Sterling, UD, and Western Star. We specialize in light duty, medium duty, and heavy duty work trucks including box trucks, landscape trucks, gutter and HVAC trucks, moving trucks, bread trucks, route delivery trucks, stepvans, cargo vans, dump trucks, flatbeds, hooklift trucks, roll-off trucks, bucket trucks, service utility trucks, cab and chassis units, yard spotters, day cabs, sleepers, and tow trucks. We stock diesel and gas models including NPR, NQR, and NRR series, non-CDL options, single axle and tandem axle configurations, crew cab and tilt cab trucks, refrigerated reefer trucks, liftgate trucks with Waltco and other brands, aluminum body trucks, stake beds, and fleet maintained DOT-ready work trucks. Whether you need a city delivery truck, concrete and tile hauler, lumber or granite delivery truck, truss carrier, sod truck, or specialty upfit unit, we provide finance options, used truck bodies, and rust-free southern trucks ready to work nationwide.",
+    "body_type_source": "Box truck",
+    "overfuel_status": "active",
+    "subcategory": "Box Truck"
+   }
+  }
+ }
+}
