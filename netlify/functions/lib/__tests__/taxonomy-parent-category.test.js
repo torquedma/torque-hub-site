@@ -10,6 +10,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('path');
 const Module = require('module');
+const AUTH = require('../../__tests__/helpers/receiver-auth-fixture'); // security 7c R1: authorized delivery (test-only)
 const fs = require('fs');
 
 const gen = require('../../../../scripts/generate-taxonomy-parents.js');
@@ -39,9 +40,10 @@ function run(dealer, item) {
   const orig = Module._load;
   Module._load = function (req) { if (req === '@supabase/supabase-js') return { createClient: () => client }; return orig.apply(this, arguments); };
   delete require.cache[require.resolve(FN)]; const h = require(FN).handler; Module._load = orig;
-  global.fetch = async () => ({ ok: true, json: async () => [Object.assign({ dealer, stock: 'S1', source_listing_id: '260123456', source_url: 'https://dealer.example/inventory/?/listing/for-sale/260123456/x', year: 2015, make: 'Freightliner', model: 'M2 106', price: '40000', photos: ['a.jpg'] }, item)], text: async () => '' });
+  AUTH.armReceiverAuth(dealer);
+  global.fetch = AUTH.withApprovedRun(async () => ({ ok: true, json: async () => [Object.assign({ dealer, stock: 'S1', source_listing_id: '260123456', source_url: 'https://dealer.example/inventory/?/listing/for-sale/260123456/x', year: 2015, make: 'Freightliner', model: 'M2 106', price: '40000', photos: ['a.jpg'] }, item)], text: async () => '' }));
   const l = console.log, e = console.error, w = console.warn; console.log = console.error = console.warn = () => {};
-  return h({ httpMethod: 'POST', body: JSON.stringify({ defaultDatasetId: 'DS', dealerName: dealer }) })
+  return h(AUTH.authedEvent({ defaultDatasetId: 'DS', dealerName: dealer }))
     .then(() => { console.log = l; console.error = e; console.warn = w; const ins = writes.find(x => x.op === 'insert'); return ins && ins.p; });
 }
 

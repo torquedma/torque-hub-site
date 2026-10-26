@@ -17,6 +17,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('path');
 const Module = require('module');
+const AUTH = require('../../__tests__/helpers/receiver-auth-fixture'); // security 7c R1: authorized delivery (test-only)
 
 const FN = path.join(__dirname, '..', '..', 'sync-truckpaper-background.js');
 const ALLIED = 'Allied Truck & Trailer Sales';
@@ -79,7 +80,7 @@ function loadHandler(state) {
   delete require.cache[require.resolve(FN)];
   const h = require(FN).handler;
   Module._load = origLoad;
-  global.fetch = async (url) => ({ ok: true, json: async () => state.items, text: async () => '' });
+  global.fetch = AUTH.withApprovedRun(async (url) => ({ ok: true, json: async () => state.items, text: async () => '' }));
   return h;
 }
 
@@ -92,8 +93,9 @@ function liveRow(dealer, stock, id) { return { dealer, stock, source_listing_id:
 
 async function run(dealer, { items, live = [], buried = [], dryRun = false, failTable = null, resurrectReturns } = {}) {
   const state = { items, live, buried, writes: [], failTable, resurrectReturns };
+  AUTH.armReceiverAuth(dealer);
   const h = loadHandler(state);
-  const res = await h({ httpMethod: 'POST', body: JSON.stringify({ defaultDatasetId: 'DS-TEST', dealerName: dealer, dryRun }) });
+  const res = await h(AUTH.authedEvent({ defaultDatasetId: 'DS-TEST', dealerName: dealer, dryRun }));
   return { res, body: JSON.parse(res.body), writes: state.writes,
     inv: state.writes.filter(w => w.table === 'inventory'), events: state.writes.filter(w => w.table === 'unit_lifecycle_event') };
 }

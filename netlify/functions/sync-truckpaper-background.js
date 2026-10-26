@@ -7,6 +7,8 @@ const { isKnownSuppressMileage, isKnownSuppressHours } = require('./lib/usage-di
 const { stampFacts, readAdjudication } = require('./lib/provenance');
 const { isValidVin } = require('./lib/vin-decode');
 const { isDraftLifecycleDealer } = require('./lib/draft-lifecycle-dealers');
+const { checkSharedSecret, authMode } = require('./lib/internal-auth');
+const { bindApifyRun, readBindingConfig, itemsDealerMismatch } = require('./lib/apify-run-binding');
 
 // Strip marketing filler after a dash/em-dash separator, e.g.
 // "Cummins ISB 6.7L - Powerful and efficient" → "Cummins ISB 6.7L"
@@ -508,10 +510,30 @@ const ADJUDICATED_GUARD_FIELDS = Object.freeze(['condition']);
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method not allowed' };
 
+  // SECURITY 7c R1 (2026-10-12). Two layers, both before any dataset item read, Supabase call or Anthropic call:
+  // (1) caller secret: header X-Torque-Webhook-Secret must equal APIFY_WEBHOOK_SECRET (lib/internal-auth.js);
+  // (2) approved run binding: the dataset must be the default dataset of a recent SUCCEEDED run of a task
+  //     listed in APIFY_TASK_DEALERS, and the dealer comes from that map (lib/apify-run-binding.js).
+  // RECEIVER_SECRET_MODE / RECEIVER_BINDING_MODE = 'log' lets a failing request through with a log line;
+  // unset or any other value is 'enforce'. stockReconcileDealer always requires a valid secret.
+  // Rejections are logged with a reason only: never the secret, never the Apify token.
+  const secretMode = authMode(process.env.RECEIVER_SECRET_MODE);
+  const bindingMode = authMode(process.env.RECEIVER_BINDING_MODE);
+  const secret = checkSharedSecret(event, 'x-torque-webhook-secret', 'APIFY_WEBHOOK_SECRET');
+  const bindingConfig = readBindingConfig(process.env);
+  console.log(`[AUTH-CONFIG] secret_mode=${secretMode} binding_mode=${bindingMode} secret=${secret.reason} task_map=${bindingConfig.map ? bindingConfig.tasks : 'invalid'} max_age_h=${bindingConfig.ageValid ? bindingConfig.maxAgeHours : 'invalid'}`);
+  const authReject = (reason, ctx, detail) => {
+    console.log(`[RECEIVER-AUTH-REJECT] ${reason} task=${(ctx && ctx.taskId) || 'none'} dealer=${(ctx && ctx.dealer) || 'none'}${detail ? ' ' + detail : ''}`);
+    return { statusCode: 403, body: JSON.stringify({ error: 'rejected', reason }) };
+  };
+
   const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
   let body;
   try { body = JSON.parse(event.body || '{}'); } catch(e) { return { statusCode: 400, body: 'Invalid JSON' }; }
+
+  if (body && body.stockReconcileDealer && !secret.ok) return authReject('armed_flag_requires_secret');
+  if (!secret.ok && secretMode === 'enforce') return authReject('secret_' + secret.reason);
 
   const dryRun = body.dryRun === true;
   const dryRunLog = [];
@@ -522,6 +544,15 @@ exports.handler = async (event) => {
 
   const apifyToken = process.env.APIFY_API_TOKEN;
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
+
+  const binding = await bindApifyRun({ body, env: process.env, token: apifyToken, fetchImpl: fetch, now: Date.now() });
+  if (binding.ok) {
+    console.log(`[RECEIVER-AUTH] secret=${secret.reason} binding=ok task=${binding.taskId} dealer=${binding.dealer}`);
+  } else if (bindingMode === 'enforce') {
+    return authReject(binding.reason, binding, binding.detail);
+  } else {
+    console.log(`[RECEIVER-AUTH-WOULD-REJECT] ${binding.reason} task=${binding.taskId || 'none'} dealer=${binding.dealer || 'none'} (binding_mode=log: legacy path)`);
+  }
 
   // Handle all Apify webhook payload formats
   let datasetId = body?.defaultDatasetId 
@@ -534,11 +565,14 @@ exports.handler = async (event) => {
   
   const dealerName = body?.dealerName || 'Impex Heavy Metal';
 
-  // If no dataset ID but have run ID, fetch it from the run
+  // A bound run reads exactly the dataset the binding verified.
+  if (binding.ok) datasetId = binding.datasetId;
+
+  // If no dataset ID but have run ID, fetch it from the run (unbound legacy path: binding_mode=log only)
   if (!datasetId && actorRunId) {
     console.log('Looking up dataset for run:', actorRunId);
     try {
-      const runRes = await fetch(`https://api.apify.com/v2/actor-runs/${actorRunId}?token=${apifyToken}`);
+      const runRes = await fetch(`https://api.apify.com/v2/actor-runs/${actorRunId}`, { headers: { Authorization: `Bearer ${apifyToken}` } });
       const runData = await runRes.json();
       datasetId = runData?.data?.defaultDatasetId;
       console.log('Dataset ID from run:', datasetId);
@@ -554,11 +588,11 @@ exports.handler = async (event) => {
 
   console.log('Fetching dataset:', datasetId);
   
-  const datasetUrl = `https://api.apify.com/v2/datasets/${datasetId}/items?token=${apifyToken}&format=json&clean=true&limit=10000`;
+  const datasetUrl = `https://api.apify.com/v2/datasets/${datasetId}/items?format=json&clean=true&limit=10000`;
 
   let items;
   try {
-    const res = await fetch(datasetUrl);
+    const res = await fetch(datasetUrl, { headers: { Authorization: `Bearer ${apifyToken}` } });
     if (!res.ok) throw new Error(`Apify fetch failed: ${res.status} ${await res.text()}`);
     items = await res.json();
   } catch(e) {
@@ -570,9 +604,16 @@ exports.handler = async (event) => {
     return { statusCode: 200, body: JSON.stringify({ synced: 0, message: 'Empty dataset' }) };
   }
 
-  console.log(`Syncing ${items.length} items for ${dealerName}`);
+  console.log(`Syncing ${items.length} items for ${binding.ok ? binding.dealer : dealerName}`);
 
-  const dealer = items.find(i => i.dealer)?.dealer || dealerName;
+  // 7c R1: a bound run writes only as its approved dealer; an item naming any other dealer stops the whole run
+  // before any read or write. body.dealerName is ignored for a bound run.
+  if (binding.ok) {
+    const foreignDealer = itemsDealerMismatch(items, binding.dealer);
+    if (foreignDealer) return authReject('dealer_mismatch', binding, `item_dealer=${foreignDealer}`);
+    if (body?.dealerName && body.dealerName !== binding.dealer) console.log(`[RECEIVER-AUTH] body.dealerName ignored (differs from approved dealer ${binding.dealer})`);
+  }
+  const dealer = binding.ok ? binding.dealer : (items.find(i => i.dealer)?.dealer || dealerName);
 
   // S1 (2026-09-24) APIFY DRAFT-TO-LIVE. For lifecycle dealers (the single list
   // in lib/draft-lifecycle-dealers.js, shared with generate-dx-background), a

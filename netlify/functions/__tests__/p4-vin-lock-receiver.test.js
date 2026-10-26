@@ -6,6 +6,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('path');
+const AUTH = require('./helpers/receiver-auth-fixture'); // security 7c R1: authorized delivery (test-only)
 
 const DEALER = 'Mid-Atlantic Power & Equipment';          // live, unfrozen, not a lifecycle dealer
 const REAL_VIN = '1XKDD49X8TJ123456';                     // passes isValidVin (shape)
@@ -47,20 +48,21 @@ async function runSync({ rows, items, anthropic = false }) {
   delete require.cache[RECEIVER];
   process.env.APIFY_API_TOKEN = 'test';
   if (anthropic) process.env.ANTHROPIC_API_KEY = 'test'; else delete process.env.ANTHROPIC_API_KEY;
+  AUTH.armReceiverAuth(DEALER);
   const realFetch = global.fetch;
-  global.fetch = async (url, opts = {}) => {
+  global.fetch = AUTH.withApprovedRun(async (url, opts = {}) => {
     if (String(url).includes('api.apify.com/v2/datasets/')) return { ok: true, json: async () => clone(items) };
     if (String(url).includes('api.anthropic.com')) {
       prompts.push(JSON.parse(opts.body).messages[0].content);
       return { ok: true, json: async () => ({ content: [{ type: 'text', text: 'Mock overview sentence.' }] }) };
     }
     throw new Error('unexpected fetch ' + url);
-  };
+  });
   const quiet = [console.log, console.warn, console.error];
   console.log = console.warn = console.error = () => {};
   try {
     const { handler } = require(RECEIVER);
-    const res = await handler({ httpMethod: 'POST', body: JSON.stringify({ defaultDatasetId: 'ds-test', dealerName: DEALER }) });
+    const res = await handler(AUTH.authedEvent({ defaultDatasetId: 'ds-test', dealerName: DEALER }));
     assert.equal(res.statusCode, 200, 'handler returned ' + res.statusCode + ' ' + res.body);
   } finally {
     [console.log, console.warn, console.error] = quiet;
@@ -177,12 +179,13 @@ test('T16: dry run reports the same VIN decision the real write would make', asy
   require.cache[SUPABASE_JS] = { id: SUPABASE_JS, filename: SUPABASE_JS, loaded: true, exports: { createClient: () => client } };
   delete require.cache[RECEIVER];
   delete process.env.ANTHROPIC_API_KEY;
+  AUTH.armReceiverAuth(DEALER);
   const realFetch = global.fetch;
-  global.fetch = async () => ({ ok: true, json: async () => [item({ vin: 'DB6899' })] });
+  global.fetch = AUTH.withApprovedRun(async () => ({ ok: true, json: async () => [item({ vin: 'DB6899' })] }));
   const quiet = [console.log, console.warn, console.error]; console.log = console.warn = console.error = () => {};
   let body;
   try {
-    const res = await require(RECEIVER).handler({ httpMethod: 'POST', body: JSON.stringify({ defaultDatasetId: 'ds', dealerName: DEALER, dryRun: true }) });
+    const res = await require(RECEIVER).handler(AUTH.authedEvent({ defaultDatasetId: 'ds', dealerName: DEALER, dryRun: true }));
     body = JSON.parse(res.body);
   } finally { [console.log, console.warn, console.error] = quiet; global.fetch = realFetch; }
   assert.equal(db.writes.length, 0, 'dry run writes nothing');

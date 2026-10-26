@@ -15,6 +15,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('path');
 const FIX = require('./fixtures/condition-adjudication-captured-items.json');
+const AUTH = require('./helpers/receiver-auth-fixture'); // security 7c R1: authorized delivery (test-only)
 
 const clone = (x) => JSON.parse(JSON.stringify(x));
 const captured = (lid, over) => Object.assign(clone(FIX.items[lid].item), over || {});
@@ -55,17 +56,18 @@ async function runSync({ dealer, rows, items, dryRun = false, refuse = null }) {
   delete require.cache[RECEIVER];
   process.env.APIFY_API_TOKEN = 'test';
   delete process.env.ANTHROPIC_API_KEY;
+  AUTH.armReceiverAuth(dealer);
   const realFetch = global.fetch;
-  global.fetch = async (url) => {
+  global.fetch = AUTH.withApprovedRun(async (url) => {
     if (String(url).includes('api.apify.com/v2/datasets/')) return { ok: true, json: async () => clone(items) };
     throw new Error('unexpected fetch ' + url);
-  };
+  });
   const quiet = [console.log, console.warn, console.error];
   const errs = [];
   console.log = (...a) => logs.push(a.join(' ')); console.warn = console.error = (...a) => errs.push(a.join(' '));
   let body;
   try {
-    const res = await require(RECEIVER).handler({ httpMethod: 'POST', body: JSON.stringify({ defaultDatasetId: 'ds-test', dealerName: dealer, dryRun }) });
+    const res = await require(RECEIVER).handler(AUTH.authedEvent({ defaultDatasetId: 'ds-test', dealerName: dealer, dryRun }));
     assert.equal(res.statusCode, 200, 'handler returned ' + res.statusCode + ' ' + res.body);
     body = JSON.parse(res.body);
   } finally {
