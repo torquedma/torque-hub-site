@@ -42,6 +42,45 @@ function normalizePrice(v) {
   return { ok: false, value: null };
 }
 
+// -- Paid-campaign attribution (TH-HEAD_SITE_TECH-20261030-035) ---------------
+// Five discrete, nullable campaign fields. They are CLIENT-SUPPLIED and never
+// verified: they describe how the buyer says they arrived, not platform-confirmed
+// ad identity. An invalid value becomes NULL; it never blocks or alters a lead.
+// The same character rule is used by vehicle.html and finance.html.
+const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
+const UTM_VALUE_RE = /^[A-Za-z0-9 ._\-+:|\/()~,]{1,128}$/;
+function cleanUtmValue(v) {
+  if (typeof v !== 'string') return null;
+  const s = v.trim().replace(/ {2,}/g, ' ');
+  if (!UTM_VALUE_RE.test(s)) return null;           // length, control chars, @, %, =, &, quotes ...
+  if (/\d{10,}/.test(s)) return null;               // phone-like digit run
+  if (/\b\d{3}-\d{2}-\d{4}\b/.test(s)) return null; // SSN-like
+  return s;
+}
+function readCampaignFields(payload) {
+  const out = {};
+  UTM_KEYS.forEach(function (k) { out[k] = cleanUtmValue(payload ? payload[k] : undefined); });
+  return out;
+}
+
+// Click identifiers are personal marketing identifiers. They are never persisted
+// or forwarded: removed from URL-shaped fields before storage and email. A value
+// with no click identifier is returned byte-for-byte unchanged.
+const CLICK_ID_PARAMS = ['fbclid', 'gclid', 'gbraid', 'wbraid', 'dclid', 'msclkid', 'ttclid', 'twclid', 'li_fat_id', 'igshid', 'mc_eid', '_fbc', '_fbp'];
+function stripClickIds(value) {
+  if (typeof value !== 'string' || value.indexOf('?') === -1) return value;
+  let u;
+  try { u = new URL(value); } catch (e) { return value; }
+  let removed = false;
+  Array.from(u.searchParams.keys()).forEach(function (k) {
+    if (CLICK_ID_PARAMS.indexOf(k.toLowerCase()) !== -1) { u.searchParams.delete(k); removed = true; }
+  });
+  return removed ? u.toString() : value;
+}
+
+// The placeholder finance.html sends when no seller is known. It is not identity.
+const NO_SELLER_PLACEHOLDER = 'Torque Hub Finance Lead';
+
 exports.handler = async (event) => {
   // CORS: explicit single-origin allowlist. hub.torquedma.com is the ONLY approved
   // browser origin for this endpoint. Dealer origins (davenportmotors.net,
@@ -90,47 +129,105 @@ exports.handler = async (event) => {
   let routeResolved = false;        // lender-routing validity (replaces stockRouteResolved)
   let listingPriceSnapshot = null;
   let resolvedListingId = null;     // canonical inventory.id — retained for persistence
-  if (payload.stock_number) {
+
+  // Identity inputs (035, amended 036/037). Client stock and dealer are HINTS; the
+  // inventory row is the authority, and client dealer text never selects a row.
+  // A supplied stock ends in exactly one inventory state:
+  //   'resolved'  - exactly one row: canonical identity and Branch 1 routing; a
+  //                 contradicting client dealer is rejected (409) before any write.
+  //   'no_match'  - lookup succeeded, no row: not a financing subject. The existing
+  //                 rule applies (a complete external unit, or 400).
+  //   'ambiguous' - several rows (stock is unique per dealer, not globally): not a
+  //                 financing subject either; same rule as no_match. Client dealer
+  //                 text is never used to choose a row.
+  //   'error'     - the lookup itself failed: identity cannot be determined, so the
+  //                 request is refused with a retryable 503 before anything is
+  //                 saved, sent or routed.
+  // Only a 'resolved' stock can reach a lender. Unresolved stocks never fall back
+  // to client dealer-name routing (Branch 2) or the platform default (Branch 3),
+  // and their client seller text is never stored or shown as the dealer.
+  const stockIn = (payload.stock_number === null || payload.stock_number === undefined)
+    ? '' : String(payload.stock_number).trim();
+  const clientDealer = (typeof payload.dealer_name === 'string'
+      && payload.dealer_name.trim() !== '' && payload.dealer_name !== NO_SELLER_PLACEHOLDER)
+    ? payload.dealer_name.trim() : null;
+  let inventoryState = 'none';
+  let inv = null;
+  if (stockIn) {
     try {
-      const { data: inv } = await supabase
+      const { data: invRows, error: invErr } = await supabase
         .from('inventory')
         .select('id, dealer, sold, price')
-        .eq('stock', payload.stock_number)
+        .eq('stock', stockIn)
+        .limit(2);
+      if (invErr) throw invErr;
+      const rows = Array.isArray(invRows) ? invRows.filter(function (r) { return r && r.dealer; }) : [];
+      if (rows.length === 1) { inv = rows[0]; inventoryState = 'resolved'; }
+      else if (rows.length === 0) { inventoryState = 'no_match'; }
+      else { inventoryState = 'ambiguous'; }
+    } catch (e) {
+      inventoryState = 'error';
+    }
+  }
+  if (inventoryState === 'error') {
+    console.error('submit-finance-lead: inventory lookup failed; 503 returned, nothing saved');
+    return { statusCode: 503, headers: Object.assign({ 'Retry-After': '5' }, headers), body: JSON.stringify({
+      error: 'inventory_lookup_unavailable',
+      detail: 'The inventory lookup for stock_number failed. Nothing was saved. Retry the request.'
+    }) };
+  }
+  if (inv && clientDealer && clientDealer !== inv.dealer) {
+    return { statusCode: 409, headers, body: JSON.stringify({
+      error: 'identity_conflict',
+      detail: 'dealer_name does not match the Torque Hub inventory dealer for stock_number.'
+    }) };
+  }
+  if (inv) {
+    stockExists = true;
+    resolvedDealerName = inv.dealer;
+    resolvedListingId = inv.id || null;
+    stockSold = !!inv.sold;
+    const lp = normalizePrice(inv.price);
+    listingPriceSnapshot = lp.ok ? lp.value : null;
+    try {
+      const { data: route } = await supabase
+        .from('finance_routes')
+        .select('lender_name, dealer_notification_email, lender_notification_email, dealer_code, code')
+        .eq('dealer_name', inv.dealer)
+        .eq('status', 'active')
         .single();
-      if (inv && inv.dealer) {
-        stockExists = true;
-        resolvedDealerName = inv.dealer;
-        resolvedListingId = inv.id || null;
-        stockSold = !!inv.sold;
-        const lp = normalizePrice(inv.price);
-        listingPriceSnapshot = lp.ok ? lp.value : null;
-        const { data: route } = await supabase
-          .from('finance_routes')
-          .select('lender_name, dealer_notification_email, lender_notification_email, dealer_code, code')
-          .eq('dealer_name', inv.dealer)
-          .eq('status', 'active')
-          .single();
-        if (route) {
-          routeResolved = true;
-          if (route.lender_name) resolvedLender = route.lender_name;
-          dealerEmail = route.dealer_notification_email || null;
-          lenderEmail = route.lender_notification_email || null;
-          dealerCode = route.dealer_code || null;
-          routeCode = route.code || null;
-          routeBasis = 'matched';
-        }
+      if (route) {
+        routeResolved = true;
+        if (route.lender_name) resolvedLender = route.lender_name;
+        dealerEmail = route.dealer_notification_email || null;
+        lenderEmail = route.lender_notification_email || null;
+        dealerCode = route.dealer_code || null;
+        routeCode = route.code || null;
+        routeBasis = 'matched';
       }
     } catch (e) {
       // attribution is best-effort; never block a lead from saving
       console.error('finance_routes attribution lookup failed:', e);
     }
   }
-  if (!routeResolved && payload.dealer_name && payload.dealer_name !== 'Torque Hub Finance Lead') {
+  // A supplied stock that did not resolve to exactly one row stays Torque-only.
+  const unresolvedStock = !!stockIn && !stockExists;
+  // An unresolved stock is never a financing subject; such a lead exists only when
+  // the buyer also supplied a complete external unit (subject gate below).
+  const manualReviewLine = {
+    no_match:  'Stock not found in Torque Hub inventory - Torque-only, manual review',
+    ambiguous: 'Stock matches more than one inventory dealer - seller not verified; Torque-only, manual review'
+  }[inventoryState] || null;
+
+  // BRANCH 2 (dealer name) applies ONLY when no stock was supplied (external unit,
+  // including the ATC ?src=autoconnection210 referral). A supplied stock is routed
+  // by inventory or not at all.
+  if (!stockIn && !routeResolved && clientDealer) {
     try {
       const { data: routeByDealer } = await supabase
         .from('finance_routes')
         .select('lender_name, dealer_notification_email, lender_notification_email, dealer_code, code')
-        .eq('dealer_name', payload.dealer_name)
+        .eq('dealer_name', clientDealer)
         .eq('status', 'active')
         .single();
       if (routeByDealer) {
@@ -147,7 +244,8 @@ exports.handler = async (event) => {
   }
 
   // BRANCH 3: platform-default lender route (fallback). Lender email only — never dealer email.
-  if (!routeCode) {
+  // An unresolved stock stays Torque-only (no platform default either).
+  if (!routeCode && !unresolvedStock) {
     try {
       const { data: def } = await supabase.from('finance_routes')
         .select('lender_name, lender_notification_email, code')
@@ -169,6 +267,8 @@ exports.handler = async (event) => {
 
   // PRICE CHECK FIRST — must precede the subject check, or the named price error is
   // unreachable (hasCompleteExternalUnit already requires extPrice.ok).
+  // Every request without a resolved stock - no stock, a confirmed no-match or an
+  // ambiguous stock - must carry an independently valid external subject (036/037).
   if (!stockExists && !extPrice.ok) {
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'external_vehicle_price must be a dollar amount' }) };
   }
@@ -188,27 +288,41 @@ exports.handler = async (event) => {
   const submissionId = (typeof payload.submission_id === 'string' && SUBMISSION_ID_RE.test(payload.submission_id))
     ? payload.submission_id
     : null;
-  const { data: inserted, error } = await supabase.from('leads').insert([{
+  const campaign = readCampaignFields(payload);
+  const hasCampaign = UTM_KEYS.some(function (k) { return campaign[k] !== null; });
+  const sourceUrlOut     = stripClickIds(payload.source_url     || null);
+  const submissionUrlOut = stripClickIds(payload.submission_url || null);
+  const referrerOut      = stripClickIds(payload.referrer       || null);
+  // Dealer identity (037): a resolved stock persists and presents the inventory
+  // dealer. A supplied stock that did not resolve persists NO dealer; the seller the
+  // buyer named appears only in the internal email, labelled unverified. Requests
+  // without a stock keep today's behaviour (buyer-selected seller / ATC referral).
+  const dealerNameOut    = stockExists ? resolvedDealerName
+    : (unresolvedStock ? null : (payload.dealer_name || null));
+  const unverifiedSellerLine = (unresolvedStock && clientDealer)
+    ? `Seller named by buyer (unverified, not used for routing): ${clientDealer}` : null;
+
+  const leadRow = {
     customer_name:  customer_name.trim(),
     customer_phone: customer_phone.trim(),
     customer_email: payload.customer_email || null,
-    stock:          payload.stock_number   || null,
+    stock:          stockIn || null,
     unit_title:     payload.listing_title  || null,
-    dealer_name:    payload.dealer_name || resolvedDealerName || null,
+    dealer_name:    dealerNameOut,
     external_vehicle_year:  stockExists ? null : (extYear  || null),
     external_vehicle_make:  stockExists ? null : (extMake  || null),
     external_vehicle_model: stockExists ? null : (extModel || null),
     external_vehicle_price: stockExists ? null : extPrice.value,
     listing_price_snapshot: stockExists ? listingPriceSnapshot : null,
     listing_id:     resolvedListingId,
-    source_url:     payload.source_url     || null,
-    submission_url: payload.submission_url || null,
+    source_url:     sourceUrlOut,
+    submission_url: submissionUrlOut,
     submission_id:  submissionId,
     message:        payload.message        || null,
     credit_score:   payload.credit_score   || null,
     lender:         resolvedLender,
     rep:            payload.rep            || null,
-    referrer:       payload.referrer       || null,
+    referrer:       referrerOut,
     dealer_code:    dealerCode,
     business_name:   payload.business_name   || null,
     monthly_revenue: payload.monthly_revenue || null,
@@ -218,7 +332,40 @@ exports.handler = async (event) => {
     status:         'new',
     route_code:  routeCode,
     route_basis: routeBasis
-  }]).select('id').single();
+  };
+  // Campaign columns are written only when at least one value is present, so a
+  // lead without campaign data never depends on them.
+  if (hasCampaign) UTM_KEYS.forEach(function (k) { leadRow[k] = campaign[k]; });
+
+  let { data: inserted, error } = await supabase.from('leads').insert([leadRow]).select('id').single();
+  // Release-order safety (037): if PostgREST reports PGRST204 AND the missing column
+  // it names is verifiably one of the five approved campaign columns, save the lead
+  // once more without them. Any other PGRST204 - another column, no column named, an
+  // unreadable message - is NOT retried and fails exactly as before. Exactly one
+  // retry. The diagnostic is one bounded line: fixed keys, the allowlisted column
+  // (or "unverified"), the outcome and an allowlisted error code - never the payload,
+  // URLs, campaign values or the raw database message.
+  let campaignFallback = false;
+  if (error && error.code === 'PGRST204' && hasCampaign) {
+    const msg = typeof error.message === 'string' ? error.message.slice(0, 300) : '';
+    const m = /Could not find the '([^']{1,64})' column/.exec(msg);
+    const verifiedColumn = (m && UTM_KEYS.indexOf(m[1]) !== -1) ? m[1] : null;
+    let outcome = 'skipped';
+    if (verifiedColumn) {
+      const fallbackRow = Object.assign({}, leadRow);
+      UTM_KEYS.forEach(function (k) { delete fallbackRow[k]; });
+      ({ data: inserted, error } = await supabase.from('leads').insert([fallbackRow]).select('id').single());
+      campaignFallback = !error;
+      outcome = error ? 'failed' : 'saved';
+    }
+    console.warn(JSON.stringify({
+      event: 'finance_lead_campaign_fallback',
+      code: 'PGRST204',
+      column: verifiedColumn || 'unverified',
+      retry: outcome,
+      retry_code: (outcome === 'failed' && typeof error.code === 'string' && /^[A-Z0-9]{1,10}$/.test(error.code)) ? error.code : null
+    }));
+  }
 
   if (error) {
     // REPLAY: this submission attempt was already accepted. Resolve to the
@@ -262,7 +409,7 @@ exports.handler = async (event) => {
         payload.customer_email ? `Email: ${payload.customer_email}`   : null,
         `Source: ${formLabel}`,
         `Source detail: ${source}`,
-        payload.dealer_name   ? `Dealer: ${payload.dealer_name}`      : null,
+        dealerNameOut         ? `Dealer: ${dealerNameOut}`            : null,
         payload.listing_title ? `Unit: ${payload.listing_title}`      : null,
         payload.stock_number  ? `Stock: ${payload.stock_number}`      : null,
         // Guarded on hasCompleteExternalUnit, not merely !stockExists: today the gate
@@ -275,8 +422,11 @@ exports.handler = async (event) => {
         payload.lender        ? `Lender: ${payload.lender}`           : null,
         payload.rep           ? `Rep: ${payload.rep}`                 : null,
         payload.message       ? `Message: ${payload.message}`         : null,
-        payload.source_url    ? `Source URL: ${payload.source_url}`   : null,
-        payload.referrer      ? `Referrer: ${payload.referrer}`       : null,
+        sourceUrlOut          ? `Source URL: ${sourceUrlOut}`         : null,
+        referrerOut           ? `Referrer: ${referrerOut}`            : null,
+        manualReviewLine,
+        unverifiedSellerLine,
+        campaignFallback      ? 'Campaign attribution not stored: database columns unavailable (PGRST204)' : null,
       ].filter(line => line !== null);
 
       const sendOpts = {
@@ -308,7 +458,7 @@ exports.handler = async (event) => {
           payload.customer_email ? `Email: ${payload.customer_email}`   : null,
           `Source: ${formLabel}`,
           `Source detail: ${source}`,
-          payload.dealer_name   ? `Dealer: ${payload.dealer_name}`      : null,
+          dealerNameOut         ? `Dealer: ${dealerNameOut}`            : null,
           payload.listing_title ? `Unit: ${payload.listing_title}`      : null,
           payload.stock_number  ? `Stock: ${payload.stock_number}`      : null,
           // Guarded on hasCompleteExternalUnit, not merely !stockExists: today the gate
@@ -321,8 +471,8 @@ exports.handler = async (event) => {
           resolvedLender        ? `Lender: ${resolvedLender}`           : null,
           payload.rep           ? `Rep: ${payload.rep}`                 : null,
           payload.message       ? `Message: ${payload.message}`         : null,
-          payload.source_url    ? `Source URL: ${payload.source_url}`   : null,
-          payload.referrer      ? `Referrer: ${payload.referrer}`       : null,
+          sourceUrlOut          ? `Source URL: ${sourceUrlOut}`         : null,
+          referrerOut           ? `Referrer: ${referrerOut}`            : null,
         ].filter(line => line !== null);
         const lenderOpts = {
           from:    'Torque Hub <finance@torquedma.com>',
@@ -348,11 +498,11 @@ exports.handler = async (event) => {
           `Name: ${customerName}`,
           `Phone: ${customer_phone.trim()}`,
           payload.customer_email ? `Email: ${payload.customer_email}`   : null,
-          payload.dealer_name   ? `Dealer: ${payload.dealer_name}`      : null,
+          dealerNameOut         ? `Dealer: ${dealerNameOut}`            : null,
           payload.listing_title ? `Unit: ${payload.listing_title}`      : null,
           payload.stock_number  ? `Stock: ${payload.stock_number}`      : null,
           payload.message       ? `Message: ${payload.message}`         : null,
-          payload.source_url    ? `Source URL: ${payload.source_url}`   : null,
+          sourceUrlOut          ? `Source URL: ${sourceUrlOut}`         : null,
         ].filter(line => line !== null);
         let dealerSubject;
         if (payload.listing_title && payload.stock_number) {

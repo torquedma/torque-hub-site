@@ -469,6 +469,38 @@ const lender = params.get("lender") || "";
 const rep = params.get("rep") || "";
 const dealer = params.get("dealer") || "";
 
+// CAMPAIGN-ATTRIBUTION-SHARED-BEGIN (TH-HEAD_SITE_TECH-20261030-035; identical in vehicle.html and finance.html)
+// Only the five utm_* fields are read. Click identifiers (fbclid, gclid, ...) are
+// never read, stored or forwarded. Values are client-supplied and unverified; an
+// invalid or repeated value becomes null. Same character rule as submit-finance-lead.
+const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
+const UTM_VALUE_RE = /^[A-Za-z0-9 ._\-+:|\/()~,]{1,128}$/;
+function cleanUtmValue(v) {
+  if (typeof v !== 'string') return null;
+  const s = v.trim().replace(/ {2,}/g, ' ');
+  if (!UTM_VALUE_RE.test(s)) return null;
+  if (/\d{10,}/.test(s)) return null;
+  if (/\b\d{3}-\d{2}-\d{4}\b/.test(s)) return null;
+  return s;
+}
+function campaignFromSearch(search) {
+  const out = {};
+  let p = null;
+  try { p = new URLSearchParams(search || ''); } catch (e) { p = null; }
+  UTM_KEYS.forEach(function (k) {
+    const vals = p ? p.getAll(k) : [];
+    out[k] = vals.length === 1 ? cleanUtmValue(vals[0]) : null;
+  });
+  return out;
+}
+function hasCampaignValue(c) {
+  return !!c && UTM_KEYS.some(function (k) { return c[k] !== null && c[k] !== undefined; });
+}
+// CAMPAIGN-ATTRIBUTION-SHARED-END
+// Campaign fields come ONLY from this page's own URL (the VDP CTAs carry them);
+// a direct visit without utm_* parameters sends nulls.
+const FINANCE_CAMPAIGN = campaignFromSearch(window.location.search);
+
 // financeSubject answers WHAT is being financed. sellerContext answers WHO is selling
 // and how we know. They are deliberately separate: subject identity is not routing
 // identity, and a valid subject may have no route at all.
@@ -947,7 +979,12 @@ function submitFinance() {
     business_name:   business || null,
     monthly_revenue: revenue || null,
     down_payment:    downPayment || null,
-    timeframe:       timeframe || null
+    timeframe:       timeframe || null,
+    utm_source:      FINANCE_CAMPAIGN.utm_source,
+    utm_medium:      FINANCE_CAMPAIGN.utm_medium,
+    utm_campaign:    FINANCE_CAMPAIGN.utm_campaign,
+    utm_content:     FINANCE_CAMPAIGN.utm_content,
+    utm_term:        FINANCE_CAMPAIGN.utm_term
   };
 
   const canonical = {
@@ -974,12 +1011,34 @@ function submitFinance() {
     errEl.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
+  // 409 identity_conflict (036): the server found this stock under a different
+  // seller than this page holds - the listing changed after the page loaded. A
+  // plain retry cannot succeed, so tell the buyer exactly what to do. No lead was
+  // saved, and no conversion event fires (events fire only on a 2xx below).
+  const handleIdentityConflict = () => {
+    handlePhase1Failure();
+    errEl.textContent = "This listing's seller details changed after the page loaded, so we couldn't match your application to it. Nothing was submitted. Reload the page to get the current listing, then submit again (you will need to re-enter your details). ";
+    const reload = document.createElement("a");
+    reload.href = window.location.href;
+    reload.textContent = "Reload this page";
+    reload.id = "identity-conflict-reload";
+    reload.style.color = "inherit";
+    reload.style.textDecoration = "underline";
+    errEl.appendChild(reload);
+  };
+
   fetch("/.netlify/functions/submit-finance-lead", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
   }).then(async r => {
-    if (!r.ok) { handlePhase1Failure(); return; }
+    if (!r.ok) {
+      let failure = null;
+      if (r.status === 409) { try { failure = await r.json(); } catch (e) { failure = null; } }
+      if (failure && failure.error === 'identity_conflict') handleIdentityConflict();
+      else handlePhase1Failure();
+      return;
+    }
 
     // ★ ACCEPTANCE BOUNDARY CROSSED. A 2xx means the server accepted the POST and the
     // lead may/does exist. financeSubmitting stays TRUE permanently for this submission.

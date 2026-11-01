@@ -520,6 +520,108 @@ const SUPABASE_URL = 'https://bxsikkmqasydosmblzov.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4c2lra21xYXN5ZG9zbWJsem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTc1OTksImV4cCI6MjA5MDQ3MzU5OX0.JMEI7cx2tddmbvfqm_qxiIWp7f5Phuk5l0Y487DUSZg';
 const SB_HEADERS = { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON };
 
+// CAMPAIGN-ATTRIBUTION-SHARED-BEGIN (TH-HEAD_SITE_TECH-20261030-035; identical in vehicle.html and finance.html)
+// Only the five utm_* fields are read. Click identifiers (fbclid, gclid, ...) are
+// never read, stored or forwarded. Values are client-supplied and unverified; an
+// invalid or repeated value becomes null. Same character rule as submit-finance-lead.
+const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
+const UTM_VALUE_RE = /^[A-Za-z0-9 ._\-+:|\/()~,]{1,128}$/;
+function cleanUtmValue(v) {
+  if (typeof v !== 'string') return null;
+  const s = v.trim().replace(/ {2,}/g, ' ');
+  if (!UTM_VALUE_RE.test(s)) return null;
+  if (/\d{10,}/.test(s)) return null;
+  if (/\b\d{3}-\d{2}-\d{4}\b/.test(s)) return null;
+  return s;
+}
+function campaignFromSearch(search) {
+  const out = {};
+  let p = null;
+  try { p = new URLSearchParams(search || ''); } catch (e) { p = null; }
+  UTM_KEYS.forEach(function (k) {
+    const vals = p ? p.getAll(k) : [];
+    out[k] = vals.length === 1 ? cleanUtmValue(vals[0]) : null;
+  });
+  return out;
+}
+function hasCampaignValue(c) {
+  return !!c && UTM_KEYS.some(function (k) { return c[k] !== null && c[k] !== undefined; });
+}
+// CAMPAIGN-ATTRIBUTION-SHARED-END
+// CAMPAIGN-ATTRIBUTION-VDP-BEGIN
+// First-touch snapshot for ONE acquisition journey (036): this browser tab only
+// (sessionStorage), bound to the stock of the VDP the campaign landed on, valid for
+// 2 hours from capture. A campaign is applied only to that same stock, so browsing
+// to another unit never carries it (no cross-unit contamination). Reloading the
+// landing unit, or returning to it in the same tab, keeps the first touch; a later
+// campaign URL for the same unit does not overwrite it. A campaign URL for a
+// different unit starts a new journey and replaces the snapshot. Expired, future-
+// dated or unreadable snapshots are discarded. No cross-session storage. If storage
+// is unavailable the current URL alone is used. A page without exactly one stock
+// parameter gets no campaign.
+const CAMPAIGN_SNAPSHOT_KEY = 'th_campaign_v1';
+const CAMPAIGN_SNAPSHOT_TTL_MS = 2 * 60 * 60 * 1000;
+function vdpCampaignStorage() {
+  try { return window.sessionStorage || null; } catch (e) { return null; }
+}
+function vdpStockFromSearch(search) {
+  let p = null;
+  try { p = new URLSearchParams(search || ''); } catch (e) { return null; }
+  const vals = p.getAll('stock');
+  if (vals.length !== 1) return null;
+  const s = vals[0].trim();
+  return (s && s.length <= 64) ? s : null;
+}
+function resolveVdpCampaign(search, storage, now) {
+  const stock = vdpStockFromSearch(search);
+  if (!stock) return null;
+  if (storage) {
+    try {
+      const raw = storage.getItem(CAMPAIGN_SNAPSHOT_KEY);
+      if (raw) {
+        const o = JSON.parse(raw);
+        const age = (o && typeof o.t === 'number') ? now - o.t : -1;
+        if (age >= 0 && age < CAMPAIGN_SNAPSHOT_TTL_MS && o.c && typeof o.s === 'string') {
+          const c = {};
+          UTM_KEYS.forEach(function (k) { c[k] = cleanUtmValue(o.c[k]); });
+          if (hasCampaignValue(c)) {
+            if (o.s === stock) return c;          // same journey: first touch kept
+          } else {
+            storage.removeItem(CAMPAIGN_SNAPSHOT_KEY);
+          }
+        } else {
+          storage.removeItem(CAMPAIGN_SNAPSHOT_KEY);
+        }
+      }
+    } catch (e) {
+      try { storage.removeItem(CAMPAIGN_SNAPSHOT_KEY); } catch (e2) {}
+    }
+  }
+  const fromUrl = campaignFromSearch(search);
+  if (!hasCampaignValue(fromUrl)) return null;   // other unit, organic: nothing carried
+  if (storage) {
+    try { storage.setItem(CAMPAIGN_SNAPSHOT_KEY, JSON.stringify({ t: now, s: stock, c: fromUrl })); } catch (e) {}
+  }
+  return fromUrl;
+}
+// Adds only the non-null utm_* fields. The internal CTA marker (src) is untouched.
+function appendCampaignParams(url, c) {
+  if (!hasCampaignValue(c)) return url;
+  let out = url;
+  UTM_KEYS.forEach(function (k) {
+    if (c[k] === null || c[k] === undefined) return;
+    out += (out.indexOf('?') === -1 ? '?' : '&') + k + '=' + encodeURIComponent(c[k]);
+  });
+  return out;
+}
+// CAMPAIGN-ATTRIBUTION-VDP-END
+const VDP_CAMPAIGN = resolveVdpCampaign(window.location.search, vdpCampaignStorage(), Date.now());
+(function () {
+  // Static fallback (before or without a rendered unit) keeps the campaign too.
+  const navFin = document.getElementById('nav-finance');
+  if (navFin) navFin.href = appendCampaignParams(navFin.getAttribute('href') || '/finance.html?src=vdp_nav', VDP_CAMPAIGN);
+})();
+
 // ─── HELPERS ────────────────────────────────────────────────────────────────
 function formatPrice(raw) {
   if (raw === null || raw === undefined || raw === '') return 'Call for Price';
@@ -1042,9 +1144,10 @@ function render(unit, dealerKey) {
   const financeBase = `/finance.html?stock=${encodeURIComponent(unit.stock || '')}&unit=${encodeURIComponent(unitSlug)}&price=${priceNum}`;
   // Preserve src per entry point: this attribution exposed the desktop/mobile
   // asymmetry and remains the instrument for measuring this fix.
-  const financeUrl = `${financeBase}&src=listing`;
+  // Campaign fields (035) ride alongside src; src stays the internal click position.
+  const financeUrl = appendCampaignParams(`${financeBase}&src=listing`, VDP_CAMPAIGN);
   const mobileFinance = el('mobile-finance');if (mobileFinance) mobileFinance.href = financeUrl;
-  const navFinance = el('nav-finance'); if (navFinance) navFinance.href = `${financeBase}&src=vdp_nav`;
+  const navFinance = el('nav-finance'); if (navFinance) navFinance.href = appendCampaignParams(`${financeBase}&src=vdp_nav`, VDP_CAMPAIGN);
 
   // Dealer card
   const dName = el('d-name'); if (dName) dName.textContent = dealerKey || unit.dealer;
