@@ -504,7 +504,10 @@ const PRESENTATION_HELD_LISTINGS = new Set([
 // A disagreeing incoming value is logged; an inconsistent or malformed marker is held and logged for
 // governed reconcile. Scope is deliberately narrow: owning lanes add a field here only with their own
 // impact census and Chief GO (e.g. DeBary mileage). INSERT is unaffected (a new row has no marker).
-const ADJUDICATED_GUARD_FIELDS = Object.freeze(['condition']);
+// 'mileage' added 2026-11-04 (Chief 1 rollback ruling: per-row code fix, no blanket freeze, no DB trigger twin;
+// impact census 0 marked rows). It protects only a row whose provenance.mileage carries a governed marker; a
+// disagreeing feed reading on that row is logged by [ADJUDICATED-HOLD] (incoming value included), not written.
+const ADJUDICATED_GUARD_FIELDS = Object.freeze(['condition', 'mileage']);
 
 // Use background function for longer timeout (15 minutes vs 10 seconds)
 exports.handler = async (event) => {
@@ -681,7 +684,7 @@ exports.handler = async (event) => {
   // Get existing rows (stock + source_listing_id for dual-key upsert)
   const { data: existing } = await supabase
     .from('inventory')
-    .select('stock,source_listing_id,subcategory_locked,model_locked,vin_locked,source_url,provenance,vin,condition')
+    .select('stock,source_listing_id,subcategory_locked,model_locked,vin_locked,source_url,provenance,vin,condition,mileage')
     .eq('dealer', dealer)
     .eq('sold', false);
 
@@ -714,7 +717,7 @@ exports.handler = async (event) => {
   // feed is never read and never written.
   const { data: buried } = await supabase
     .from('inventory')
-    .select('stock,source_listing_id,subcategory_locked,model_locked,vin_locked,source_url,provenance,vin,condition')
+    .select('stock,source_listing_id,subcategory_locked,model_locked,vin_locked,source_url,provenance,vin,condition,mileage')
     .eq('dealer', dealer)
     .eq('sold', true)
     .eq('sold_type', 'feed_removed');
