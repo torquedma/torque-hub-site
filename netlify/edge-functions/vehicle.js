@@ -280,7 +280,10 @@ function injectBody(html, { unit, dealerKey, title, price, subcat, seoLine, loc,
 
   // Headline strip
   html = html.replace('id="vdp-headline" style="display:none"', 'id="vdp-headline"');
-  html = html.replace('id="hl-title"></div>', `id="hl-title">${esc(title)}</div>`);
+  // VDP-H1-001 (Chief 2 TH-CHIEF_2-20261106-080, Option S): the one descriptive page H1 is emitted only here, on the
+  // rendered-listing path; the template keeps its DIV, so 404 / no-stock / fallback pages carry no H1.
+  // vdp-h1-edge.test.js fails if this target is missing from, or duplicated in, vehicle.html.
+  html = html.replace('<div class="vdp-headline-title" id="hl-title"></div>', `<h1 class="vdp-headline-title" id="hl-title">${esc(title)}</h1>`);
   html = html.replace('id="hl-price"></span>', `id="hl-price">${esc(price)}</span>`);
   if (subcat) {
     html = html.replace('id="hl-badge" style="display:none"', 'id="hl-badge"');
