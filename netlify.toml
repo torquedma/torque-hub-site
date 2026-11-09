@@ -13,7 +13,7 @@
   timeout = 900
 
 [functions."decode-vin-cron"]
-  schedule = "0 7,19 * * *"
+  schedule = "30 5,10 * * *"
 
 [[edge_functions]]
   path = "/inventory"
