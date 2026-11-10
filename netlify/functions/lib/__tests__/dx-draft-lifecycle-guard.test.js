@@ -7,7 +7,8 @@
 //      Allied Truck & Trailer Sales or Impex Heavy Metal, on the legacy
 //      (completion_state NULL) branch or the completion-lifecycle branch.
 //   2. DX is still written/refreshed for those dealers.
-//   3. Every other dealer, including HGR, keeps today's status behavior.
+//   3. DRAFT-FIRST (2026-11-06): no dealer, HGR included, is promoted by DX.
+//      Drafts stay draft on both branches; publication is a separate human step.
 //   4. Already-published rows never receive a status key (unchanged).
 //   5. The unbounded-write containment (409, no writes) is unchanged.
 // Supabase, the generator and the publication gate are stubbed; nothing
@@ -175,19 +176,22 @@ test('already-published Allied and Impex rows: DX refresh only, no status key, n
   assert.equal(r.body.draft_promotion_withheld, 0);
 });
 
-// ---------- 3: every other dealer keeps today's behavior ----------
-test('every non-lifecycle dealer: legacy draft is promoted exactly as before', async () => {
+// ---------- 3: DRAFT-FIRST - no dealer is promoted by DX ----------
+test('every non-lifecycle dealer: legacy draft gets DX and stays draft', async () => {
   const rows = OTHERS.map((d, i) => unit('OTH-L' + i, d, 'draft'));
   const r = await run(rows);
-  for (const row of rows) assert.equal(r.byStock[row.stock].status, 'published', row.dealer);
-  assert.equal(r.body.draft_promotion_withheld, 0);
+  for (const row of rows) {
+    assert.ok(!('status' in r.byStock[row.stock]), row.dealer);
+    assert.equal(r.byStock[row.stock].description_source, 'torque_hub_dx', row.dealer);
+  }
+  assert.equal(r.body.draft_promotion_withheld, rows.length);
 });
 
-test('every non-lifecycle dealer: lifecycle draft promoted when eligible, held when not', async () => {
+test('every non-lifecycle dealer: lifecycle draft completes when eligible (still draft), held when not', async () => {
   const rows = OTHERS.flatMap((d, i) => [unit('OTH-E' + i, d, 'draft', 'pending'), unit('OTH-I' + i, d, 'draft', 'pending')]);
   const r = await run(rows, { ineligible: OTHERS.map((_, i) => 'OTH-I' + i) });
   OTHERS.forEach((d, i) => {
-    assert.equal(r.byStock['OTH-E' + i].status, 'published', d);
+    assert.ok(!('status' in r.byStock['OTH-E' + i]), d);
     assert.equal(r.byStock['OTH-E' + i].completion_state, 'complete', d);
     assert.ok(!('status' in r.byStock['OTH-I' + i]), d);
     assert.equal(r.byStock['OTH-I' + i].completion_reason, 'VALIDATION:TEST', d);
@@ -201,7 +205,7 @@ test('non-lifecycle published rows never receive a status key', async () => {
 });
 
 // ---------- HGR regression ----------
-test('HGR: completion lifecycle unchanged (eligible → published+complete; ineligible → hold; errors → hold/retryable)', async () => {
+test('HGR: completion lifecycle keeps its states but never publishes (eligible -> complete, still draft; ineligible -> hold; errors -> hold/retryable)', async () => {
   const rows = [
     unit('HGR-A', HGR, 'draft', 'pending'), unit('HGR-B', HGR, 'draft', 'retryable'),
     unit('HGR-C', HGR, 'draft', 'pending'), unit('HGR-D', HGR, 'draft', 'pending'),
@@ -210,22 +214,22 @@ test('HGR: completion lifecycle unchanged (eligible → published+complete; inel
   ];
   const r = await run(rows, { ineligible: ['HGR-C'],
     outcome: { 'HGR-D': 'OVERVIEW_GROUNDING_FAILED', 'HGR-E': 'Boom' } });
-  assert.equal(r.byStock['HGR-A'].status, 'published'); assert.equal(r.byStock['HGR-A'].completion_state, 'complete');
-  assert.equal(r.byStock['HGR-B'].status, 'published'); assert.equal(r.byStock['HGR-B'].completion_state, 'complete');
+  assert.ok(!('status' in r.byStock['HGR-A'])); assert.equal(r.byStock['HGR-A'].completion_state, 'complete');
+  assert.ok(!('status' in r.byStock['HGR-B'])); assert.equal(r.byStock['HGR-B'].completion_state, 'complete');
   assert.ok(!('status' in r.byStock['HGR-C'])); assert.equal(r.byStock['HGR-C'].completion_state, 'hold');
   assert.ok(!('status' in r.byStock['HGR-D'])); assert.equal(r.byStock['HGR-D'].completion_state, 'hold');
   assert.ok(!('status' in r.byStock['HGR-E'])); assert.equal(r.byStock['HGR-E'].completion_state, 'retryable');
   assert.ok(!('status' in r.byStock['HGR-F']));
-  assert.equal(r.byStock['HGR-G'].status, 'published');
-  assert.equal(r.body.draft_promotion_withheld, 0);
+  assert.ok(!('status' in r.byStock['HGR-G']));
+  assert.equal(r.body.draft_promotion_withheld, 3);
 });
 
-test('mixed ?stocks batch: HGR draft promoted, Allied/Impex drafts in the same call are not', async () => {
+test('mixed ?stocks batch: no draft in the call is promoted (HGR, Allied, Impex)', async () => {
   const r = await run([unit('HGR-M', HGR, 'draft', 'pending'), unit('ATT-M', ALLIED, 'draft'), unit('MPX-M', IMPEX, 'draft', 'pending')]);
-  assert.equal(r.byStock['HGR-M'].status, 'published');
+  assert.ok(!('status' in r.byStock['HGR-M']));
   assert.ok(!('status' in r.byStock['ATT-M']));
   assert.ok(!('status' in r.byStock['MPX-M']));
-  assert.equal(r.body.draft_promotion_withheld, 2);
+  assert.equal(r.body.draft_promotion_withheld, 3);
 });
 
 // ---------- containment unchanged ----------

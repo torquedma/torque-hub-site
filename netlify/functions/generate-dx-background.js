@@ -1,7 +1,6 @@
 const { createClient } = require('@supabase/supabase-js');
 const { generateDescription } = require('./lib/generate-description.generated');
 const { checkPublicationEligibility } = require('./lib/publication-eligibility');
-const { dxMayPromoteDraft } = require('./lib/draft-lifecycle-dealers');
 
 exports.handler = async (event) => {
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
@@ -113,8 +112,10 @@ exports.handler = async (event) => {
   // Lifecycle counters — legacy NULL rows use the pre-existing counters above.
   let lifecycle_complete = 0, lifecycle_hold_validation = 0,
       lifecycle_hold_evidence = 0, lifecycle_retryable = 0;
-  // S2 (2026-09-24): drafts whose DX was written but whose promotion was
-  // withheld because the dealer is on the Draft-to-Live lifecycle.
+  // DRAFT-FIRST (2026-11-06, Owner standing direction Ingest -> Draft): DX
+  // generation never changes status. A draft whose DX was written stays draft
+  // for every dealer, HGR included; publication is a separate human step.
+  // This counter keeps its S2 name so existing summaries stay comparable.
   let draft_promotion_withheld = 0;
 
   // Dealer allowlist for publication eligibility. dealers.name is UNIQUE and
@@ -204,10 +205,10 @@ exports.handler = async (event) => {
           completion_attempted_at: nowIso,
         };
         if (gate.eligible) {
-          // S2: Draft-to-Live lifecycle dealers are never promoted by DX.
+          // DRAFT-FIRST: DX never promotes; status is never in this payload.
           if (unit.status === 'draft') {
-            if (dxMayPromoteDraft(unit)) payload.status = 'published';
-            else { draft_promotion_withheld++; console.log(`[DRAFT-LIFECYCLE-NO-PROMOTE] ${unit.stock} (${unit.dealer}) — DX written; status stays draft`); }
+            draft_promotion_withheld++;
+            console.log(`[DRAFT-LIFECYCLE-NO-PROMOTE] ${unit.stock} (${unit.dealer}) — DX written; status stays draft`);
           }
           payload.completion_state = 'complete';
           payload.completion_reason = null;
@@ -303,21 +304,19 @@ exports.handler = async (event) => {
         continue;
       }
 
-      // 2026-09-14 DRAFT → PUBLISHED PROMOTION. status is set in the payload
-      // ONLY when the row is currently draft, so this write is a no-op on the
-      // status column for published rows (preserves existing operator
-      // regeneration semantics) and promotes draft rows on success. NOT
-      // placed on the WHERE clause because that would silently no-op the
-      // whole update on published-row regeneration — see Phase 3 report.
+      // The payload carries DX fields only. status is never written here
+      // (DRAFT-FIRST, 2026-11-06): published rows keep regeneration semantics
+      // and draft rows stay draft. The 2026-09-14 draft-to-published promotion
+      // is retired.
       const payload = {
         description: text,
         description_source: 'torque_hub_dx',
         description_generated_at: new Date().toISOString(),
       };
-      // S2: Draft-to-Live lifecycle dealers are never promoted by DX.
+      // DRAFT-FIRST: DX never promotes; status is never in this payload.
       if (unit.status === 'draft') {
-        if (dxMayPromoteDraft(unit)) payload.status = 'published';
-        else { draft_promotion_withheld++; console.log(`[DRAFT-LIFECYCLE-NO-PROMOTE] ${unit.stock} (${unit.dealer}) — DX written; status stays draft`); }
+        draft_promotion_withheld++;
+        console.log(`[DRAFT-LIFECYCLE-NO-PROMOTE] ${unit.stock} (${unit.dealer}) — DX written; status stays draft`);
       }
 
       const { error: writeError } = await supabase
