@@ -32,6 +32,29 @@
     return (base + (ct ? ' ' + ct : '')).trim() || 'Unit Available';
   }
 
+  // buildHeadingTitle — VDP H1 only; see edge twin for rule notes.
+  var HEADING_BUCKET_TYPES = { 'Turf & Grounds Care': true };
+  function headingWords(s) {
+    return String(s || '').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+  }
+  function buildHeadingTitle(unit) {
+    var name = buildDisplayTitle(unit);
+    if (name === 'Unit Available') return name;
+    var type = canonicalize(unit.subcategory || '') || '';
+    if (!type || HEADING_BUCKET_TYPES[type] === true) return name;
+    var nw = headingWords(name);
+    var tw = headingWords(type);
+    var have = {};
+    for (var i = 0; i < nw.length; i++) have[nw[i]] = true;
+    if (tw.every(function (w) { return have[w] === true; })) return name;
+    for (var k = Math.min(nw.length, tw.length - 1); k >= 1; k--) {
+      if (nw.slice(-k).join(' ') === tw.slice(0, k).join(' ')) {
+        return name + ' ' + type.split(/\s+/).slice(k).join(' ');
+      }
+    }
+    return name + ' ' + type;
+  }
+
   // trimContains — true when the clean trim already names the given type.
   function trimContains(ct, sub) {
     return !!(ct && sub && ct.toLowerCase().indexOf(sub.toLowerCase()) !== -1);
@@ -64,6 +87,7 @@
     cleanTrim: cleanTrim,
     buildDisplayTitle: buildDisplayTitle,
     buildSeoTitle: buildSeoTitle,
+    buildHeadingTitle: buildHeadingTitle,
     subcategoryLabel: subcategoryLabel
   };
 }(typeof window !== 'undefined' ? window : this));

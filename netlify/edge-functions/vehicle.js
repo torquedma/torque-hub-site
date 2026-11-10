@@ -3,7 +3,7 @@
 // and injects real title, meta, schema, and body content so crawlers see actual
 // listing data instead of the client-side loading state.
 
-import { buildDisplayTitle, buildSeoTitle, subcategoryLabel } from './lib/title-helpers.js';
+import { buildDisplayTitle, buildHeadingTitle, buildSeoTitle, subcategoryLabel } from './lib/title-helpers.js';
 import { buildKeyDetailsCardHtml } from './lib/desc-render.js';
 import { showMileage, showHours } from './lib/usage-display.esm.js';
 
@@ -256,7 +256,7 @@ function injectMeta(html, { pageTitle, pageDesc, pageUrl, firstPhoto, schema, ro
   return html;
 }
 
-function injectBody(html, { unit, dealerKey, title, price, subcat, seoLine, loc, cityState, descHtml, firstPhoto }) {
+function injectBody(html, { unit, dealerKey, title, heading, price, subcat, seoLine, loc, cityState, descHtml, firstPhoto }) {
   // Breadcrumb
   html = html.replace(
     '<span id="bc-title">Listing Details</span>',
@@ -283,7 +283,7 @@ function injectBody(html, { unit, dealerKey, title, price, subcat, seoLine, loc,
   // VDP-H1-001 (Chief 2 TH-CHIEF_2-20261106-080, Option S): the one descriptive page H1 is emitted only here, on the
   // rendered-listing path; the template keeps its DIV, so 404 / no-stock / fallback pages carry no H1.
   // vdp-h1-edge.test.js fails if this target is missing from, or duplicated in, vehicle.html.
-  html = html.replace('<div class="vdp-headline-title" id="hl-title"></div>', `<h1 class="vdp-headline-title" id="hl-title">${esc(title)}</h1>`);
+  html = html.replace('<div class="vdp-headline-title" id="hl-title"></div>', `<h1 class="vdp-headline-title" id="hl-title">${esc(heading)}</h1>`);
   html = html.replace('id="hl-price"></span>', `id="hl-price">${esc(price)}</span>`);
   if (subcat) {
     html = html.replace('id="hl-badge" style="display:none"', 'id="hl-badge"');
@@ -453,6 +453,7 @@ export default async function handler(request, context) {
     console.log(`[vehicle edge] photos raw — type:${typeof unit.photos} isArray:${Array.isArray(unit.photos)} sample:${JSON.stringify(unit.photos)?.slice(0, 150)}`);
 
     const title      = buildDisplayTitle(unit);
+    const heading    = buildHeadingTitle(unit);   // VDP-H1-COPY-001: H1 text only
     const price      = formatPrice(unit.price);
     const subcat     = subcategoryLabel(unit);
     const photos     = getPhotos(unit);
@@ -536,7 +537,7 @@ export default async function handler(request, context) {
     let html = baseHtml;
     html = injectMeta(html, { pageTitle, pageDesc, pageUrl, firstPhoto, schema, robots });
     html = html.replace('</head>', dataScript + '\n</head>');
-    html = injectBody(html, { unit, dealerKey, title, price: hlPrice, subcat, seoLine, loc, cityState, descHtml, firstPhoto });
+    html = injectBody(html, { unit, dealerKey, title, heading, price: hlPrice, subcat, seoLine, loc, cityState, descHtml, firstPhoto });
 
     if (historical) {
       // 2B: dominant state banner. The client clones this template verbatim.

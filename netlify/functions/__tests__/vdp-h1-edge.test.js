@@ -7,6 +7,8 @@
 // context.next() that returns the REAL vehicle.html. No network. Fixture rows are synthetic (shaped like four live units).
 // H-8 compares against the 18685c03 base output (sha256 of the output with the H1 written back as the base DIV).
 // If vehicle.html or vehicle.js changes deliberately later, re-capture BASE_SHA256 from the then-current base.
+// VDP-H1-COPY-001 (Chief 1 -298, Chief 2 -270): the H1 TEXT is now buildHeadingTitle (display title + canonical type);
+// H-8 writes the base display title back into the DIV, so the rest of the page must still match the base byte-for-byte.
 // Run: node --test netlify/functions/__tests__/vdp-h1-edge.test.js
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -108,7 +110,12 @@ async function render(query, opts) {
 
 const count = (s, sub) => s.split(sub).length - 1;
 const sha = (s) => crypto.createHash('sha256').update(s, 'utf8').digest('hex');
-const toBaseShape = (b) => b.replace(H1_RE, '<div class="vdp-headline-title" id="hl-title">$1</div>');
+const BASE_TITLE = { 'DBT-7961': '2024 RAM 5500', 'JOE-102902': 'Billy Goat Hurricane Z3000', 'ATC-0085': '2018 Ram 4500', 'ATT-000517': '1996 Stoughton 48 ft' };
+// The one vehicle.html hydration line that changed (it sets #hl-title from buildHeadingTitle); written back for H-8.
+const HYD_NEW = "hlTitle.textContent = window.TITLE_HELPERS.buildHeadingTitle(unit);";
+const HYD_OLD = "hlTitle.textContent = title;";
+const unHyd = (b) => b.split(HYD_NEW).join(HYD_OLD);
+const toBaseShape = (b, s) => unHyd(b.replace(H1_RE, () => '<div class="vdp-headline-title" id="hl-title">' + BASE_TITLE[s] + '</div>'));
 // The H-11 invariant for a rendered listing: one H1, inside the headline strip, and no headline DIV left behind.
 function headlineProblem(body) {
   if (count(body, '<h1') !== 1 || count(body, '</h1>') !== 1) return 'h1 count ' + count(body, '<h1');
@@ -123,24 +130,24 @@ function headlineProblem(body) {
 const h1Text = (b) => (b.match(H1_RE) || [])[1];
 const robots = (b) => (b.match(/<meta name="robots" content="([^"]*)"/) || [])[1];
 
-test('H-1: live truck -> exactly one H1 with the display title (no type word)', async () => {
-  const { buildDisplayTitle } = await import(pathToFileURL(path.join(EDGE_DIR, 'lib/title-helpers.js')).href);
+test('H-1: live truck -> exactly one H1 with the descriptive heading (display title + type)', async () => {
+  const { buildHeadingTitle } = await import(pathToFileURL(path.join(EDGE_DIR, 'lib/title-helpers.js')).href);
   const r = await render('?stock=DBT-7961');
   assert.equal(r.status, 200);
   assert.equal(headlineProblem(r.body), null);
-  assert.equal(h1Text(r.body), '2024 RAM 5500');
-  assert.equal(h1Text(r.body), buildDisplayTitle(FIX['DBT-7961']));
+  assert.equal(h1Text(r.body), '2024 RAM 5500 Cab &amp; Chassis');
+  assert.equal(h1Text(r.body), buildHeadingTitle(FIX['DBT-7961']).replace(/&/g, '&amp;'));
   assert.equal(robots(r.body), 'index,follow');
 });
 
 test('H-1b: the H1 text goes through the existing esc() (& < > escaped; quotes are safe in text)', async () => {
   const r = await render('?stock=ESC-0001');
   assert.equal(headlineProblem(r.body), null);
-  assert.equal(h1Text(r.body), '2020 A&amp;B &lt;Co&gt; "X" 1');
+  assert.equal(h1Text(r.body), '2020 A&amp;B &lt;Co&gt; "X" 1 Box Truck');
   assert.ok(!/<h1[^>]*>[^<]*<Co>/.test(r.body), 'raw markup must not appear inside the H1');
 });
 
-test('H-2: live equipment, no year -> "Billy Goat Hurricane Z3000" exactly (no year, no subtype)', async () => {
+test('H-2: live equipment, no year, non-canonical type -> "Billy Goat Hurricane Z3000" exactly (no year, no subtype)', async () => {
   const r = await render('?stock=JOE-102902');
   assert.equal(r.status, 200);
   assert.equal(headlineProblem(r.body), null);
@@ -153,7 +160,7 @@ test('H-3: sold -> one H1, noindex,follow, SEO H2 marked Sold', async () => {
   const r = await render('?stock=ATC-0085');
   assert.equal(r.status, 200);
   assert.equal(headlineProblem(r.body), null);
-  assert.equal(h1Text(r.body), '2018 Ram 4500');
+  assert.equal(h1Text(r.body), '2018 Ram 4500 Service Truck');
   assert.equal(robots(r.body), 'noindex,follow');
   assert.match(r.body, /id="vdp-seo-h2">[^<]*\u2014 Sold</);
 });
@@ -162,7 +169,7 @@ test('H-4: departed -> one H1, noindex,follow, SEO H2 marked No Longer Listed', 
   const r = await render('?stock=ATT-000517');
   assert.equal(r.status, 200);
   assert.equal(headlineProblem(r.body), null);
-  assert.equal(h1Text(r.body), '1996 Stoughton 48 ft');
+  assert.equal(h1Text(r.body), '1996 Stoughton 48 ft Dry Van Trailer');
   assert.equal(robots(r.body), 'noindex,follow');
   assert.match(r.body, /id="vdp-seo-h2">[^<]*\u2014 No Longer Listed</);
 });
@@ -192,20 +199,21 @@ test('H-7: no stock parameter -> template passed through unchanged, zero H1', as
   assert.equal(count(r.body, '<h1'), 0);
 });
 
-test('H-8: parity with the 18685c03 base output (only the headline tag differs)', async () => {
+test('H-8: parity with the 18685c03 base output (only the headline tag and its text differ)', async () => {
   for (const s of ['DBT-7961', 'JOE-102902', 'ATC-0085', 'ATT-000517']) {
     const r = await render('?stock=' + s);
-    assert.equal(sha(toBaseShape(r.body)), BASE_SHA256[s], s);
+    assert.equal(sha(toBaseShape(r.body, s)), BASE_SHA256[s], s);
   }
   const nf = await render('?stock=NONE-0000');
-  assert.equal(sha(nf.body), BASE_SHA256['404'], '404 is byte-identical to base');
+  assert.equal(count(nf.body, HYD_NEW), 1, 'the changed hydration line is present once');
+  assert.equal(sha(unHyd(nf.body)), BASE_SHA256['404'], '404 is byte-identical to base apart from that line');
 });
 
 test('H-9: coupling - the template target occurs exactly once and the edge replaces it exactly once', () => {
   assert.equal(count(TEMPLATE, TARGET), 1, 'vehicle.html must hold exactly one headline target DIV');
   assert.equal(count(TEMPLATE, 'id="hl-title"'), 1, 'vehicle.html must hold exactly one hl-title element');
   assert.equal(count(TEMPLATE, '<h1'), 0, 'vehicle.html must carry no H1 of its own');
-  assert.equal(count(EDGE_SRC, "html.replace('" + TARGET + "', `<h1 class=\"vdp-headline-title\" id=\"hl-title\">${esc(title)}</h1>`)"), 1);
+  assert.equal(count(EDGE_SRC, "html.replace('" + TARGET + "', `<h1 class=\"vdp-headline-title\" id=\"hl-title\">${esc(heading)}</h1>`)"), 1);
   assert.equal(count(EDGE_SRC, "'id=\"hl-title\"></div>'"), 0, 'old DIV-fill replace must be gone');
   assert.equal(count(EDGE_SRC, '<h1'), 1, 'the edge emits an H1 from exactly one place');
 });

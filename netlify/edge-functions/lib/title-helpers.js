@@ -37,6 +37,32 @@ export function buildDisplayTitle(unit) {
   return (base + (ct ? ' ' + ct : '')).trim() || 'Unit Available';
 }
 
+// buildHeadingTitle — VDP H1 only (Chief 1 TH-CHIEF_1-20261109-296/-298). The verified name
+// (buildDisplayTitle) followed by the canonical type, so the H1 says what the unit is. The type is
+// left out when it is not canonical, when it is the broad bucket 'Turf & Grounds Care', or when every
+// one of its words is already in the name; an overlap is merged ('Utility' + 'Utility Trailer' ->
+// 'Utility Trailer'). The type is never repeated. Title, meta, JSON-LD, badge and cards do not use this.
+const HEADING_BUCKET_TYPES = new Set(['Turf & Grounds Care']);
+function headingWords(s) {
+  return String(s || '').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+}
+export function buildHeadingTitle(unit) {
+  const name = buildDisplayTitle(unit);
+  if (name === 'Unit Available') return name;
+  const type = canonicalize(unit.subcategory || '') || '';
+  if (!type || HEADING_BUCKET_TYPES.has(type)) return name;
+  const nw = headingWords(name);
+  const tw = headingWords(type);
+  const have = new Set(nw);
+  if (tw.every((w) => have.has(w))) return name;
+  for (let k = Math.min(nw.length, tw.length - 1); k >= 1; k--) {
+    if (nw.slice(-k).join(' ') === tw.slice(0, k).join(' ')) {
+      return name + ' ' + type.split(/\s+/).slice(k).join(' ');
+    }
+  }
+  return name + ' ' + type;
+}
+
 // trimContains — true when the clean trim already names the given type.
 function trimContains(ct, sub) {
   return !!(ct && sub && ct.toLowerCase().indexOf(sub.toLowerCase()) !== -1);

@@ -1097,7 +1097,7 @@ function render(unit, dealerKey) {
 
   // Headline strip
   const hlEl = el('vdp-headline'); if (hlEl) hlEl.style.display = 'block';
-  const hlTitle = el('hl-title');  if (hlTitle) hlTitle.textContent = title;
+  const hlTitle = el('hl-title');  if (hlTitle) hlTitle.textContent = window.TITLE_HELPERS.buildHeadingTitle(unit);
   if (subcatBadge) {
     const hlSubcat = el('hl-subcat'); if (hlSubcat) hlSubcat.textContent = subcatBadge;
     const hlBadge  = el('hl-badge');  if (hlBadge)  hlBadge.style.display = 'block';
