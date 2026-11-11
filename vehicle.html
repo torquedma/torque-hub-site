@@ -1469,22 +1469,5 @@ async function init() {
 
 init();
 </script>
-<script>
-window.addEventListener('load', () => {
-  const vw = window.innerWidth;
-  const offenders = [];
-  document.querySelectorAll('*').forEach(el => {
-    const w = el.getBoundingClientRect().width;
-    if (w > vw + 1) {
-      offenders.push({tag: el.tagName, id: el.id, cls: el.className, width: Math.round(w)});
-    }
-  });
-  console.log('VIEWPORT:', vw);
-  console.log('OFFENDERS:', offenders);
-  if (offenders.length) {
-    document.title = offenders.slice(0, 5).map(o => `${o.tag}.${(o.cls || o.id || '?').toString().slice(0,15)}=${o.width}`).join(' | ');
-  }
-});
-</script>
 </body>
 </html>

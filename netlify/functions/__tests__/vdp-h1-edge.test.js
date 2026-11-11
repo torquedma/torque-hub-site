@@ -9,6 +9,9 @@
 // If vehicle.html or vehicle.js changes deliberately later, re-capture BASE_SHA256 from the then-current base.
 // VDP-H1-COPY-001 (Chief 1 -298, Chief 2 -270): the H1 TEXT is now buildHeadingTitle (display title + canonical type);
 // H-8 writes the base display title back into the DIV, so the rest of the page must still match the base byte-for-byte.
+// SITE-DIAG-001 (Chief 1 -372, HST -316): the obsolete May 1 overflow diagnostic <script> (it rewrote document.title)
+// is removed from vehicle.html; H-8 writes that exact block back right after the main script (where it stood), so the
+// rest of the page still matches the base byte-for-byte.
 // Run: node --test netlify/functions/__tests__/vdp-h1-edge.test.js
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -115,7 +118,11 @@ const BASE_TITLE = { 'DBT-7961': '2024 RAM 5500', 'JOE-102902': 'Billy Goat Hurr
 const HYD_NEW = "hlTitle.textContent = window.TITLE_HELPERS.buildHeadingTitle(unit);";
 const HYD_OLD = "hlTitle.textContent = title;";
 const unHyd = (b) => b.split(HYD_NEW).join(HYD_OLD);
-const toBaseShape = (b, s) => unHyd(b.replace(H1_RE, () => '<div class="vdp-headline-title" id="hl-title">' + BASE_TITLE[s] + '</div>'));
+// SITE-DIAG-001: the removed May 1 diagnostic block, byte-exact; written back after the main script for H-8 only.
+const DIAG_BLOCK = "<script>\nwindow.addEventListener('load', () => {\n  const vw = window.innerWidth;\n  const offenders = [];\n  document.querySelectorAll('*').forEach(el => {\n    const w = el.getBoundingClientRect().width;\n    if (w > vw + 1) {\n      offenders.push({tag: el.tagName, id: el.id, cls: el.className, width: Math.round(w)});\n    }\n  });\n  console.log('VIEWPORT:', vw);\n  console.log('OFFENDERS:', offenders);\n  if (offenders.length) {\n    document.title = offenders.slice(0, 5).map(o => `${o.tag}.${(o.cls || o.id || '?').toString().slice(0,15)}=${o.width}`).join(' | ');\n  }\n});\n</script>\n";
+const DIAG_ANCHOR = '\ninit();\n</script>\n';
+const reDiag = (b) => b.replace(DIAG_ANCHOR, () => DIAG_ANCHOR + DIAG_BLOCK);
+const toBaseShape = (b, s) => reDiag(unHyd(b.replace(H1_RE, () => '<div class="vdp-headline-title" id="hl-title">' + BASE_TITLE[s] + '</div>')));
 // The H-11 invariant for a rendered listing: one H1, inside the headline strip, and no headline DIV left behind.
 function headlineProblem(body) {
   if (count(body, '<h1') !== 1 || count(body, '</h1>') !== 1) return 'h1 count ' + count(body, '<h1');
@@ -206,7 +213,8 @@ test('H-8: parity with the 18685c03 base output (only the headline tag and its t
   }
   const nf = await render('?stock=NONE-0000');
   assert.equal(count(nf.body, HYD_NEW), 1, 'the changed hydration line is present once');
-  assert.equal(sha(unHyd(nf.body)), BASE_SHA256['404'], '404 is byte-identical to base apart from that line');
+  assert.equal(count(nf.body, DIAG_ANCHOR), 1, 'the write-back anchor occurs once');
+  assert.equal(sha(reDiag(unHyd(nf.body))), BASE_SHA256['404'], '404 is byte-identical to base apart from that line and the removed diagnostic');
 });
 
 test('H-9: coupling - the template target occurs exactly once and the edge replaces it exactly once', () => {
@@ -243,4 +251,17 @@ test('H-11b: a missing or duplicated template target is detected as a failure (n
   const dup = await render('?stock=DBT-7961', { template: TEMPLATE.replace(TARGET, TARGET + TARGET) });
   assert.notEqual(headlineProblem(dup.body), null, 'duplicated target must be flagged');
   assert.equal(count(dup.body, '<div class="vdp-headline-title"'), 1);
+});
+
+test('H-12: SITE-DIAG-001 - no overflow diagnostic; document.title is set only by the two SEO title paths', async () => {
+  assert.equal(count(TEMPLATE, 'offenders'), 0, 'diagnostic code must be gone');
+  assert.equal(count(TEMPLATE, 'OFFENDERS'), 0);
+  assert.equal(count(TEMPLATE, "console.log('VIEWPORT:'"), 0);
+  assert.equal(count(TEMPLATE, 'document.title ='), 2, 'only buildSeoTitle and the sold/departed title assign document.title');
+  assert.equal(count(TEMPLATE, 'document.title = window.TITLE_HELPERS.buildSeoTitle(unit, cityState);'), 1);
+  for (const s of ['DBT-7961', 'ATC-0085', 'NONE-0000']) {
+    const r = await render('?stock=' + s);
+    assert.equal(count(r.body, 'offenders'), 0, s);
+    assert.equal(count(r.body, 'document.title ='), 2, s);
+  }
 });
