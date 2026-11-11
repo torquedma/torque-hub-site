@@ -303,9 +303,10 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
         <button class="btn-submit" id="business-continue-btn" onclick="submitBusinessInfo()">Continue to Secure Application</button>
       </div>
       <div id="lender-embed" style="display:none;">
-        <h3 style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;text-transform:uppercase;color:#86efac;text-align:center;margin:18px 0 10px">One More Step</h3>
-        <p style="color:#94a3b8;text-align:center;margin-bottom:14px;font-size:13px">Complete your secure credit application below.</p>
-        <p style="color:#86efac;text-align:center;font-size:12px;font-style:italic;margin-bottom:14px">H.I.L. Financial starts with a soft credit check that will not affect your credit score.</p>
+        <h3 id="lender-embed-title" style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;text-transform:uppercase;color:#86efac;text-align:center;margin:18px 0 10px">One More Step</h3>
+        <p id="lender-embed-intro" style="color:#94a3b8;text-align:center;margin-bottom:14px;font-size:13px">Complete your secure credit application below.</p>
+        <p id="lender-embed-note" style="color:#86efac;text-align:center;font-size:12px;font-style:italic;margin-bottom:14px">H.I.L. Financial starts with a soft credit check that will not affect your credit score.</p>
+        <p id="lender-embed-fallback" style="display:none;color:#94a3b8;text-align:center;font-size:13px;margin-bottom:14px"></p>
         <div id="lender-embed-frame"></div>
       </div>
       <div class="form-success" id="form-success">
@@ -646,6 +647,27 @@ const LENDER_FORM_CONFIGS = {
       business_city:    "field157805832-city",
       business_state:   "field157805832-state",
       business_zip:     "field157805832-zip"
+    }
+  },
+  // L002 (HST -319): Wheelhouse Lease and Finance, Ash's own Jotform credit application,
+  // embedded with the lender's permission. Nothing from Torque Hub is passed to it (empty
+  // fieldMap, no URL parameters): the buyer types every answer, including SSN, date of birth
+  // and income, into the lender's form, so Torque Hub never receives or stores them. The
+  // form collects its own business details, so the Torque Hub business step is skipped.
+  // No soft-pull claim: the form asks for consent to obtain a credit report.
+  L002: {
+    lenderName: "Wheelhouse Lease and Finance",
+    provider: "jotform",
+    formUrl: "https://form.jotform.com/211335844728156",
+    jotformId: "211335844728156",
+    fieldMap: {},
+    skipBusinessInfo: true,
+    embedCopy: {
+      title: "Finish Your Application",
+      intro: "Torque Hub received your financing request. Your credit application is not complete until you submit Wheelhouse Lease and Finance's application form below.",
+      note: "This is Wheelhouse Lease and Finance's own form. What you enter in it, including your Social Security number, goes to Wheelhouse and is not received or stored by Torque Hub.",
+      fallbackLead: "Form not loading? ",
+      fallbackLink: "Open the Wheelhouse application in a new tab"
     }
   }
 };
@@ -1102,8 +1124,21 @@ function handleLeadCreated(res, canonical) {
   if (!cfg) { showSuccess(); return; }
   pendingLender = { res, canonical, cfg };
   document.getElementById("form-inner").style.display = "none";
+  if (cfg.skipBusinessInfo) { revealLenderEmbed(); return; }
   document.getElementById("business-info").style.display = "block";
   window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+// Jotform's embedded form reports its height as "setHeight:<px>:<formId>". Only that exact
+// message, from form.jotform.com and for the configured form, resizes the frame.
+function attachJotformResize(iframe, formId) {
+  window.addEventListener("message", function (e) {
+    if (e.origin !== "https://form.jotform.com" || typeof e.data !== "string") return;
+    const m = /^setHeight:(\d{3,5}):(\d+)$/.exec(e.data);
+    if (!m || m[2] !== formId) return;
+    const h = Math.min(Math.max(parseInt(m[1], 10), 600), 20000);
+    iframe.style.height = (h + 20) + "px";
+  });
 }
 
 function revealLenderEmbed() {
@@ -1118,6 +1153,23 @@ function revealLenderEmbed() {
   iframe.src = cfg.formUrl + (params ? "?" + params : "");
   iframe.style.cssText = "width:100%;min-height:1600px;border:0;background:#fff;border-radius:10px;";
   iframe.title = "Credit Application";
+  if (cfg.embedCopy) {
+    const c = cfg.embedCopy;
+    document.getElementById("lender-embed-title").textContent = c.title;
+    document.getElementById("lender-embed-intro").textContent = c.intro;
+    document.getElementById("lender-embed-note").textContent = c.note;
+    const fb = document.getElementById("lender-embed-fallback");
+    fb.textContent = c.fallbackLead;
+    const a = document.createElement("a");
+    a.href = cfg.formUrl;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    a.textContent = c.fallbackLink;
+    a.style.cssText = "color:#f97316;font-weight:700;text-decoration:underline";
+    fb.appendChild(a);
+    fb.style.display = "block";
+  }
+  if (cfg.provider === "jotform") attachJotformResize(iframe, cfg.jotformId);
   document.getElementById("lender-embed-frame").appendChild(iframe);
   document.getElementById("business-info").style.display = "none";
   document.getElementById("lender-embed").style.display = "block";
