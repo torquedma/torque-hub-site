@@ -12,6 +12,9 @@
 // SITE-DIAG-001 (Chief 1 -372, HST -316): the obsolete May 1 overflow diagnostic <script> (it rewrote document.title)
 // is removed from vehicle.html; H-8 writes that exact block back right after the main script (where it stood), so the
 // rest of the page still matches the base byte-for-byte.
+// VDP-CAT-001 (Chief 1 -388, HST -318/-320): the category badge under the H1 is removed (template element, CSS rule,
+// edge fill and hydration) and the label becomes a Key Details 'Category:' bullet. H-8 writes all of that back
+// (unCat), so the rest of the page must still match the pinned base byte-for-byte.
 // Run: node --test netlify/functions/__tests__/vdp-h1-edge.test.js
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -122,7 +125,28 @@ const unHyd = (b) => b.split(HYD_NEW).join(HYD_OLD);
 const DIAG_BLOCK = "<script>\nwindow.addEventListener('load', () => {\n  const vw = window.innerWidth;\n  const offenders = [];\n  document.querySelectorAll('*').forEach(el => {\n    const w = el.getBoundingClientRect().width;\n    if (w > vw + 1) {\n      offenders.push({tag: el.tagName, id: el.id, cls: el.className, width: Math.round(w)});\n    }\n  });\n  console.log('VIEWPORT:', vw);\n  console.log('OFFENDERS:', offenders);\n  if (offenders.length) {\n    document.title = offenders.slice(0, 5).map(o => `${o.tag}.${(o.cls || o.id || '?').toString().slice(0,15)}=${o.width}`).join(' | ');\n  }\n});\n</script>\n";
 const DIAG_ANCHOR = '\ninit();\n</script>\n';
 const reDiag = (b) => b.replace(DIAG_ANCHOR, () => DIAG_ANCHOR + DIAG_BLOCK);
-const toBaseShape = (b, s) => reDiag(unHyd(b.replace(H1_RE, () => '<div class="vdp-headline-title" id="hl-title">' + BASE_TITLE[s] + '</div>')));
+// VDP-CAT-001 write-back: the removed badge CSS rule, template element (as the base edge filled it), hydration block
+// and Key Details line are restored, and the added 'Category:' bullet is taken out.
+const CAT_CSS = "    .subcat-badge { display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; padding: 4px 12px; border-radius: 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); color: #94a3b8; margin-top: 8px; }\n";
+const CAT_CSS_ANCHOR = '    .vdp-headline-sep { color: var(--soft); }\n';
+const CAT_EL_ANCHOR = '\n          <h2 class="vdp-seo-line" id="vdp-seo-h2">';
+const catEl = (label) => label
+  ? '<div id="hl-badge"><span class="subcat-badge" id="hl-subcat">' + label.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span></div>'
+  : '<div id="hl-badge" style="display:none"><span class="subcat-badge" id="hl-subcat"></span></div>';
+const CAT_HYD = "  if (subcatBadge) {\n    const hlSubcat = el('hl-subcat'); if (hlSubcat) hlSubcat.textContent = subcatBadge;\n    const hlBadge  = el('hl-badge');  if (hlBadge)  hlBadge.style.display = 'block';\n  }\n";
+const CAT_HYD_ANCHOR = HYD_OLD + '\n';
+const DESC_NEW = "window.DESC_RENDER.addCategoryFact(window.DESC_RENDER.buildKeyDetailsCardHtml(unit.description), subcatBadge);";
+const DESC_OLD = "window.DESC_RENDER.buildKeyDetailsCardHtml(unit.description);";
+const CAT_LI_RE = /<li>Category: [^<]*<\/li>/;
+function unCat(b, label) {
+  assert.equal(count(b, CAT_CSS_ANCHOR), 1); assert.equal(count(b, CAT_EL_ANCHOR), 1); assert.equal(count(b, CAT_HYD_ANCHOR), 1); assert.equal(count(b, DESC_NEW), 1);
+  return b.replace(CAT_CSS_ANCHOR, () => CAT_CSS_ANCHOR + CAT_CSS)
+    .replace(CAT_EL_ANCHOR, () => '\n          ' + catEl(label) + CAT_EL_ANCHOR)
+    .replace(CAT_HYD_ANCHOR, () => CAT_HYD_ANCHOR + CAT_HYD)
+    .replace(DESC_NEW, () => DESC_OLD)
+    .replace(CAT_LI_RE, '');
+}
+const toBaseShape = (b, s, label) => reDiag(unCat(unHyd(b.replace(H1_RE, () => '<div class="vdp-headline-title" id="hl-title">' + BASE_TITLE[s] + '</div>')), label));
 // The H-11 invariant for a rendered listing: one H1, inside the headline strip, and no headline DIV left behind.
 function headlineProblem(body) {
   if (count(body, '<h1') !== 1 || count(body, '</h1>') !== 1) return 'h1 count ' + count(body, '<h1');
@@ -207,14 +231,15 @@ test('H-7: no stock parameter -> template passed through unchanged, zero H1', as
 });
 
 test('H-8: parity with the 18685c03 base output (only the headline tag and its text differ)', async () => {
+  const { subcategoryLabel } = await import(pathToFileURL(path.join(EDGE_DIR, 'lib/title-helpers.js')).href);
   for (const s of ['DBT-7961', 'JOE-102902', 'ATC-0085', 'ATT-000517']) {
     const r = await render('?stock=' + s);
-    assert.equal(sha(toBaseShape(r.body, s)), BASE_SHA256[s], s);
+    assert.equal(sha(toBaseShape(r.body, s, subcategoryLabel(FIX[s]))), BASE_SHA256[s], s);
   }
   const nf = await render('?stock=NONE-0000');
   assert.equal(count(nf.body, HYD_NEW), 1, 'the changed hydration line is present once');
   assert.equal(count(nf.body, DIAG_ANCHOR), 1, 'the write-back anchor occurs once');
-  assert.equal(sha(reDiag(unHyd(nf.body))), BASE_SHA256['404'], '404 is byte-identical to base apart from that line and the removed diagnostic');
+  assert.equal(sha(reDiag(unCat(unHyd(nf.body), ''))), BASE_SHA256['404'], '404 is byte-identical to base apart from that line, the removed diagnostic and the VDP-CAT-001 badge removal');
 });
 
 test('H-9: coupling - the template target occurs exactly once and the edge replaces it exactly once', () => {
@@ -264,4 +289,25 @@ test('H-12: SITE-DIAG-001 - no overflow diagnostic; document.title is set only b
     assert.equal(count(r.body, 'offenders'), 0, s);
     assert.equal(count(r.body, 'document.title ='), 2, s);
   }
+});
+
+test('H-13: VDP-CAT-001 - no badge under the H1; the category is one Key Details bullet in SSR (live and historical)', async () => {
+  const want = {
+    'DBT-7961': '<li>Model: 5500</li><li>Category: Cab &amp; Chassis</li>',
+    'JOE-102902': '<li>Model: Hurricane Z3000</li><li>Category: Stand-On Blower</li>',
+    'ATC-0085': '<ul class="desc-list"><li>Category: Service Truck</li><li>Year: 2018</li>',
+    'ATT-000517': '<ul class="desc-list"><li>Category: Dry Van Trailer</li><li>Year: 1996</li>',
+    'ESC-0001': 'id="desc-body"><ul class="desc-list"><li>Category: Box Truck</li></ul>',
+  };
+  for (const s of Object.keys(FIX)) {
+    const r = await render('?stock=' + s);
+    assert.equal(count(r.body, 'hl-badge'), 0, s);
+    assert.equal(count(r.body, 'subcat-badge'), 0, s);
+    assert.equal(count(r.body, '<li>Category: '), 1, s);
+    assert.equal(count(r.body, want[s]), 1, s);
+    assert.equal(headlineProblem(r.body), null, s);
+  }
+  const nf = await render('?stock=NONE-0000');
+  assert.equal(count(nf.body, '<li>Category: '), 0);
+  assert.equal(count(nf.body, 'hl-badge'), 0);
 });

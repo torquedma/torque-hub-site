@@ -68,4 +68,39 @@ function buildKeyDetailsCardHtml(text, opts) {
 }
 // END SHARED
 
-export { buildKeyDetailsCardHtml };
+// BEGIN CATEGORY FACT - keep logic identical with the twin (vdp-category-fact.test.js checks parity)
+// addCategoryFact - VDP-CAT-001 (Chief 1 -388, HST -318/-320). Presentation only: the existing
+// category label (subcategoryLabel) moves from the badge under the H1 into the KEY DETAILS list as
+// 'Category: <label>', right after the Model bullet (fallback: first bullet of the first list; a
+// body with no list gets a one-item list in front). Skipped when the label is empty, when a
+// 'Category:' bullet already exists, or when any bullet's value equals the label ignoring case
+// (e.g. 'Type: Enclosed Trailer'), so a more specific Type stays and nothing is duplicated.
+// An empty body stays empty (2B: a historical page without Key Details renders no body).
+function addCategoryFact(bodyHtml, category) {
+  var body = String(bodyHtml || '');
+  var label = String(category || '').trim();
+  if (!body || !label) return body;
+  var low = label.toLowerCase();
+  var items = body.match(/<li>[\s\S]*?<\/li>/g) || [];
+  for (var i = 0; i < items.length; i++) {
+    var text = items[i].slice(4, -5)
+      .replace(/&quot;/g, '"').replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&');
+    var c = text.indexOf(':');
+    var name = c >= 0 ? text.slice(0, c).trim().toLowerCase() : '';
+    var value = (c >= 0 ? text.slice(c + 1) : text).trim().toLowerCase();
+    if (name === 'category' || value === low) return body;
+  }
+  var li = '<li>Category: ' + escHtml(label) + '</li>';
+  var model = body.match(/<li>Model:[\s\S]*?<\/li>/);
+  if (model) {
+    var at = body.indexOf(model[0]) + model[0].length;
+    return body.slice(0, at) + li + body.slice(at);
+  }
+  var open = '<ul class="desc-list">';
+  var ul = body.indexOf(open);
+  if (ul >= 0) return body.slice(0, ul + open.length) + li + body.slice(ul + open.length);
+  return open + li + '</ul>' + body;
+}
+// END CATEGORY FACT
+
+export { buildKeyDetailsCardHtml, addCategoryFact };

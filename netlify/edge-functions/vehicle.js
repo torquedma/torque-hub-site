@@ -4,7 +4,7 @@
 // listing data instead of the client-side loading state.
 
 import { buildDisplayTitle, buildHeadingTitle, buildSeoTitle, subcategoryLabel } from './lib/title-helpers.js';
-import { buildKeyDetailsCardHtml } from './lib/desc-render.js';
+import { buildKeyDetailsCardHtml, addCategoryFact } from './lib/desc-render.js';
 import { showMileage, showHours } from './lib/usage-display.esm.js';
 
 const SUPABASE_URL = 'https://bxsikkmqasydosmblzov.supabase.co';
@@ -256,7 +256,7 @@ function injectMeta(html, { pageTitle, pageDesc, pageUrl, firstPhoto, schema, ro
   return html;
 }
 
-function injectBody(html, { unit, dealerKey, title, heading, price, subcat, seoLine, loc, cityState, descHtml, firstPhoto }) {
+function injectBody(html, { unit, dealerKey, title, heading, price, seoLine, loc, cityState, descHtml, firstPhoto }) {
   // Breadcrumb
   html = html.replace(
     '<span id="bc-title">Listing Details</span>',
@@ -285,10 +285,6 @@ function injectBody(html, { unit, dealerKey, title, heading, price, subcat, seoL
   // vdp-h1-edge.test.js fails if this target is missing from, or duplicated in, vehicle.html.
   html = html.replace('<div class="vdp-headline-title" id="hl-title"></div>', `<h1 class="vdp-headline-title" id="hl-title">${esc(heading)}</h1>`);
   html = html.replace('id="hl-price"></span>', `id="hl-price">${esc(price)}</span>`);
-  if (subcat) {
-    html = html.replace('id="hl-badge" style="display:none"', 'id="hl-badge"');
-    html = html.replace('id="hl-subcat"></span>', `id="hl-subcat">${esc(subcat)}</span>`);
-  }
 
   // SEO h2 — single-descriptor rule (seoLine is pre-built by the handler from
   // buildSeoTitle's core, so it matches the client #vdp-seo-h2 byte-for-byte).
@@ -513,7 +509,8 @@ export default async function handler(request, context) {
       ? (priceNum > 0 ? `${listingState === 'sold' ? 'Last Asking Price' : 'Last Listed Price'}: ${price}` : '')
       : price;
 
-    const descHtml  = buildKeyDetailsCardHtml(unit.description, { historical });
+    // VDP-CAT-001: the category label is a Key Details fact, not a badge under the H1.
+    const descHtml  = addCategoryFact(buildKeyDetailsCardHtml(unit.description, { historical }), subcat);
     const schema    = buildSchema(unit, d, pageUrl, dealerKey, historical);
 
     const unitForClient = {
@@ -537,7 +534,7 @@ export default async function handler(request, context) {
     let html = baseHtml;
     html = injectMeta(html, { pageTitle, pageDesc, pageUrl, firstPhoto, schema, robots });
     html = html.replace('</head>', dataScript + '\n</head>');
-    html = injectBody(html, { unit, dealerKey, title, heading, price: hlPrice, subcat, seoLine, loc, cityState, descHtml, firstPhoto });
+    html = injectBody(html, { unit, dealerKey, title, heading, price: hlPrice, seoLine, loc, cityState, descHtml, firstPhoto });
 
     if (historical) {
       // 2B: dominant state banner. The client clones this template verbatim.

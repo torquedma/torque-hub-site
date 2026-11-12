@@ -92,7 +92,6 @@
     .vdp-headline-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 14px; color: var(--muted); font-weight: 600; max-width: 100%; min-width: 0; overflow: hidden; }
     .vdp-headline-price { font-family: "Barlow Condensed", sans-serif; font-size: 26px; font-weight: 900; color: #e2e8f0; }
     .vdp-headline-sep { color: var(--soft); }
-    .subcat-badge { display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; padding: 4px 12px; border-radius: 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); color: #94a3b8; margin-top: 8px; }
     .vdp-seo-line { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
     /* GALLERY */
@@ -398,7 +397,6 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
         <!-- Headline Strip -->
         <div class="vdp-headline" id="vdp-headline" style="display:none">
           <div class="vdp-headline-title" id="hl-title"></div>
-          <div id="hl-badge" style="display:none"><span class="subcat-badge" id="hl-subcat"></span></div>
           <h2 class="vdp-seo-line" id="vdp-seo-h2"></h2>
           <div class="vdp-headline-meta">
             <span class="vdp-headline-price" id="hl-price"></span>
@@ -1098,10 +1096,6 @@ function render(unit, dealerKey) {
   // Headline strip
   const hlEl = el('vdp-headline'); if (hlEl) hlEl.style.display = 'block';
   const hlTitle = el('hl-title');  if (hlTitle) hlTitle.textContent = window.TITLE_HELPERS.buildHeadingTitle(unit);
-  if (subcatBadge) {
-    const hlSubcat = el('hl-subcat'); if (hlSubcat) hlSubcat.textContent = subcatBadge;
-    const hlBadge  = el('hl-badge');  if (hlBadge)  hlBadge.style.display = 'block';
-  }
   const seoH2 = el('vdp-seo-h2');
   if (seoH2) seoH2.textContent = historical ? `${seoCore}${where} — ${stateWord}` : seoCore + ' for Sale' + where;
   const hlPrice  = el('hl-price');   if (hlPrice)  hlPrice.textContent  = priceText;
@@ -1175,7 +1169,7 @@ function render(unit, dealerKey) {
     if (!ssrHead) { const descCard = el('desc-card'); if (descCard) descCard.style.display = 'none'; }
   } else if (unit.description) {
     const descCard = el('desc-card'); if (descCard) descCard.style.display = 'block';
-    const descBody = el('desc-body'); if (descBody) descBody.innerHTML = window.DESC_RENDER.buildKeyDetailsCardHtml(unit.description);
+    const descBody = el('desc-body'); if (descBody) descBody.innerHTML = window.DESC_RENDER.addCategoryFact(window.DESC_RENDER.buildKeyDetailsCardHtml(unit.description), subcatBadge);
   }
 
   // Torque intelligence cards — appended into the Walkaround track after Card 1.
