@@ -10,6 +10,8 @@
 //      row was revived).
 //   3. UPDATE of an existing row never carries status (every dealer).
 //   4. Every other dealer: no status key on any write, no audit event, no result change.
+//   6. DeBary (lifecycle since -521, still in FROZEN_DEALERS): NEW row INSERTs as draft with one
+//      'ingested_draft' event; a feed_removed match is skipped (no write, no event).
 //   5. dryRun writes nothing (no inventory write, no audit event).
 // Supabase, Apify fetch and the DX generator are stubbed; no network, no database.
 
@@ -22,8 +24,9 @@ const AUTH = require('../../__tests__/helpers/receiver-auth-fixture'); // securi
 const FN = path.join(__dirname, '..', '..', 'sync-truckpaper-background.js');
 const ALLIED = 'Allied Truck & Trailer Sales';
 const IMPEX = 'Impex Heavy Metal';
+const DEBARY = 'DeBary Truck Sales';
 const OTHERS = [
-  'A F Sales & Service', 'Auto Connection 210 LLC', 'Davenport Motors', 'DeBary Truck Sales',
+  'A F Sales & Service', 'Auto Connection 210 LLC', 'Davenport Motors',
   'Dick Smith Equipment', 'Fannon Land & Auction Co.', "Fat Daddy's Truck Sales", "HGR's Truck and Trailer",
   "Joe's Tractor Sales", 'Mid-Atlantic Power & Equipment', 'Private Party Seller', 'Suttontown Repair Service',
   'The Trailer Source', 'Wilson Trailer Sales & Service',
@@ -103,8 +106,8 @@ async function run(dealer, { items, live = [], buried = [], dryRun = false, fail
 // Quiet the receiver's logging during tests.
 const quiet = fn => async () => { const l = console.log, e = console.error, w = console.warn; console.log = console.error = console.warn = () => {}; try { await fn(); } finally { console.log = l; console.error = e; console.warn = w; } };
 
-// ---------- 1. INSERT → draft (Allied + Impex) ----------
-for (const dealer of [ALLIED, IMPEX]) {
+// ---------- 1. INSERT → draft (Allied + Impex + DeBary) ----------
+for (const dealer of [ALLIED, IMPEX, DEBARY]) {
   test(`${dealer}: new listing INSERTs with status='draft' and one ingested_draft event`, quiet(async () => {
     const r = await run(dealer, { items: [item(dealer, 912345)] });
     const ins = r.inv.filter(w => w.op === 'insert');
@@ -179,7 +182,7 @@ test('resurrection that revives two rows for one listing id: both draft, audit f
 }));
 
 // ---------- 3. UPDATE preserves status (every dealer) ----------
-for (const dealer of [ALLIED, IMPEX, ...OTHERS]) {
+for (const dealer of [ALLIED, IMPEX, DEBARY, ...OTHERS]) {
   test(`${dealer}: existing-row UPDATE never carries status and writes no event`, quiet(async () => {
     const id = 260555001;
     const stock = (PREFIX[dealer] || '') + (PREFIX[dealer] ? '555001' : 'S' + id);
@@ -206,6 +209,21 @@ for (const dealer of OTHERS) {
     assert.ok(!('lifecycle' in r.body));
   }));
 }
+
+// ---------- 6. DeBary: lifecycle INSERT, frozen resurrection (Chief 1 -521 Decision 2) ----------
+test('DeBary: new listing INSERTs as draft with one event; feed_removed match is skipped by the freeze (no write, no event)', quiet(async () => {
+  const r = await run(DEBARY, { items: [item(DEBARY, 260666001), item(DEBARY, 260666002)], buried: [liveRow(DEBARY, 'DBT-666002', 260666002)] });
+  const ins = r.inv.filter(w => w.op === 'insert');
+  assert.equal(ins.length, 1, 'only the new listing is inserted');
+  assert.equal(ins[0].payload[0].status, 'draft');
+  assert.equal(ins[0].payload[0].source_listing_id, '260666001');
+  assert.equal(r.inv.filter(w => w.op === 'update').length, 0, 'no resurrection UPDATE for a frozen dealer');
+  assert.equal(r.events.length, 1);
+  assert.equal(r.events[0].payload[0].event_type, 'ingested_draft');
+  assert.deepEqual(r.body.lifecycle, { drafts_inserted: 1, drafts_resurrected: 0, events_written: 1, event_write_errors: 0, audit_failures: [], clean: true });
+  assert.equal(r.body.resurrected, 0);
+  assert.equal(r.body.markedSold, 0);
+}));
 
 // ---------- 5. dryRun writes nothing ----------
 test('dryRun (Allied): zero writes, zero events; log marks insert/resurrect as draft', quiet(async () => {

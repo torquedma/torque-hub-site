@@ -24,9 +24,10 @@ const FN = path.join(__dirname, '..', '..', 'generate-dx-background.js');
 
 const ALLIED = 'Allied Truck & Trailer Sales';
 const IMPEX = 'Impex Heavy Metal';
+const DEBARY = 'DeBary Truck Sales';
 const HGR = "HGR's Truck and Trailer";
 const OTHERS = [
-  'A F Sales & Service', 'Auto Connection 210 LLC', 'Davenport Motors', 'DeBary Truck Sales',
+  'A F Sales & Service', 'Auto Connection 210 LLC', 'Davenport Motors',
   'Dick Smith Equipment', 'Fannon Land & Auction Co.', "Fat Daddy's Truck Sales", "Joe's Tractor Sales",
   'Mid-Atlantic Power & Equipment', 'Private Party Seller', 'Suttontown Repair Service',
   'The Trailer Source', 'Wilson Trailer Sales & Service',
@@ -99,7 +100,7 @@ function unit(stock, dealer, status, completionState) {
 }
 
 async function run(rows, { outcome = {}, ineligible = [] } = {}) {
-  const state = { inventory: rows, dealers: [ALLIED, IMPEX, HGR, ...OTHERS], writes: [], outcome, ineligible: new Set(ineligible) };
+  const state = { inventory: rows, dealers: [ALLIED, IMPEX, DEBARY, HGR, ...OTHERS], writes: [], outcome, ineligible: new Set(ineligible) };
   const h = loadHandler(state);
   const res = await h({ queryStringParameters: { stocks: rows.map(r => r.stock).join(',') } });
   const byStock = {};
@@ -111,13 +112,13 @@ async function run(rows, { outcome = {}, ineligible = [] } = {}) {
 }
 
 // ---------- lib ----------
-test('lib: the lifecycle list is exactly Allied and Impex', () => {
-  assert.deepEqual([...L.DRAFT_LIFECYCLE_DEALERS], [ALLIED, IMPEX]);
+test('lib: the lifecycle list is exactly Allied, Impex and DeBary (DeBary added per Chief 1 -521)', () => {
+  assert.deepEqual([...L.DRAFT_LIFECYCLE_DEALERS], [ALLIED, IMPEX, DEBARY]);
   assert.ok(Object.isFrozen(L.DRAFT_LIFECYCLE_DEALERS));
 });
 
-test('lib: predicate blocks Allied/Impex (fail-closed on case/whitespace), allows everyone else', () => {
-  for (const d of [ALLIED, IMPEX, ' Impex Heavy Metal ', 'allied truck & trailer sales']) {
+test('lib: predicate blocks Allied/Impex/DeBary (fail-closed on case/whitespace), allows everyone else', () => {
+  for (const d of [ALLIED, IMPEX, DEBARY, ' Impex Heavy Metal ', 'allied truck & trailer sales', ' debary truck sales']) {
     assert.equal(L.isDraftLifecycleDealer(d), true, d);
     assert.equal(L.dxMayPromoteDraft({ dealer: d }), false, d);
   }
