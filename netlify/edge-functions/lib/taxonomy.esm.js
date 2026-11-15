@@ -4,6 +4,7 @@
 
 export const CANONICAL_SUBCATEGORIES = new Set([
   'Box Truck',
+  'Beverage Truck',
   'Day Cab Tractor',
   'Sleeper Tractor',
   'Service Truck',

@@ -2,6 +2,7 @@
 (function (root) {
   var canonical = [
     "Box Truck",
+    "Beverage Truck",
     "Day Cab Tractor",
     "Sleeper Tractor",
     "Service Truck",
