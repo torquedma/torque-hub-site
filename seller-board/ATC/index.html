@@ -566,7 +566,7 @@
           fetch(ENDPOINT, {
             method: "POST",
             headers: HEADERS,
-            body: JSON.stringify({ token: token, action: "setStatus", lead_id: leadId, status: status, pin: pin })
+            body: JSON.stringify({ token: token, action: "setStatus", lead_id: leadId, status: status, pin: pin, sold_price: soldPrice })
           })
             .then(function (res) {
               if (!res.ok) throw new Error("save-failed");
@@ -584,7 +584,7 @@
               render();
               toast(status === "new" ? "Back to New." :
                     status === "working" ? "Marked working — good, it's yours now." :
-                    status === "sold" ? "Marked SOLD. Nice work." : "Marked no sale.");
+                    status === "sold" ? "Marked SOLD. Nice work." : "Marked no sale."); soldPriceLeadId = null; soldPriceDraft = ""; render();
             })
             .catch(function () {
               savingLeadId = null;
@@ -592,7 +592,7 @@
               toast("Couldn't save that — check your connection and tap again.");
             });
         }
-        document.querySelectorAll(".tile").forEach(function (tile) {
+        async function setNotes(leadId, btn) { var textarea = document.getElementById("notes-" + leadId); if (!textarea) return; var text = textarea.value; btn.disabled = true; btn.textContent = "Saving…"; try { var res = await fetch(FN, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token: token, action: "setNotes", lead_id: leadId, pin: pin, notes: text }) }); if (!res.ok) throw new Error("http " + res.status); var data = await res.json(); if (data.error || data.locked) { btn.disabled = false; btn.textContent = "Save note"; toast(data.locked ? "Your board locked — unlock again and retry." : data.error || "Could not save that note — check your connection and try again."); return; } board = data; render(); toast("Note saved."); } catch (err) { btn.disabled = false; btn.textContent = "Save note"; toast("Could not save that note — check your connection and try again."); } } document.querySelectorAll(".tile").forEach(function (tile) {
           tile.addEventListener("click", function () {
             var f = tile.getAttribute("data-filter");
             activeFilter = (activeFilter === f) ? null : f;
@@ -614,7 +614,7 @@
           if (!card) return;
           var leadId = card.getAttribute("data-lead-id");
           var numericId = /^\d+$/.test(leadId) ? parseInt(leadId, 10) : leadId;
-          setStatus(numericId, btn.getAttribute("data-action"), card);
+          if (btn.getAttribute("data-action") === "add-price") { soldPriceLeadId = numericId; soldPriceDraft = ""; render(); return; } if (btn.getAttribute("data-action") === "sold") { var lead = null; if (board && board.leads) { for (var i = 0; i < board.leads.length; i++) { if (Number(board.leads[i].id) === numericId) lead = board.leads[i]; } } if (lead && lead.status !== "sold") { soldPriceLeadId = numericId; soldPriceDraft = lead.sold_price != null ? String(lead.sold_price) : ""; render(); return; } } setStatus(numericId, btn.getAttribute("data-action"), card);
         });
         if (!token) {
           showOnly("badlink");
