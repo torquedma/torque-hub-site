@@ -259,7 +259,7 @@
     var vehicleParts = [lead.vehicle, lead.stock_number].filter(function(x){ return x && String(x).trim(); });
     if (lead.price != null && String(lead.price).trim() !== '') vehicleParts.push(fmtMoney(lead.price));
     var vehicle = vehicleParts.length
-      ? '<p class="vehicle">' + esc(vehicleParts.join(' &middot; ')) + '</p>' : '';
+      ? '<p class="vehicle">' + esc(vehicleParts.join(' \u00b7 ')) + '</p>' : '';
     var contact = lead.dealer_contact
       ? '<p class="contact"><span class="lbl">Dealership contact:</span> ' + esc(lead.dealer_contact) + '</p>' : '';
     var meta = '';
@@ -350,7 +350,7 @@
         lockedDuringSave = true;
         pin = '';
         try { sessionStorage.removeItem(PIN_KEY); } catch (e) {}
-        showLock(data.lender, data.lockout ? 'Too many wrong tries &mdash; this board is locked for an hour.' : "That PIN doesn't match &mdash; try again.");
+        showLock(data.lender, data.lockout ? 'Too many wrong tries \u2014 this board is locked for an hour.' : "That PIN doesn't match \u2014 try again.");
         return;
       }
       if (!data || !data.ok || !data.lead) throw new Error('save failed');
@@ -386,7 +386,7 @@
       if (data && data.locked){
         pin = '';
         try { sessionStorage.removeItem(PIN_KEY); } catch (e) {}
-        showLock(data.lender, data.lockout ? 'Too many wrong tries &mdash; this board is locked for an hour.' : "That PIN doesn't match &mdash; try again.");
+        showLock(data.lender, data.lockout ? 'Too many wrong tries \u2014 this board is locked for an hour.' : "That PIN doesn't match \u2014 try again.");
         throw new Error('locked');
       }
       if (!data || !data.ok || !data.lead) throw new Error('save failed');
