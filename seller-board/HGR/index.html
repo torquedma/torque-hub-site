@@ -72,8 +72,6 @@
       }
       button { font-family: inherit; cursor: pointer; }
       button, a.tap, select, input { min-height: 2.75rem; }
-
-      /* ---------- Header ---------- */
       header {
         background: var(--header-bg);
         color: var(--header-ink);
@@ -102,10 +100,7 @@
       }
       .dealership { font-size: 17px; color: var(--header-sub); font-weight: 500; margin: 0; }
       .head-note { font-size: 14.5px; color: var(--header-sub); margin: 10px 0 0; max-width: 52ch; line-height: 1.45; }
-
       main { max-width: 760px; margin: 0 auto; padding: 16px 14px 56px; }
-
-      /* ---------- Count strip ---------- */
       .counts {
         display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
         margin: 2px 0 6px;
@@ -137,8 +132,6 @@
         background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 6px;
         font-size: 14.5px; font-weight: 700; padding: 6px 14px; min-height: 2.5rem;
       }
-
-      /* ---------- Sections & cards ---------- */
       .section-head {
         display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
         margin: 24px 2px 10px;
@@ -200,8 +193,6 @@
       }
       .saving-note { font-size: 14px; font-weight: 600; color: var(--accent); margin: 10px 0 0; display: none; }
       .saving-note.show { display: block; }
-
-      /* ---------- States ---------- */
       .state {
         background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
         padding: 26px 20px; text-align: center; box-shadow: var(--shadow); margin-top: 18px;
@@ -216,6 +207,8 @@
         margin-top: 16px; background: var(--accent); color: var(--accent-ink); border: 0;
         border-radius: 8px; font-size: 16px; font-weight: 700; padding: 10px 22px; min-height: 3rem;
       }
+      .pin-input { width: 170px; min-height: 52px; font-size: 26px; letter-spacing: .35em; text-align: center; padding: 8px 10px; border: 2px solid var(--accent); border-radius: 10px; margin: 14px 0 4px; }
+      .lock-err { font-size: 15px; color: var(--danger); font-weight: 700; margin: 12px 0 0; }
       .spinner {
         width: 34px; height: 34px; margin: 0 auto 14px; border-radius: 50%;
         border: 4px solid var(--line); border-top-color: var(--accent);
@@ -254,29 +247,29 @@
         <p class="head-note" id="headNote" hidden>Every buyer Torque sends you lands here. Tap a button under a lead the moment you work it — that tap is the update, no calls or texts back and forth.</p>
       </div>
     </header>
-
     <main>
-      <!-- Loading -->
       <div class="state" id="loadingState">
         <div class="spinner" aria-hidden="true"></div>
         <h2>Loading your leads…</h2>
         <p>One second — pulling up your board.</p>
       </div>
-
-      <!-- Bad / missing link -->
       <div class="state" id="badLinkState" hidden>
         <h2>That link isn&rsquo;t complete</h2>
         <p>This link isn&rsquo;t complete — use the full link from your Torque email, or call Gary at <a href="tel:+19195844860">919-584-4860</a>.</p>
       </div>
-
-      <!-- Load failed -->
       <div class="state" id="errorState" hidden>
         <h2>Couldn&rsquo;t load your leads</h2>
         <p>Couldn&rsquo;t load your leads — check your connection and reopen the link.</p>
         <button class="retry" id="retryBtn" type="button">Try again</button>
       </div>
-
-      <!-- Board -->
+      <div class="state" id="lockState" hidden>
+        <h2 id="lockName">Your board</h2>
+        <p id="lockDealership"></p>
+        <p>Enter your 4-digit PIN to open your board.</p>
+        <input id="pinInput" class="pin-input" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="&bull;&bull;&bull;&bull;" aria-label="4-digit PIN" />
+        <div><button class="retry" id="unlockBtn" type="button">Unlock</button></div>
+        <p id="lockErr" class="lock-err" hidden></p>
+      </div>
       <div id="board" hidden>
         <div class="counts" role="group" aria-label="Lead counts — tap to filter">
           <button class="tile" type="button" data-filter="new" aria-pressed="false">
@@ -295,41 +288,40 @@
             <span class="sub">Sold + no sale</span>
           </button>
         </div>
-
         <div class="filter-bar" id="filterBar">
           <span id="filterLabel">Showing: New</span>
           <button type="button" id="clearFilterBtn">Show all</button>
         </div>
-
         <div id="sections"></div>
-
         <div class="foot">
           <button class="refresh-btn" type="button" id="refreshBtn">↻ Refresh the board</button>
         </div>
       </div>
     </main>
-
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
-
     <script>
       (function () {
         "use strict";
-
         var SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4c2lra21xYXN5ZG9zbWJsem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTc1OTksImV4cCI6MjA5MDQ3MzU5OX0.JMEI7cx2tddmbvfqm_qxiIWp7f5Phuk5l0Y487DUSZg";
         var ENDPOINT = "https://bxsikkmqasydosmblzov.supabase.co/functions/v1/seller-board";
         var HEADERS = { "apikey": SB_ANON, "Authorization": "Bearer " + SB_ANON, "Content-Type": "application/json" };
-
         var params = new URLSearchParams(window.location.search);
         var token = window.__BOARD_TOKEN__ || params.get("t");
-
-        var board = null;        // last board JSON from the server
-        var activeFilter = null; // null | "new" | "working" | "done"
+        var PIN_KEY = "torque-seller-pin:" + token;
+        var pin = "";
+        try { pin = sessionStorage.getItem(PIN_KEY) || ""; } catch (e) {}
+        var board = null;
+        var activeFilter = null;
         var savingLeadId = null;
-
         var els = {
           loading: document.getElementById("loadingState"),
           badLink: document.getElementById("badLinkState"),
           error: document.getElementById("errorState"),
+          lock: document.getElementById("lockState"),
+          lockName: document.getElementById("lockName"),
+          lockDealership: document.getElementById("lockDealership"),
+          pinInput: document.getElementById("pinInput"),
+          lockErr: document.getElementById("lockErr"),
           board: document.getElementById("board"),
           sections: document.getElementById("sections"),
           sellerName: document.getElementById("sellerName"),
@@ -342,14 +334,21 @@
           filterLabel: document.getElementById("filterLabel"),
           toast: document.getElementById("toast")
         };
-
         function showOnly(which) {
           els.loading.hidden = which !== "loading";
           els.badLink.hidden = which !== "badlink";
           els.error.hidden = which !== "error";
+          els.lock.hidden = which !== "lock";
           els.board.hidden = which !== "board";
         }
-
+        function showLock(person, msg) {
+          if (person) {
+            els.lockName.textContent = (person.name || "") + "\u2019s board";
+            els.lockDealership.textContent = person.dealership || "";
+          }
+          if (msg) { els.lockErr.textContent = msg; els.lockErr.hidden = false; } else { els.lockErr.hidden = true; }
+          showOnly("lock");
+        }
         var toastTimer = null;
         function toast(msg) {
           els.toast.textContent = msg;
@@ -357,13 +356,11 @@
           if (toastTimer) clearTimeout(toastTimer);
           toastTimer = setTimeout(function () { els.toast.classList.remove("show"); }, 3200);
         }
-
         function esc(s) {
           return String(s == null ? "" : s)
             .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
         }
-
         var DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
         var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         function fmtTime(d) {
@@ -403,7 +400,6 @@
           if (lead.status === "working") return "working";
           return "done";
         }
-
         function cardHTML(lead) {
           var overdue = isOverdue(lead);
           var done = lead.status === "sold" || lead.status === "no_sale";
@@ -416,7 +412,6 @@
           if (overdue) html += '<span class="pill overdue">OVERDUE</span>';
           html += '<span class="pill ' + esc(lead.status) + '">' + statusLabel(lead.status) + '</span>';
           html += '</div></div>';
-
           if (tel) {
             html += '<a class="phone tap" href="' + esc(tel) + '">' +
               '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>' +
@@ -424,43 +419,35 @@
           } else if (lead.buyer_phone) {
             html += '<div class="phone-none">' + esc(lead.buyer_phone) + '</div>';
           }
-
           if (lead.vehicle) {
             html += '<p class="vehicle">' + esc(lead.vehicle) +
-              (lead.stock_number ? ' <span style="color:var(--ink-3);font-weight:500">· Stock ' + esc(lead.stock_number) + '</span>' : '') + '</p>';
+              (lead.stock_number ? ' <span style="color:var(--ink-3);font-weight:500">\u00b7 Stock ' + esc(lead.stock_number) + '</span>' : '') + '</p>';
           } else if (lead.stock_number) {
             html += '<p class="vehicle">Stock ' + esc(lead.stock_number) + '</p>';
           }
-
           var metaBits = [];
           var when = fmtWhen(lead.received_at);
           if (when) metaBits.push("Came in " + when);
           if (lead.source) metaBits.push(esc(lead.source));
-          if (metaBits.length) html += '<p class="meta">' + metaBits.join('<span class="dot">•</span>') + '</p>';
-
+          if (metaBits.length) html += '<p class="meta">' + metaBits.join('<span class="dot">\u2022</span>') + '</p>';
           if (lead.status !== "new" && lead.status_at) {
-            html += '<p class="status-line">Marked ' + statusLabel(lead.status).toLowerCase() + " · " + esc(fmtWhen(lead.status_at)) + '</p>';
+            html += '<p class="status-line">Marked ' + statusLabel(lead.status).toLowerCase() + " \u00b7 " + esc(fmtWhen(lead.status_at)) + '</p>';
           }
           if (overdue) {
-            html += '<p class="status-line" style="color:var(--danger);font-weight:700">Nobody&rsquo;s touched this one in over a day — it needs a call.</p>';
+            html += '<p class="status-line" style="color:var(--danger);font-weight:700">Nobody\u2019s touched this one in over a day — it needs a call.</p>';
           }
-
-          html += '<p class="saving-note' + (saving ? " show" : "") + '">Saving…</p>';
-
+          html += '<p class="saving-note' + (saving ? " show" : "") + '">Saving\u2026</p>';
           html += '<div class="actions">';
           html += '<button type="button" class="btn-working" data-action="working" aria-pressed="' + (lead.status === "working") + '"' + (saving ? " disabled" : "") + '>Working on it</button>';
           html += '<button type="button" class="btn-sold" data-action="sold" aria-pressed="' + (lead.status === "sold") + '"' + (saving ? " disabled" : "") + '>Sold</button>';
           html += '<button type="button" class="btn-nosale" data-action="no_sale" aria-pressed="' + (lead.status === "no_sale") + '"' + (saving ? " disabled" : "") + '>No sale</button>';
           html += '</div>';
-
           if (lead.status !== "new") {
             html += '<div class="back-row"><button type="button" class="back-btn" data-action="new"' + (saving ? " disabled" : "") + '>Put back to New</button></div>';
           }
-
           html += '</article>';
           return html;
         }
-
         function sectionHTML(title, leads, emptyMsg) {
           var html = '<div class="section-head"><h2>' + esc(title) + '</h2><span class="n">' +
             leads.length + (leads.length === 1 ? " lead" : " leads") + '</span></div>';
@@ -471,26 +458,21 @@
           for (var i = 0; i < leads.length; i++) html += cardHTML(leads[i]);
           return html;
         }
-
         var FILTER_NAMES = { new: "New", working: "Working", done: "Done" };
-
         function render() {
           if (!board) return;
           var seller = board.seller || {};
-          if (seller.name) els.sellerName.textContent = seller.name + "’s leads";
+          if (seller.name) els.sellerName.textContent = seller.name + "\u2019s leads";
           if (seller.dealership) els.sellerDealership.textContent = seller.dealership;
           els.headNote.hidden = false;
-
           var leads = (board.leads || []).slice().sort(function (a, b) {
             return new Date(b.received_at).getTime() - new Date(a.received_at).getTime();
           });
-
           var counts = { new: 0, working: 0, done: 0 };
           leads.forEach(function (l) { counts[bucketOf(l)]++; });
           els.countNew.textContent = counts.new;
           els.countWorking.textContent = counts.working;
           els.countDone.textContent = counts.done;
-
           var tiles = document.querySelectorAll(".tile");
           tiles.forEach(function (t) {
             t.setAttribute("aria-pressed", String(activeFilter === t.getAttribute("data-filter")));
@@ -501,11 +483,10 @@
           } else {
             els.filterBar.classList.remove("show");
           }
-
           var html = "";
           if (!leads.length) {
             html = '<div class="state" style="margin-top:22px"><h2>No leads yet</h2>' +
-              '<p>When a buyer comes in on your inventory, they&rsquo;ll show up right here.</p></div>';
+              '<p>When a buyer comes in on your inventory, they\u2019ll show up right here.</p></div>';
           } else if (activeFilter) {
             var filtered = leads.filter(function (l) { return bucketOf(l) === activeFilter; });
             html = sectionHTML(FILTER_NAMES[activeFilter], filtered, "Nothing in " + FILTER_NAMES[activeFilter] + " right now.");
@@ -513,15 +494,15 @@
             var needs = leads.filter(function (l) { return l.status === "new"; });
             var worked = leads.filter(function (l) { return l.status !== "new"; });
             html = sectionHTML("Needs action", needs, "All caught up — nothing new waiting.");
-            html += sectionHTML("Worked", worked, "Nothing worked yet. Tap a button under a lead once you&rsquo;ve called the buyer.");
+            html += sectionHTML("Worked", worked, "Nothing worked yet. Tap a button under a lead once you\u2019ve called the buyer.");
           }
           els.sections.innerHTML = html;
           showOnly("board");
         }
-
         function loadBoard() {
           showOnly("loading");
-          fetch(ENDPOINT + "?token=" + encodeURIComponent(token), { headers: HEADERS })
+          var url = ENDPOINT + "?token=" + encodeURIComponent(token) + (pin ? "&pin=" + encodeURIComponent(pin) : "");
+          fetch(url, { headers: HEADERS })
             .then(function (res) {
               if (res.status === 404 || res.status === 401 || res.status === 403) {
                 showOnly("badlink");
@@ -531,6 +512,13 @@
               return res.json();
             })
             .then(function (data) {
+              if (data && data.locked) {
+                var hadPin = !!pin;
+                pin = "";
+                try { sessionStorage.removeItem(PIN_KEY); } catch (e) {}
+                showLock(data.seller, data.lockout ? 'Too many wrong tries \u2014 this board is locked for an hour.' : (hadPin ? "That PIN doesn't match \u2014 try again." : null));
+                return;
+              }
               if (!data || !data.seller) { showOnly("badlink"); return; }
               board = data;
               render();
@@ -540,7 +528,37 @@
               if (!board) showOnly("error");
             });
         }
-
+        function unlock() {
+          var entered = els.pinInput.value.trim();
+          if (!/^\d{4}$/.test(entered)) {
+            els.lockErr.textContent = "That PIN doesn't match \u2014 try again.";
+            els.lockErr.hidden = false;
+            return;
+          }
+          els.lockErr.hidden = true;
+          fetch(ENDPOINT, {
+            method: "POST",
+            headers: HEADERS,
+            body: JSON.stringify({ token: token, action: "unlock", pin: entered })
+          })
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+              if (!data || data.locked) {
+                els.lockErr.textContent = (data && data.lockout) ? 'Too many wrong tries \u2014 this board is locked for an hour.' : "That PIN doesn't match \u2014 try again.";
+                els.lockErr.hidden = false;
+                if (data && data.seller) showLock(data.seller, els.lockErr.textContent);
+                return;
+              }
+              pin = entered;
+              try { sessionStorage.setItem(PIN_KEY, pin); } catch (e) {}
+              board = data;
+              render();
+            })
+            .catch(function () {
+              els.lockErr.textContent = "Couldn't reach the board \u2014 check your connection and try again.";
+              els.lockErr.hidden = false;
+            });
+        }
         function setStatus(leadId, status, cardEl) {
           if (savingLeadId !== null) return;
           savingLeadId = leadId;
@@ -548,7 +566,7 @@
           fetch(ENDPOINT, {
             method: "POST",
             headers: HEADERS,
-            body: JSON.stringify({ token: token, action: "setStatus", lead_id: leadId, status: status })
+            body: JSON.stringify({ token: token, action: "setStatus", lead_id: leadId, status: status, pin: pin })
           })
             .then(function (res) {
               if (!res.ok) throw new Error("save-failed");
@@ -556,6 +574,12 @@
             })
             .then(function (data) {
               savingLeadId = null;
+              if (data && data.locked) {
+                pin = "";
+                try { sessionStorage.removeItem(PIN_KEY); } catch (e) {}
+                showLock(data.seller, data.lockout ? 'Too many wrong tries \u2014 this board is locked for an hour.' : "That PIN doesn't match \u2014 try again.");
+                return;
+              }
               if (data && data.seller) board = data;
               render();
               toast(status === "new" ? "Back to New." :
@@ -568,8 +592,6 @@
               toast("Couldn't save that — check your connection and tap again.");
             });
         }
-
-        /* ---------- Wiring ---------- */
         document.querySelectorAll(".tile").forEach(function (tile) {
           tile.addEventListener("click", function () {
             var f = tile.getAttribute("data-filter");
@@ -583,6 +605,8 @@
         });
         document.getElementById("retryBtn").addEventListener("click", loadBoard);
         document.getElementById("refreshBtn").addEventListener("click", loadBoard);
+        document.getElementById("unlockBtn").addEventListener("click", unlock);
+        els.pinInput.addEventListener("keydown", function (ev) { if (ev.key === "Enter") unlock(); });
         els.sections.addEventListener("click", function (ev) {
           var btn = ev.target.closest("button[data-action]");
           if (!btn || btn.disabled) return;
@@ -592,8 +616,6 @@
           var numericId = /^\d+$/.test(leadId) ? parseInt(leadId, 10) : leadId;
           setStatus(numericId, btn.getAttribute("data-action"), card);
         });
-
-        /* ---------- Go ---------- */
         if (!token) {
           showOnly("badlink");
         } else {
