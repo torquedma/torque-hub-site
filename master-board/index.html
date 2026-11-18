@@ -211,7 +211,7 @@
 
   // b1e72c58e7deecef8d0efd589785994c478481e70c909168 is replaced with the real board token at deploy time.
   var token = window.__BOARD_TOKEN__ || "b1e72c58e7deecef8d0efd589785994c478481e70c909168";
-  if (!token || token === "b1e72c58e7deecef8d0efd589785994c478481e70c909168") {
+  if (!token) {
     token = new URLSearchParams(window.location.search).get('t');
   }
 
