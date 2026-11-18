@@ -45,7 +45,7 @@
     color:var(--accent); text-transform:uppercase; margin:0 0 6px;
   }
   h1.lender-name{ font-size:30px; line-height:1.15; margin:0; font-weight:800; letter-spacing:-.01em; }
-  .company{ font-size:17px; color:var(--muted); margin:4px 0 0; }
+  .company{ font-size:17px; color:var(--muted); margin:4px 0 0; } .listings-stat{ font-size:15px; font-weight:650; color:var(--accent); margin:6px 0 0; }
   .tiles{ display:flex; gap:10px; margin:20px 0 6px; }
   .tile{
     flex:1 1 0; min-height:76px;
@@ -145,7 +145,7 @@
     <header>
       <p class="kicker">Torque Hub &mdash; Financing Applications</p>
       <h1 class="lender-name" id="lenderName"></h1>
-      <p class="company" id="lenderCompany"></p>
+      <p class="company" id="lenderCompany"></p> <p class="listings-stat" id="lenderListings" hidden></p>
     </header>
     <div class="tiles" role="group" aria-label="Filter by status">
       <button type="button" class="tile" id="tileNew" aria-pressed="false">
@@ -439,7 +439,7 @@
   wireTile('tileDone', 'done'); function takeSnapshot(){ var btn=document.getElementById('snapshotBtn'); var source=document.getElementById('app'); if(!source||!btn){return;} btn.disabled=true; var originalLabel=btn.textContent; btn.textContent='Capturing…'; try{ var w=source.scrollWidth; var h=source.scrollHeight; var clone=source.cloneNode(true); var srcNodes=[source].concat(Array.prototype.slice.call(source.querySelectorAll('*'))); var cloneNodes=[clone].concat(Array.prototype.slice.call(clone.querySelectorAll('*'))); srcNodes.forEach(function(srcNode,i){ var cs=getComputedStyle(srcNode); var style=cloneNodes[i].style; for(var j=0;j<cs.length;j++){ var prop=cs[j]; try{ style.setProperty(prop,cs.getPropertyValue(prop),cs.getPropertyPriority(prop)); }catch(e){} } if(srcNode.tagName==='TEXTAREA'){ cloneNodes[i].textContent=srcNode.value; } if(srcNode.tagName==='INPUT'){ cloneNodes[i].setAttribute('value',srcNode.value); } }); var snapRow=clone.querySelector('.snapshot-row'); if(snapRow){ snapRow.remove(); } clone.setAttribute('xmlns','http://www.w3.org/1999/xhtml'); clone.style.width=w+'px'; clone.style.height=h+'px'; var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'"><foreignObject x="0" y="0" width="'+w+'" height="'+h+'">'+new XMLSerializer().serializeToString(clone)+'</foreignObject></svg>'; var img=new Image(); img.onload=function(){ try{ var scale=2; var canvas=document.createElement('canvas'); canvas.width=w*scale; canvas.height=h*scale; var ctx=canvas.getContext('2d'); ctx.fillStyle='#f4f5f7'; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.scale(scale,scale); ctx.drawImage(img,0,0,w,h); canvas.toBlob(function(blob){ btn.disabled=false; btn.textContent=originalLabel; if(!blob){return;} var url=URL.createObjectURL(blob); var a=document.createElement('a'); a.href=url; a.download='board-snapshot.png'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){ URL.revokeObjectURL(url); },1000); },'image/png'); }catch(err){ btn.disabled=false; btn.textContent=originalLabel; } }; img.onerror=function(){ btn.disabled=false; btn.textContent=originalLabel; }; img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg); }catch(err){ btn.disabled=false; btn.textContent=originalLabel; } } document.getElementById('snapshotBtn').addEventListener('click',takeSnapshot);
   function showBoard(data){
     document.getElementById('lenderName').textContent = data.lender.name || '';
-    document.getElementById('lenderCompany').textContent = data.lender.company || '';
+    document.getElementById('lenderCompany').textContent = data.lender.company || ''; if (typeof data.listings_count === 'number') { var lEl = document.getElementById('lenderListings'); lEl.textContent = 'Listings: ' + data.listings_count; lEl.hidden = false; }
     leads = data.leads.slice().sort(function(a,b){
       return new Date(b.received_at) - new Date(a.received_at);
     });
