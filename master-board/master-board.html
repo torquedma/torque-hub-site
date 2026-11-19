@@ -1,0 +1,723 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light" />
+<link rel="icon" href="data:," />
+<title>Torque Master Board</title>
+<style>
+  :root{
+    --bg:#f4f5f7;
+    --surface:#ffffff;
+    --ink:#171a1f;
+    --muted:#5c6470;
+    --faint:#8a919c;
+    --line:#e2e5ea;
+    --accent:#1450a0;
+    --accent-ink:#ffffff;
+    --accent-soft:#e8eff9;
+    --amber-bg:#fdf0d3;
+    --amber-ink:#7a5200;
+    --green-bg:#dff3e2;
+    --green-ink:#1d6b32;
+    --gray-bg:#e8eaed;
+    --gray-ink:#4c545e;
+    --red:#c0271d;
+    --red-bg:#fdecea;
+    --radius:14px;
+  }
+  *{ box-sizing:border-box; }
+  html{ -webkit-text-size-adjust:100%; }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size:16px;
+    line-height:1.45;
+    -webkit-font-smoothing:antialiased;
+  }
+  button{ font:inherit; cursor:pointer; }
+  .wrap{ max-width:1180px; margin:0 auto; padding:20px 16px 8px; }
+
+  /* Header */
+  .kicker{
+    font-size:13px; font-weight:600; letter-spacing:.04em;
+    color:var(--accent); text-transform:uppercase; margin:0 0 6px;
+  }
+  h1.board-title{ font-size:30px; line-height:1.15; margin:0; font-weight:800; letter-spacing:-.01em; }
+  .sub{ font-size:16px; color:var(--muted); margin:4px 0 0; }
+  .head-actions{ display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+  .btn{
+    min-height:44px; border-radius:10px; border:1.5px solid var(--accent);
+    background:var(--accent); color:var(--accent-ink);
+    font-size:15px; font-weight:650; padding:9px 16px;
+  }
+  .btn.secondary{ background:var(--surface); color:var(--accent); }
+  .btn:disabled{ opacity:.55; cursor:default; }
+  .btn:focus-visible{ outline:3px solid var(--accent); outline-offset:2px; }
+
+  /* Top-level sections */
+  h2.section{
+    font-size:19px; font-weight:800; letter-spacing:.02em; text-transform:uppercase;
+    color:var(--ink); margin:30px 2px 4px;
+    border-bottom:2px solid var(--line); padding-bottom:6px;
+  }
+
+  /* Per-person blocks */
+  .person{ margin-top:20px; }
+  .person-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin:0 2px; }
+  .person-name{ font-size:23px; font-weight:800; line-height:1.2; margin:0; overflow-wrap:anywhere; }
+  .person-sub{ font-size:15px; color:var(--muted); margin:2px 0 0; }
+  .tag{
+    flex:0 0 auto; font-size:12.5px; font-weight:700; line-height:1;
+    padding:6px 10px; border-radius:999px; white-space:nowrap; margin-top:3px;
+    background:var(--accent-soft); color:var(--accent);
+  }
+  .listings-stat{
+    flex:0 0 auto; text-align:right; margin-top:1px;
+  }
+  .listings-stat .num{ font-size:26px; font-weight:800; line-height:1.05; display:block; }
+  .listings-stat .lbl{ font-size:12.5px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
+
+  /* Count strip */
+  .counts{ display:flex; gap:8px; margin:12px 0 14px; }
+  .count{
+    flex:1 1 0; background:var(--surface); border:2px solid var(--line); border-radius:var(--radius);
+    padding:8px 4px 7px; text-align:center;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
+  }
+  .count .num{ font-size:24px; font-weight:800; line-height:1.1; }
+  .count .lbl{ font-size:12.5px; font-weight:600; color:var(--muted); }
+  .count .sub{ font-size:11.5px; color:var(--faint); }
+
+  .empty{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:16px; color:var(--muted); font-size:15px; margin:0 0 12px; }
+
+  /* Lead cards */
+  .card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:16px; margin:0 0 12px;
+  }
+  .card-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+  .buyer{ font-size:21px; font-weight:750; line-height:1.2; margin:0; overflow-wrap:anywhere; }
+  .ref{ font-size:13px; font-weight:600; color:var(--faint); margin-left:7px; white-space:nowrap; }
+  .pill{
+    flex:0 0 auto; font-size:12.5px; font-weight:700; line-height:1;
+    padding:6px 10px; border-radius:999px; white-space:nowrap; margin-top:2px;
+  }
+  .pill-new{ background:var(--accent); color:var(--accent-ink); }
+  .pill-working{ background:var(--amber-bg); color:var(--amber-ink); }
+  .pill-funded, .pill-sold{ background:var(--green-bg); color:var(--green-ink); }
+  .pill-no_deal, .pill-no_sale{ background:var(--gray-bg); color:var(--gray-ink); }
+  .answers{ display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+  .answers span{ background:var(--accent-soft); color:var(--accent); font-size:13px; font-weight:700; padding:5px 9px; border-radius:6px; }
+  .repeat{ display:block; margin-top:10px; background:var(--amber-bg); color:var(--amber-ink); font-size:13.5px; font-weight:700; padding:7px 10px; border-radius:6px; }
+  .called-line{ font-size:14px; font-weight:650; color:var(--green-ink); margin:10px 0 0; }
+  .overdue{
+    display:inline-block; margin-top:10px;
+    background:var(--red-bg); color:var(--red);
+    font-size:12.5px; font-weight:800; letter-spacing:.05em;
+    padding:5px 9px; border-radius:6px;
+  }
+  .phone{
+    display:inline-block; margin-top:8px;
+    font-size:18px; font-weight:650; color:var(--accent);
+    text-decoration:none; padding:6px 0; min-height:36px;
+  }
+  .phone:active{ text-decoration:underline; }
+  .vehicle{ font-size:16px; margin:2px 0 0; overflow-wrap:anywhere; }
+  .contact{ font-size:15px; margin:8px 0 0; color:var(--ink); overflow-wrap:anywhere; }
+  .contact .lbl{ color:var(--muted); }
+  .fact{ font-size:15px; margin:6px 0 0; }
+  .fact .lbl{ color:var(--muted); }
+  .notes{
+    margin-top:10px; background:var(--bg); border:1px solid var(--line); border-radius:10px;
+    padding:10px 12px; font-size:14.5px; overflow-wrap:anywhere; white-space:pre-wrap;
+  }
+  .notes .lbl{ display:block; font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); margin-bottom:3px; }
+  .meta{ display:flex; flex-wrap:wrap; gap:4px 14px; margin-top:10px; font-size:13.5px; color:var(--muted); }
+
+  .controls{ display:flex; flex-wrap:wrap; gap:8px; margin:14px 2px 0; }
+  .controls input[type="search"]{
+    flex:1 1 220px; min-height:44px; font:inherit; font-size:15.5px;
+    padding:8px 12px; border:1.5px solid var(--line); border-radius:10px;
+    background:var(--surface); color:var(--ink);
+  }
+  .controls select{
+    min-height:44px; font:inherit; font-size:15.5px; font-weight:600;
+    padding:8px 10px; border:1.5px solid var(--line); border-radius:10px;
+    background:var(--surface); color:var(--ink);
+  }
+  .controls input[type="search"]:focus-visible, .controls select:focus-visible{ outline:3px solid var(--accent); outline-offset:2px; }
+  .kanban{ display:flex; gap:12px; overflow-x:auto; align-items:flex-start; padding:6px 2px 10px; }
+  .kcol{
+    flex:1 1 0; min-width:250px;
+    background:#eceff3; border:1px solid var(--line); border-radius:var(--radius);
+    padding:10px; min-height:120px;
+  }
+  .kcol-head{
+    display:flex; align-items:center; gap:7px;
+    font-size:13.5px; font-weight:800; letter-spacing:.03em; text-transform:uppercase;
+    color:var(--muted); margin:2px 2px 10px;
+  }
+  .kcol-dot{ width:10px; height:10px; border-radius:50%; flex:0 0 auto; }
+  .dot-new{ background:var(--accent); }
+  .dot-working{ background:#d29a00; }
+  .dot-funded{ background:#2e9e4f; }
+  .dot-no_deal{ background:#8a919c; }
+  .dot-sold{ background:#2e9e4f; }
+  .dot-no_sale{ background:#8a919c; }
+  .kcol .card{ margin:0 0 10px; }
+  .kcol-empty{ color:var(--faint); font-size:14px; padding:6px 4px 10px; }
+  .email-link{
+    display:inline-block; margin-top:2px; font-size:15px; font-weight:600;
+    color:var(--accent); text-decoration:none; padding:4px 0; overflow-wrap:anywhere;
+  }
+  .email-link:active{ text-decoration:underline; }
+
+  footer{ text-align:center; color:var(--faint); font-size:13px; padding:26px 16px 34px; }
+
+  /* Loading / lock / bad-link states */
+  .center-msg{ max-width:520px; margin:0 auto; padding:64px 24px; text-align:center; font-size:17px; line-height:1.55; color:var(--ink); }
+  .center-msg .spin{ color:var(--muted); }
+  .lock-box{
+    max-width:420px; margin:0 auto; padding:56px 24px; text-align:center;
+  }
+  .lock-box h1{ font-size:27px; font-weight:800; margin:0 0 6px; }
+  .lock-box p{ color:var(--muted); margin:0 0 18px; }
+  .pin-row{ display:flex; gap:8px; justify-content:center; }
+  .pin-input{
+    width:150px; min-height:52px; text-align:center;
+    font-size:24px; font-weight:700; letter-spacing:.35em;
+    border:2px solid var(--line); border-radius:10px; background:var(--surface); color:var(--ink);
+  }
+  .pin-input:focus-visible{ outline:3px solid var(--accent); outline-offset:2px; }
+  .lock-err{ color:var(--red); font-weight:600; font-size:15px; margin:14px 0 0; min-height:20px; }
+  [hidden]{ display:none !important; }
+
+  @media (min-width:560px){
+    .wrap{ padding:28px 20px 8px; }
+    h1.board-title{ font-size:34px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="loading" class="center-msg"><span class="spin">Loading the master board…</span></div>
+
+<div id="badlink" class="center-msg" hidden>This link isn&rsquo;t complete. Use the full link from Gary.</div>
+
+<div id="lockscreen" class="lock-box" hidden>
+  <p class="kicker">Torque Hub</p>
+  <h1>Master Board</h1>
+  <p>Enter your PIN to open the board.</p>
+  <div class="pin-row">
+    <input class="pin-input" id="pinInput" type="password" inputmode="numeric" autocomplete="off"
+           maxlength="4" aria-label="4-digit PIN" />
+    <button type="button" class="btn" id="unlockBtn">Unlock</button>
+  </div>
+  <p class="lock-err" id="lockErr"></p>
+</div>
+
+<div id="app" hidden>
+  <div class="wrap" id="boardRoot">
+    <header>
+      <p class="kicker">Torque Hub — Master Board</p>
+      <h1 class="board-title">Sellers + Lenders</h1>
+      <p class="sub" id="generatedAt"></p>
+      <div class="head-actions">
+        <button type="button" class="btn" id="snapshotBtn">Snapshot</button>
+        <button type="button" class="btn secondary" id="exportBtn">Export CSV</button>
+        <button type="button" class="btn secondary" id="refreshBtn">Refresh</button>
+      </div>
+      <div class="controls">
+        <input type="search" id="searchBox" placeholder="Search all leads by name, stock #, or vehicle&hellip;" aria-label="Search all leads" />
+        <select id="sortSel" aria-label="Sort all leads">
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+          <option value="price">Highest price</option>
+        </select>
+      </div>
+    </header>
+
+    <main>
+      <h2 class="section">Sellers</h2>
+      <div id="sellers"></div>
+
+      <h2 class="section">Lenders</h2>
+      <div id="lenders"></div>
+    </main>
+  </div>
+  <footer>Torque DMA · hub.torquedma.com</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4c2lra21xYXN5ZG9zbWJsem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTc1OTksImV4cCI6MjA5MDQ3MzU5OX0.JMEI7cx2tddmbvfqm_qxiIWp7f5Phuk5l0Y487DUSZg';
+  var FN_URL = 'https://bxsikkmqasydosmblzov.supabase.co/functions/v1/master-board';
+  var HEADERS = { 'apikey': SB_ANON, 'Authorization': 'Bearer ' + SB_ANON, 'Content-Type': 'application/json' };
+
+  // b1e72c58e7deecef8d0efd589785994c478481e70c909168 is replaced with the real board token at deploy time.
+  var token = window.__BOARD_TOKEN__ || "b1e72c58e7deecef8d0efd589785994c478481e70c909168";
+  if (!token) {
+    token = new URLSearchParams(window.location.search).get('t');
+  }
+
+  var elLoading = document.getElementById('loading');
+  var elBad = document.getElementById('badlink');
+  var elLock = document.getElementById('lockscreen');
+  var elApp = document.getElementById('app');
+  var elLockErr = document.getElementById('lockErr');
+  var elPin = document.getElementById('pinInput');
+
+  function show(which){
+    elLoading.hidden = which !== 'loading';
+    elBad.hidden = which !== 'badlink';
+    elLock.hidden = which !== 'lock';
+    elApp.hidden = which !== 'app';
+  }
+
+  function esc(s){
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  function money(v){
+    if (v === null || v === undefined || v === '') return '';
+    var n = Number(v);
+    if (isNaN(n)) return '';
+    return '$' + n.toLocaleString('en-US', { maximumFractionDigits: (n % 1 ? 2 : 0) });
+  }
+
+  /* ---------- Received-time formatting (America/New_York) ---------- */
+  var dayFmt = new Intl.DateTimeFormat('en-US', { timeZone:'America/New_York', year:'numeric', month:'numeric', day:'numeric' });
+  var timeFmt = new Intl.DateTimeFormat('en-US', { timeZone:'America/New_York', hour:'numeric', minute:'2-digit', hour12:true });
+  var dateFmt = new Intl.DateTimeFormat('en-US', { timeZone:'America/New_York', month:'short', day:'numeric' });
+
+  function dayKey(d){ return dayFmt.format(d); }
+
+  function receivedLabel(iso){
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    var now = new Date();
+    var time = timeFmt.format(d);
+    if (dayKey(d) === dayKey(now)) return 'Today ' + time;
+    var yest = new Date(now.getTime() - 24*60*60*1000);
+    if (dayKey(d) === dayKey(yest)) return 'Yesterday ' + time;
+    return dateFmt.format(d) + ', ' + time;
+  }
+
+  function ageLabel(iso){
+    var t = new Date(iso).getTime();
+    if (isNaN(t)) return '';
+    var mins = Math.floor((Date.now() - t) / 60000);
+    if (mins < 1) return '0m';
+    if (mins < 60) return mins + 'm';
+    var hrs = Math.floor(mins / 60);
+    if (hrs < 24) return hrs + 'h';
+    return Math.floor(hrs / 24) + 'd';
+  }
+
+  function isOverdue(lead){
+    if (lead.status !== 'new') return false;
+    var t = new Date(lead.received_at).getTime();
+    if (isNaN(t)) return false;
+    return (Date.now() - t) > 24*60*60*1000;
+  }
+
+  /* ---------- Cards ---------- */
+  var SELLER_PILL = {
+    new:     { cls:'pill-new',     label:'New' },
+    working: { cls:'pill-working', label:'Working on it' },
+    sold:    { cls:'pill-sold',    label:'Sold' },
+    no_sale: { cls:'pill-no_sale', label:'No sale' }
+  };
+  var LENDER_PILL = {
+    new:     { cls:'pill-new',     label:'New' },
+    working: { cls:'pill-working', label:'Working on it' },
+    funded:  { cls:'pill-funded',  label:'Funded' },
+    no_deal: { cls:'pill-no_deal', label:'No deal' }
+  };
+
+  function cardTop(lead, pill){
+    var ref = lead.lead_ref ? '<span class="ref">' + esc(lead.lead_ref) + '</span>' : '';
+    return '<div class="card-top"><h4 class="buyer">' + esc(lead.buyer_name || 'Buyer') + ref + '</h4>' +
+      '<span class="pill ' + pill.cls + '">' + pill.label + '</span></div>';
+  }
+
+  function cardCommon(lead){
+    var html = '';
+    if (isOverdue(lead)) html += '<span class="overdue">OVERDUE</span>';
+    var phoneDigits = String(lead.buyer_phone || '').replace(/[^0-9+]/g,'');
+    if (lead.buyer_phone){
+      html += '<div><a class="phone" href="tel:' + esc(phoneDigits) + '">' + esc(lead.buyer_phone) + '</a></div>';
+    }
+    if (lead.buyer_email){
+      html += '<div><a class="email-link" href="mailto:' + esc(lead.buyer_email) + '">' + esc(lead.buyer_email) + '</a></div>';
+    }
+    var vehicleParts = [lead.vehicle, lead.stock_number].filter(function(x){ return x && String(x).trim(); });
+    if (vehicleParts.length) html += '<p class="vehicle">' + esc(vehicleParts.join(' · ')) + '</p>';
+    var meta = '';
+    var when = receivedLabel(lead.received_at);
+    if (when) meta += '<span>Received ' + esc(when) + '</span>';
+    var age = ageLabel(lead.received_at);
+    if (age) meta += '<span>Age ' + esc(age) + '</span>';
+    if (lead.source) meta += '<span>' + esc(lead.source) + '</span>';
+    if (meta) html += '<div class="meta">' + meta + '</div>';
+    var ansParts = [];
+    if (lead.pay_method) ansParts.push(esc(lead.pay_method));
+    if (lead.buy_timeframe) ansParts.push(esc(lead.buy_timeframe));
+    if (lead.contact_pref) ansParts.push(esc(lead.contact_pref));
+    if (ansParts.length) html += '<div class="answers">' + ansParts.map(function(p){ return '<span>' + p + '</span>'; }).join('') + '</div>';
+    if (lead.repeat_note) html += '<span class="repeat">' + esc(lead.repeat_note) + '</span>';
+    if (lead.called_at){
+      var cd = new Date(lead.called_at);
+      if (!isNaN(cd.getTime())) html += '<p class="called-line">Called ' + esc(dateFmt.format(cd) + ', ' + timeFmt.format(cd)) + '</p>';
+    }
+    if (lead.notes){
+      html += '<div class="notes"><span class="lbl">Notes</span>' + esc(lead.notes) + '</div>';
+    }
+    return html;
+  }
+
+  function sellerCard(lead){
+    var pill = SELLER_PILL[lead.status] || SELLER_PILL.new;
+    var html = '<article class="card">' + cardTop(lead, pill) + cardCommon(lead);
+    if (lead.status === 'sold'){
+      var sp = money(lead.sold_price);
+      html += '<p class="fact"><span class="lbl">Sold:</span> ' + (sp ? 'Sold for ' + esc(sp) : 'Sold price not entered yet') + '</p>';
+    }
+    if (lead.status !== 'new' && lead.status_at){
+      var w = receivedLabel(lead.status_at);
+      if (w) html += '<div class="meta"><span>Marked ' + esc(pill.label.toLowerCase()) + ' · ' + esc(w) + '</span></div>';
+    }
+    return html + '</article>';
+  }
+
+  function lenderCard(lead){
+    var pill = LENDER_PILL[lead.status] || LENDER_PILL.new;
+    var html = '<article class="card">' + cardTop(lead, pill) + cardCommon(lead);
+    if (lead.dealer_contact){
+      html += '<p class="contact"><span class="lbl">Dealership contact:</span> ' + esc(lead.dealer_contact) + '</p>';
+    }
+    var price = money(lead.price);
+    if (price) html += '<p class="fact"><span class="lbl">List price:</span> ' + esc(price) + '</p>';
+    if (lead.status === 'funded'){
+      var comm = money(lead.commission);
+      html += '<p class="fact"><span class="lbl">Commission:</span> ' +
+        (comm ? 'Commission coming to Torque: ' + esc(comm) : 'Commission not entered yet') + '</p>';
+    }
+    return html + '</article>';
+  }
+
+  /* ---------- Person blocks ---------- */
+  function countStrip(items){
+    var html = '<div class="counts">';
+    items.forEach(function(it){
+      html += '<div class="count"><span class="num">' + esc(it.num) + '</span>' +
+        '<span class="lbl">' + esc(it.lbl) + '</span>' +
+        (it.sub ? '<span class="sub">' + esc(it.sub) + '</span>' : '') + '</div>';
+    });
+    return html + '</div>';
+  }
+
+  function sortLeads(leads){
+    return (leads || []).slice().sort(function(a,b){
+      return new Date(b.received_at) - new Date(a.received_at);
+    });
+  }
+
+  var SELLER_COLS = [
+    { status:'new',     label:'New',     dot:'dot-new' },
+    { status:'working', label:'Working', dot:'dot-working' },
+    { status:'sold',    label:'Sold',    dot:'dot-sold' },
+    { status:'no_sale', label:'No Sale', dot:'dot-no_sale' }
+  ];
+  function sortSellerColumn(arr){
+    var out = arr.slice();
+    if (sortMode === 'oldest'){
+      out.sort(function(a,b){ return new Date(a.received_at) - new Date(b.received_at); });
+    } else if (sortMode === 'price'){
+      out.sort(function(a,b){
+        var pa = Number(a.sold_price); if (!isFinite(pa)) pa = -1;
+        var pb = Number(b.sold_price); if (!isFinite(pb)) pb = -1;
+        if (pb !== pa) return pb - pa;
+        return new Date(b.received_at) - new Date(a.received_at);
+      });
+    } else {
+      out.sort(function(a,b){ return new Date(b.received_at) - new Date(a.received_at); });
+    }
+    return out;
+  }
+  function sellerBlock(s){
+    var leads = s.leads || [];
+    var html = '<section class="person">';
+    html += '<div class="person-head"><div><h3 class="person-name">' + esc(s.name || 'Seller') + '</h3>' +
+      (s.dealership ? '<p class="person-sub">' + esc(s.dealership) + '</p>' : '') + '</div>' +
+      (s.prefix ? '<span class="tag">' + esc(s.prefix) + '</span>' : '') + '</div>';
+    var c = s.counts || { new:0, working:0, done:0 };
+    html += countStrip([
+      { num: c.new, lbl: 'New' },
+      { num: c.working, lbl: 'Working' },
+      { num: c.done, lbl: 'Done', sub: 'Sold + no sale' }
+    ]);
+    if (!leads.length){
+      html += '<div class="empty">No leads yet.</div>';
+    } else {
+      html += '<div class="kanban">';
+      SELLER_COLS.forEach(function(col){
+        var inCol = leads.filter(function(x){ return x.status === col.status; });
+        var shown = sortSellerColumn(inCol.filter(lenderSearchMatch));
+        var countLabel = searchQuery ? (shown.length + ' of ' + inCol.length) : String(inCol.length);
+        html += '<section class="kcol" data-col="' + col.status + '">' +
+          '<h4 class="kcol-head"><span class="kcol-dot ' + col.dot + '"></span>' + col.label + ' (' + countLabel + ')</h4>';
+        html += shown.length ? shown.map(sellerCard).join('') :
+          '<p class="kcol-empty">' + (searchQuery ? 'No matches in this column.' : 'Nothing here right now.') + '</p>';
+        html += '</section>';
+      });
+      html += '</div>';
+    }
+    return html + '</section>';
+  }
+
+  var LENDER_COLS = [
+    { status:'new',     label:'New',     dot:'dot-new' },
+    { status:'working', label:'Working', dot:'dot-working' },
+    { status:'funded',  label:'Funded',  dot:'dot-funded' },
+    { status:'no_deal', label:'No Deal', dot:'dot-no_deal' }
+  ];
+  function lenderSearchMatch(lead){
+    if (!searchQuery) return true;
+    var q = searchQuery.toLowerCase();
+    var fields = [lead.buyer_name, lead.stock_number, lead.vehicle];
+    for (var i = 0; i < fields.length; i++){
+      if (fields[i] && String(fields[i]).toLowerCase().indexOf(q) !== -1) return true;
+    }
+    return false;
+  }
+  function sortLenderColumn(arr){
+    var out = arr.slice();
+    if (sortMode === 'oldest'){
+      out.sort(function(a,b){ return new Date(a.received_at) - new Date(b.received_at); });
+    } else if (sortMode === 'price'){
+      out.sort(function(a,b){
+        var pa = Number(a.price); if (!isFinite(pa)) pa = -1;
+        var pb = Number(b.price); if (!isFinite(pb)) pb = -1;
+        if (pb !== pa) return pb - pa;
+        return new Date(b.received_at) - new Date(a.received_at);
+      });
+    } else {
+      out.sort(function(a,b){ return new Date(b.received_at) - new Date(a.received_at); });
+    }
+    return out;
+  }
+  function lenderBlock(l){
+    var leads = l.leads || [];
+    var html = '<section class="person">';
+    html += '<div class="person-head"><div><h3 class="person-name">' + esc(l.name || 'Lender') + '</h3>' +
+      (l.company ? '<p class="person-sub">' + esc(l.company) + '</p>' : '') + '</div>' +
+      '<div class="listings-stat"><span class="num">' + esc(l.listings_count != null ? l.listings_count : '\u2014') +
+      '</span><span class="lbl">Listings</span></div></div>';
+    var c = l.counts || { new:0, working:0, done:0, funded:0, no_deal:0 };
+    html += countStrip([
+      { num: c.new, lbl: 'New' },
+      { num: c.working, lbl: 'Working' },
+      { num: c.done, lbl: 'Done', sub: (c.funded || 0) + ' funded \u00b7 ' + (c.no_deal || 0) + ' no deal' }
+    ]);
+    if (!leads.length){
+      html += '<div class="empty">No financing applications yet.</div>';
+    } else {
+      html += '<div class="kanban">';
+      LENDER_COLS.forEach(function(col){
+        var inCol = leads.filter(function(x){ return x.status === col.status; });
+        var shown = sortLenderColumn(inCol.filter(lenderSearchMatch));
+        var countLabel = searchQuery ? (shown.length + ' of ' + inCol.length) : String(inCol.length);
+        html += '<section class="kcol" data-col="' + col.status + '">' +
+          '<h4 class="kcol-head"><span class="kcol-dot ' + col.dot + '"></span>' + col.label + ' (' + countLabel + ')</h4>';
+        html += shown.length ? shown.map(lenderCard).join('') :
+          '<p class="kcol-empty">' + (searchQuery ? 'No matches in this column.' : 'Nothing here right now.') + '</p>';
+        html += '</section>';
+      });
+      html += '</div>';
+    }
+    return html + '</section>';
+  }
+
+  var boardData = null;
+  var searchQuery = '';
+  var sortMode = 'newest';
+  function drawBoard(){
+    if (!boardData) return;
+    document.getElementById('sellers').innerHTML =
+      (boardData.sellers || []).map(sellerBlock).join('') || '<div class="empty">No seller boards yet.</div>';
+    document.getElementById('lenders').innerHTML =
+      (boardData.lenders || []).map(lenderBlock).join('') || '<div class="empty">No lender boards yet.</div>';
+  }
+
+  function render(data){
+    boardData = data;
+    var gen = data.generated_at ? receivedLabel(data.generated_at) : '';
+    document.getElementById('generatedAt').textContent =
+      'Every seller and lender board in one place — read-only.' + (gen ? ' Updated ' + gen + '.' : '');
+    drawBoard();
+    show('app');
+  }
+
+  /* ---------- Export CSV (lender sections) + search/sort (all sections) ---------- */
+  function csvCell(v){
+    var str = String(v == null ? '' : v);
+    if (/[",\n\r]/.test(str)) str = '"' + str.replace(/"/g, '""') + '"';
+    return str;
+  }
+  function exportCSV(){
+    if (!boardData) return;
+    var rows = [['Lender','Buyer Name','Phone','Email','Vehicle','Stock Number','List Price','Status','Notes','Date Received','Lead Ref']];
+    (boardData.lenders || []).forEach(function(l){
+      (l.leads || []).forEach(function(lead){
+        var pill = LENDER_PILL[lead.status] || LENDER_PILL.new;
+        rows.push([
+          l.name || '', lead.buyer_name || '', lead.buyer_phone || '', lead.buyer_email || '',
+          lead.vehicle || '', lead.stock_number || '',
+          (lead.price == null ? '' : String(lead.price)),
+          pill.label, lead.notes || '', lead.received_at || '', lead.lead_ref || ''
+        ]);
+      });
+    });
+    var csv = rows.map(function(r){ return r.map(csvCell).join(','); }).join('\r\n');
+    var blob = new Blob(['\ufeff' + csv], { type:'text/csv;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'master-board-lenders.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  }
+  document.getElementById('exportBtn').addEventListener('click', exportCSV);
+  document.getElementById('searchBox').addEventListener('input', function(){
+    searchQuery = this.value.trim();
+    drawBoard();
+  });
+  document.getElementById('sortSel').addEventListener('change', function(){
+    sortMode = this.value;
+    drawBoard();
+  });
+
+  /* ---------- Load / unlock ---------- */
+  function load(pin){
+    show('loading');
+    fetch(FN_URL, {
+      method: 'POST',
+      headers: HEADERS,
+      body: JSON.stringify({ token: token, pin: pin || '', action: 'getBoard' })
+    }).then(function(r){
+      if (r.status === 404) { show('badlink'); return null; }
+      if (!r.ok) throw new Error('load failed');
+      return r.json();
+    }).then(function(data){
+      if (!data) return;
+      if (data.locked){
+        show('lock');
+        if (data.locked_until){
+          elLockErr.textContent = 'Too many wrong PINs — this board is locked for an hour. Try again later.';
+        } else if (data.attempts_left != null && pin){
+          elLockErr.textContent = 'That PIN didn’t work. ' + data.attempts_left +
+            (data.attempts_left === 1 ? ' try' : ' tries') + ' left before a 1-hour lockout.';
+        } else {
+          elLockErr.textContent = '';
+        }
+        return;
+      }
+      if (!Array.isArray(data.sellers) || !Array.isArray(data.lenders)) { show('badlink'); return; }
+      try { sessionStorage.setItem('masterPin', pin || ''); } catch (e) {}
+      render(data);
+    }).catch(function(){
+      show('lock');
+      elLockErr.textContent = 'Couldn’t load the board — check your connection and try again.';
+    });
+  }
+
+  document.getElementById('unlockBtn').addEventListener('click', function(){
+    var pin = elPin.value.replace(/\D/g, '');
+    if (pin.length !== 4){ elLockErr.textContent = 'Enter your 4-digit PIN.'; return; }
+    load(pin);
+  });
+  elPin.addEventListener('keydown', function(ev){
+    if (ev.key === 'Enter') document.getElementById('unlockBtn').click();
+  });
+  document.getElementById('refreshBtn').addEventListener('click', function(){
+    var pin = '';
+    try { pin = sessionStorage.getItem('masterPin') || ''; } catch (e) {}
+    load(pin);
+  });
+
+  /* ---------- Snapshot (self-contained SVG render -> PNG download) ---------- */
+  document.getElementById('snapshotBtn').addEventListener('click', function(){
+    var btn = this;
+    btn.disabled = true;
+    try {
+      var root = document.getElementById('boardRoot');
+      var width = root.scrollWidth;
+      var height = root.scrollHeight;
+      var css = '';
+      var styles = document.querySelectorAll('style');
+      for (var i = 0; i < styles.length; i++) css += styles[i].textContent + '\n';
+      var clone = root.cloneNode(true);
+      clone.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+      clone.style.width = width + 'px';
+      clone.style.margin = '0';
+      var actions = clone.querySelector('.head-actions');
+      if (actions) actions.parentNode.removeChild(actions);
+      var html = new XMLSerializer().serializeToString(clone);
+      var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + width + '" height="' + height + '">' +
+        '<foreignObject width="100%" height="100%">' +
+        '<div xmlns="http://www.w3.org/1999/xhtml"><style>' +
+        css.replace(/</g, '\\3c ') +
+        'body{margin:0;background:#f4f5f7;}</style>' + html +
+        '</div></foreignObject></svg>';
+      var svgUrl = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
+      var img = new Image();
+      img.onload = function(){
+        var scale = 2;
+        var canvas = document.createElement('canvas');
+        canvas.width = width * scale;
+        canvas.height = height * scale;
+        var ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#f4f5f7';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(svgUrl);
+        canvas.toBlob(function(blob){
+          var a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = 'master-board-snapshot.png';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          btn.disabled = false;
+        }, 'image/png');
+      };
+      img.onerror = function(){ btn.disabled = false; };
+      img.src = svgUrl;
+    } catch (e) {
+      btn.disabled = false;
+    }
+  });
+
+  /* ---------- Go ---------- */
+  if (!token){
+    show('badlink');
+    return;
+  }
+  var savedPin = '';
+  try { savedPin = sessionStorage.getItem('masterPin') || ''; } catch (e) {}
+  load(savedPin);
+})();
+</script>
+</body>
+</html>
