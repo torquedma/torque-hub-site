@@ -671,6 +671,11 @@ const LENDER_FORM_CONFIGS = {
     }
   }
 };
+// WH-VDP (Chief 1 WH-001): the eleven Ash dealer routes L003-L013 use the SAME L002 Wheelhouse
+// config object (same form, copy and behaviour). No other route is added; unmapped codes still
+// fall through to showSuccess().
+["L003", "L004", "L005", "L006", "L007", "L008", "L009", "L010", "L011", "L012", "L013"]
+  .forEach(function (code) { LENDER_FORM_CONFIGS[code] = LENDER_FORM_CONFIGS.L002; });
 
 let pendingLender = null;   // holds { res, canonical, cfg } between Phase 1 success and Phase 2 submit
 

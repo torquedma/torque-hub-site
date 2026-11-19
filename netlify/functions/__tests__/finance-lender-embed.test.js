@@ -24,9 +24,11 @@ function configs() {
   return vm.runInNewContext(src + '\nLENDER_FORM_CONFIGS');
 }
 
-test('LE-1: exactly L001 and L002; L001 Formstack config unchanged; no default route', () => {
+const ASH_CODES = ['L003', 'L004', 'L005', 'L006', 'L007', 'L008', 'L009', 'L010', 'L011', 'L012', 'L013'];
+
+test('LE-1: exactly L001, L002 and the eleven Ash codes; L001 Formstack config unchanged; no default route', () => {
   const C = configs();
-  assert.deepEqual(Object.keys(C), ['L001', 'L002']);
+  assert.deepEqual(Object.keys(C), ['L001', 'L002'].concat(ASH_CODES));
   assert.deepEqual(JSON.parse(JSON.stringify(C.L001)), {
     lenderName: 'H.I.L. Financial', provider: 'formstack', formUrl: 'https://twaddle.formstack.com/forms/vehiclenetwork',
     fieldMap: {
@@ -83,4 +85,63 @@ test('LE-4: resize only on "setHeight:<px>:<formId>" from https://form.jotform.c
   assert.equal(frame.style.height, '620px', 'lower clamp');
   send('https://form.jotform.com', 'setHeight:99999:211335844728156');
   assert.equal(frame.style.height, '20020px', 'upper clamp');
+});
+
+// WH-VDP (Chief 1 WH-001): L003-L013 reuse the exact L002 Wheelhouse config.
+test('LE-5: every Ash code L003-L013 maps to the SAME L002 object; nothing else is added', () => {
+  const C = configs();
+  for (const code of ASH_CODES) assert.strictEqual(C[code], C.L002, code + ' is L002');
+  assert.notStrictEqual(C.L001, C.L002);
+  for (const code of ['L000', 'L014', 'L099', 'l004', 'DEFAULT', '']) assert.equal(C[code], undefined, code + ' unmapped');
+  const ids = (FIN.match(/jotformId:\s*"\d+"/g) || []);
+  assert.deepEqual(ids, ['jotformId: "211335844728156"'], 'no new Jotform id');
+  assert.equal((FIN.match(/form\.jotform\.com\/\d+/g) || []).length, 1, 'no new form URL');
+});
+
+// Runs the real handleLeadCreated / revealLenderEmbed / showSuccess against a stub DOM.
+function runFlow(routeCode) {
+  const els = {};
+  const el = (id) => els[id] || (els[id] = { id, style: {}, textContent: '', children: [], appendChild(c) { this.children.push(c); }, scrollIntoView() {} });
+  const created = [];
+  const listeners = [];
+  const ctx = {
+    document: { getElementById: el, createElement: (t) => { const e = { tag: t, style: {}, children: [], appendChild(c) { this.children.push(c); } }; created.push(e); return e; } },
+    window: { scrollTo() {}, addEventListener: (t, fn) => listeners.push(t) },
+    encodeURIComponent, Object, Math, parseInt, console
+  };
+  const src = slice('const LENDER_FORM_CONFIGS = {', '\nlet pendingLender') + '\nlet pendingLender = null;\n' +
+    slice('function showSuccess()', 'function submitBusinessInfo()') +
+    '\nthis.go = handleLeadCreated;';
+  vm.runInNewContext(src, ctx);
+  ctx.go({ lead_id: 'synthetic-lead', route_code: routeCode, success: true },
+    { source: 'torque_hub_listing', dealer: 'Davenport Motors', stock_number: 'DAV-032411', buyer_name: 'TEST' });
+  const iframe = created.find((e) => e.tag === 'iframe');
+  return { els, iframe, listeners };
+}
+
+test('LE-6: each Ash code shows the L002 Wheelhouse embed after acceptance, no business step, no prefill', () => {
+  const ref = runFlow('L002');
+  assert.equal(ref.iframe.src, 'https://form.jotform.com/211335844728156');
+  for (const code of ASH_CODES) {
+    const r = runFlow(code);
+    assert.ok(r.iframe, code + ' iframe');
+    assert.equal(r.iframe.src, ref.iframe.src, code + ' same form, no URL params');
+    assert.equal(r.els['lender-embed'].style.display, 'block');
+    assert.notEqual(r.els['business-info'].style.display, 'block', code + ' skips business step');
+    assert.equal(r.els['form-success'] && r.els['form-success'].style.display, undefined, code + ' not the plain success screen');
+    assert.equal(r.els['lender-embed-title'].textContent, ref.els['lender-embed-title'].textContent);
+    assert.equal(r.els['lender-embed-note'].textContent, ref.els['lender-embed-note'].textContent);
+    assert.deepEqual(r.listeners, ['message'], code + ' Jotform resize listener only');
+  }
+});
+
+test('LE-7: L001 path unchanged (business step); unmapped / missing route falls to showSuccess', () => {
+  const a = runFlow('L001');
+  assert.equal(a.iframe, undefined, 'L001 waits for business info');
+  assert.equal(a.els['business-info'].style.display, 'block');
+  for (const code of ['L014', 'L000', null, undefined, '']) {
+    const r = runFlow(code);
+    assert.equal(r.iframe, undefined, String(code) + ' no embed');
+    assert.equal(r.els['form-success'].style.display, 'block', String(code) + ' plain success');
+  }
 });
