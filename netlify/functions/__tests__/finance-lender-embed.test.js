@@ -145,3 +145,24 @@ test('LE-7: L001 path unchanged (business step); unmapped / missing route falls 
     assert.equal(r.els['form-success'].style.display, 'block', String(code) + ' plain success');
   }
 });
+
+// WH-COPY (Chief 1, before WH-001): no soft-credit claim before submission, because the
+// route (and lender) is decided by the server after submit. L001-only and L002 copy unchanged.
+test('FC-1: no soft-credit claim anywhere before the business step; replacement copy present', () => {
+  const pre = slice('<ul class="benefits">', '<div id="business-info"');
+  assert.ok(!/soft credit/i.test(pre), 'no soft-credit claim pre-submit');
+  assert.ok(!/affect your credit score/i.test(pre), 'no credit-score promise pre-submit');
+  assert.ok(pre.includes('>Starting your request does not check your credit</li>'));
+  assert.ok(pre.includes('>Submitting this request does not run a credit check.</p>'));
+  assert.ok(pre.includes('If a lender needs a hard credit pull, you should be notified first.'), 'existing trust line kept');
+});
+
+test('FC-2: the only soft-credit statements left are the L001-only business step and L001 embed default', () => {
+  const hits = FIN.match(/soft credit check that will not affect your credit score/g) || [];
+  assert.equal(hits.length, 2);
+  const biz = slice('<div id="business-info"', '<select id="f-business-type"');
+  assert.ok(biz.includes('>Financing starts with a soft credit check that will not affect your credit score.</p>'), 'L001 business step unchanged');
+  assert.ok(FIN.includes('id="lender-embed-note" style="color:#86efac;text-align:center;font-size:12px;font-style:italic;margin-bottom:14px">H.I.L. Financial starts with a soft credit check that will not affect your credit score.</p>'), 'L001 embed default unchanged');
+  const L2 = configs().L002;
+  assert.ok(!/soft (credit )?(check|pull)/i.test(Object.values(L2.embedCopy).join(' ')), 'Wheelhouse copy still makes no soft-pull claim');
+});
