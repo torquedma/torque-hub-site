@@ -1,0 +1,754 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light" />
+<link rel="icon" href="data:," />
+<title>Torque Seller Board</title>
+<style>
+  :root{
+    --bg:#f4f5f7;
+    --surface:#ffffff;
+    --ink:#171a1f;
+    --muted:#5c6470;
+    --faint:#8a919c;
+    --line:#e2e5ea;
+    --accent:#1450a0;
+    --accent-ink:#ffffff;
+    --accent-soft:#e8eff9;
+    --amber-bg:#fdf0d3;
+    --amber-ink:#7a5200;
+    --green-bg:#dff3e2;
+    --green-ink:#1d6b32;
+    --gray-bg:#e8eaed;
+    --gray-ink:#4c545e;
+    --red:#c0271d;
+    --red-bg:#fdecea;
+    --radius:14px;
+  }
+  *{ box-sizing:border-box; }
+  html{ -webkit-text-size-adjust:100%; }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size:16px;
+    line-height:1.45;
+    -webkit-font-smoothing:antialiased;
+  }
+  button{ font:inherit; cursor:pointer; }
+  .wrap{ max-width:680px; margin:0 auto; padding:20px 16px 8px; }
+  .kicker{
+    font-size:13px; font-weight:600; letter-spacing:.04em;
+    color:var(--accent); text-transform:uppercase; margin:0 0 6px;
+  }
+  h1.seller-name{ font-size:30px; line-height:1.15; margin:0; font-weight:800; letter-spacing:-.01em; }
+  .company{ font-size:17px; color:var(--muted); margin:4px 0 0; }
+  .tiles{ display:flex; gap:10px; margin:20px 0 6px; }
+  .tile{
+    flex:1 1 0; min-height:76px;
+    background:var(--surface); border:2px solid var(--line); border-radius:var(--radius);
+    padding:10px 6px 8px; text-align:center; color:var(--ink);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
+  }
+  .tile .num{ font-size:28px; font-weight:800; line-height:1.1; }
+  .tile .lbl{ font-size:13px; font-weight:600; color:var(--muted); }
+  .tile[aria-pressed="true"]{ border-color:var(--accent); background:var(--accent-soft); }
+  .tile[aria-pressed="true"] .lbl{ color:var(--accent); }
+  .tile:focus-visible{ outline:3px solid var(--accent); outline-offset:2px; }
+  .filter-note{ font-size:13px; color:var(--muted); margin:8px 2px 0; min-height:18px; }
+  .filter-note button{
+    background:none; border:none; color:var(--accent); font-weight:600;
+    padding:8px 6px; min-height:36px; text-decoration:underline;
+  }
+    .snapshot-row{ display:flex; justify-content:flex-end; margin:2px 2px 0; }   #snapshotBtn{     background:var(--surface); color:var(--accent); border:1.5px solid var(--line);     border-radius:8px; font-size:13.5px; font-weight:650; padding:6px 12px; min-height:36px;   }   #snapshotBtn:focus-visible{ outline:3px solid var(--accent); outline-offset:2px; }   #snapshotBtn:disabled{ opacity:.55; cursor:default; }   h2.section{ font-size:15px; font-weight:700; letter-spacing:.03em; text-transform:uppercase; color:var(--muted); margin:24px 2px 10px; }
+  .empty{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:18px 16px; color:var(--muted); font-size:15px; }
+  .card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:16px; margin:0 0 12px;
+  }
+  .card-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+  .buyer{ font-size:21px; font-weight:750; line-height:1.2; margin:0; overflow-wrap:anywhere; }
+  .ref{ font-size:13px; font-weight:600; color:var(--faint); margin-left:7px; white-space:nowrap; }
+  .pill{
+    flex:0 0 auto; font-size:12.5px; font-weight:700; line-height:1;
+    padding:6px 10px; border-radius:999px; white-space:nowrap; margin-top:2px;
+  }
+  .pill-new{ background:var(--accent); color:var(--accent-ink); }
+  .pill-working{ background:var(--amber-bg); color:var(--amber-ink); }
+  .pill-sold{ background:var(--green-bg); color:var(--green-ink); }
+  .pill-no_sale{ background:var(--gray-bg); color:var(--gray-ink); }
+  .overdue{
+    display:inline-block; margin-top:10px;
+    background:var(--red-bg); color:var(--red);
+    font-size:12.5px; font-weight:800; letter-spacing:.05em;
+    padding:5px 9px; border-radius:6px;
+  }
+  .phone{
+    display:inline-block; margin-top:8px;
+    font-size:18px; font-weight:650; color:var(--accent);
+    text-decoration:none; padding:6px 0; min-height:36px;
+  }
+  .phone:active{ text-decoration:underline; }
+  .vehicle{ font-size:16px; margin:2px 0 0; overflow-wrap:anywhere; }
+  .meta{ display:flex; flex-wrap:wrap; gap:4px 14px; margin-top:10px; font-size:13.5px; color:var(--muted); }
+  .actions{ display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+  .btn{
+    flex:1 1 auto; min-height:48px; min-width:104px;
+    border-radius:10px; border:1.5px solid var(--accent);
+    background:var(--accent); color:var(--accent-ink);
+    font-size:15.5px; font-weight:650; padding:10px 12px;
+  }
+  .btn.secondary{ background:var(--surface); color:var(--accent); }
+  .btn.plain{ background:var(--surface); color:var(--ink); border-color:var(--line); }
+  .btn:disabled{ opacity:.55; cursor:default; }
+  .btn:focus-visible{ outline:3px solid var(--accent); outline-offset:2px; }
+  .save-err{ font-size:14px; color:var(--red); margin:10px 0 0; font-weight:600; }
+  .board-wrap{ max-width:1240px; margin:0 auto; padding:0 16px; }
+  .controls{ display:flex; flex-wrap:wrap; gap:8px; margin:12px 2px 0; }
+  .controls input[type="search"]{
+    flex:1 1 190px; min-height:44px; font:inherit; font-size:15.5px;
+    padding:8px 12px; border:1.5px solid var(--line); border-radius:10px;
+    background:var(--surface); color:var(--ink);
+  }
+  .controls select{
+    min-height:44px; font:inherit; font-size:15.5px; font-weight:600;
+    padding:8px 10px; border:1.5px solid var(--line); border-radius:10px;
+    background:var(--surface); color:var(--ink);
+  }
+  .controls input[type="search"]:focus-visible, .controls select:focus-visible{ outline:3px solid var(--accent); outline-offset:2px; }
+  #exportBtn{
+    background:var(--surface); color:var(--accent); border:1.5px solid var(--line);
+    border-radius:8px; font-size:13.5px; font-weight:650; padding:6px 12px; min-height:36px; margin-right:8px;
+  }
+  #exportBtn:focus-visible{ outline:3px solid var(--accent); outline-offset:2px; }
+  .kanban{ display:flex; gap:12px; overflow-x:auto; align-items:flex-start; padding:6px 2px 14px; }
+  .kcol{
+    flex:0 0 290px; max-width:290px;
+    background:#eceff3; border:1px solid var(--line); border-radius:var(--radius);
+    padding:10px; min-height:140px;
+  }
+  .kcol-head{
+    display:flex; align-items:center; gap:7px;
+    font-size:14px; font-weight:800; letter-spacing:.03em; text-transform:uppercase;
+    color:var(--muted); margin:2px 2px 10px;
+  }
+  .kcol-dot{ width:10px; height:10px; border-radius:50%; flex:0 0 auto; }
+  .dot-new{ background:var(--accent); }
+  .dot-working{ background:#d29a00; }
+  .dot-sold{ background:#2e9e4f; }
+  .dot-no_sale{ background:#8a919c; }
+  .kcol.dragover{ outline:3px solid var(--accent); outline-offset:-3px; background:var(--accent-soft); }
+  .kcol .card{ margin:0 0 10px; }
+  .kcol-empty{ color:var(--faint); font-size:14px; padding:6px 4px 10px; }
+  .card .card-top{ cursor:grab; }
+  .card.dragging{ opacity:.45; }
+  .grip{ color:var(--faint); font-size:15px; line-height:1; margin-left:8px; user-select:none; }
+  .move-row{ margin-top:10px; }
+  .move-row label{ display:block; font-size:13px; font-weight:700; color:var(--muted); margin-bottom:5px; }
+  .move-row select{
+    width:100%; min-height:42px; font:inherit; font-size:15px;
+    padding:7px 10px; border:1.5px solid var(--line); border-radius:8px;
+    background:var(--surface); color:var(--ink);
+  }
+  body.snap .board-wrap{ max-width:none; width:max-content; }
+  body.snap .kanban{ overflow:visible; }
+
+  .sold-box{ margin-top:14px; background:var(--accent-soft); border:1px solid var(--accent); border-radius:10px; padding:12px; }
+  .sold-box label{ display:block; font-size:14px; font-weight:700; margin-bottom:6px; }
+  .sold-box input{ width:100%; min-height:44px; font-size:17px; padding:8px 10px; border:1.5px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink); }
+  .sold-line{ font-size:15px; font-weight:650; margin:10px 0 0; }
+  .add-price-btn{ margin-top:8px; border:1px solid var(--line); border-radius:8px; padding:8px 12px; background:var(--surface); color:var(--ink); font-weight:700; font-size:14px; cursor:pointer; }
+  .notes{ margin-top:14px; border-top:1px solid var(--line); padding-top:12px; }
+  .notes label{ display:block; font-size:13px; font-weight:700; color:var(--muted); margin-bottom:6px; }
+  .notes textarea{ width:100%; min-height:56px; font:inherit; font-size:15px; padding:8px 10px; border:1.5px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink); resize:vertical; }
+  .pin-input{ width:170px; min-height:52px; font-size:26px; letter-spacing:.35em; text-align:center; padding:8px 10px; border:2px solid var(--accent); border-radius:10px; margin:6px 0 12px; }
+  .lock-err{ font-size:15px; color:var(--red); font-weight:600; margin:12px 0 0; }
+  footer{ text-align:center; color:var(--faint); font-size:13px; padding:26px 16px 34px; }
+  .center-msg{ max-width:520px; margin:0 auto; padding:64px 24px; text-align:center; font-size:17px; line-height:1.55; color:var(--ink); }
+  .center-msg .spin{ color:var(--muted); }
+  [hidden]{ display:none !important; }
+  @media (min-width:560px){
+    .wrap{ padding:28px 20px 8px; }
+    h1.seller-name{ font-size:34px; }
+  }
+</style>
+<script>window.__BOARD_TOKEN__="0e21c4616845e23f904ed051e372e59c";</script>
+</head>
+<body>
+<div id="loading" class="center-msg"><span class="spin">Loading your leads&hellip;</span></div>
+<div id="badlink" class="center-msg" hidden>This link isn&rsquo;t complete &mdash; use the full link from your Torque email, or call Gary at <a href="tel:9195844860" style="color:var(--accent); font-weight:650;">919-584-4860</a>.</div>
+<div id="lockscreen" class="center-msg" hidden>
+  <p class="kicker">Torque Hub &mdash; Buyer Leads</p>
+  <h2 id="lockName" style="font-size:28px;line-height:1.2;margin:0 0 4px;"></h2>
+  <p id="lockCompany" style="font-size:17px;color:var(--muted);margin:0 0 16px;"></p>
+  <p>Enter your 4-digit PIN to open your board.</p>
+  <input id="pinInput" class="pin-input" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="&bull;&bull;&bull;&bull;" aria-label="4-digit PIN" />
+  <div><button id="unlockBtn" type="button" class="btn" style="min-width:170px;">Unlock</button></div>
+  <p id="lockErr" class="lock-err" hidden></p>
+</div>
+<div id="app" hidden>
+  <div class="wrap">
+    <header>
+      <p class="kicker">Torque Hub &mdash; Buyer Leads</p>
+      <h1 class="seller-name" id="sellerName"></h1>
+      <p class="company" id="sellerDealership"></p>
+    </header>
+    <div class="tiles" role="group" aria-label="Filter by status">
+      <button type="button" class="tile" id="tileNew" aria-pressed="false">
+        <span class="num" id="countNew">0</span><span class="lbl">New</span>
+      </button>
+      <button type="button" class="tile" id="tileWorking" aria-pressed="false">
+        <span class="num" id="countWorking">0</span><span class="lbl">Working</span>
+      </button>
+      <button type="button" class="tile" id="tileDone" aria-pressed="false">
+        <span class="num" id="countDone">0</span><span class="lbl">Done</span>
+      </button>
+    </div>
+    <div class="snapshot-row"><button type="button" id="exportBtn">Export CSV</button><button type="button" id="snapshotBtn">Snapshot</button></div> <p class="filter-note" id="filterNote"></p>
+    <div class="controls">
+      <input type="search" id="searchBox" placeholder="Search name, stock #, or vehicle&hellip;" aria-label="Search leads" />
+      <select id="sortSel" aria-label="Sort leads">
+        <option value="newest">Newest first</option>
+        <option value="oldest">Oldest first</option>
+        <option value="price">Highest price</option>
+      </select>
+    </div>
+  </div>
+  <div class="board-wrap">
+    <main id="list"></main>
+  </div>
+  <footer>Torque DMA &middot; hub.torquedma.com</footer>
+</div>
+<script>
+(function(){
+  "use strict";
+  var SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4c2lra21xYXN5ZG9zbWJsem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTc1OTksImV4cCI6MjA5MDQ3MzU5OX0.JMEI7cx2tddmbvfqm_qxiIWp7f5Phuk5l0Y487DUSZg';
+  var FN_URL = 'https://bxsikkmqasydosmblzov.supabase.co/functions/v1/seller-board';
+  var HEADERS = { 'apikey': SB_ANON, 'Authorization': 'Bearer ' + SB_ANON };
+  var token = window.__BOARD_TOKEN__ || new URLSearchParams(window.location.search).get('t');
+  var PIN_KEY = 'torque-seller-pin:' + token;
+  var pin = '';
+  try { pin = sessionStorage.getItem(PIN_KEY) || ''; } catch (e) {}
+  var elLoading = document.getElementById('loading');
+  var elBad = document.getElementById('badlink');
+  var elApp = document.getElementById('app');
+  var elList = document.getElementById('list');
+  var elFilterNote = document.getElementById('filterNote');
+  var elLock = document.getElementById('lockscreen');
+  var elLockName = document.getElementById('lockName');
+  var elLockCompany = document.getElementById('lockCompany');
+  var elPinInput = document.getElementById('pinInput');
+  var elLockErr = document.getElementById('lockErr');
+  var leads = [];
+  var filter = null;
+  var saving = {};
+  var soldFor = null;
+  var searchQuery = '';
+  var sortMode = 'newest';
+  var pendingSold = null;
+  function showBadLink(){ elLoading.hidden = true; elApp.hidden = true; elLock.hidden = true; elBad.hidden = false; }
+  function showLock(person, msg){
+    elLoading.hidden = true; elApp.hidden = true; elBad.hidden = true; elLock.hidden = false;
+    if (person){ elLockName.textContent = (person.name || '') + "'s board"; elLockCompany.textContent = person.dealership || ''; }
+    if (msg){ elLockErr.textContent = msg; elLockErr.hidden = false; } else { elLockErr.hidden = true; }
+  }
+  function fmtMoney(v){ var n = Number(v); if (!isFinite(n)) return ''; return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 }); }
+  function esc(s){
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+  var dayFmt = new Intl.DateTimeFormat('en-US', { timeZone:'America/New_York', year:'numeric', month:'numeric', day:'numeric' });
+  var timeFmt = new Intl.DateTimeFormat('en-US', { timeZone:'America/New_York', hour:'numeric', minute:'2-digit', hour12:true });
+  var dateFmt = new Intl.DateTimeFormat('en-US', { timeZone:'America/New_York', month:'short', day:'numeric' });
+  function dayKey(d){ return dayFmt.format(d); }
+  function receivedLabel(iso){
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    var now = new Date();
+    var time = timeFmt.format(d);
+    if (dayKey(d) === dayKey(now)) return 'Today ' + time;
+    var yest = new Date(now.getTime() - 24*60*60*1000);
+    if (dayKey(d) === dayKey(yest)) return 'Yesterday ' + time;
+    return dateFmt.format(d) + ', ' + time;
+  }
+  function isOverdue(lead){
+    if (lead.status !== 'new') return false;
+    var t = new Date(lead.received_at).getTime();
+    if (isNaN(t)) return false;
+    return (Date.now() - t) > 24*60*60*1000;
+  }
+  function ageLabel(iso){
+    var t = new Date(iso).getTime();
+    if (isNaN(t)) return '';
+    var mins = Math.floor((Date.now() - t) / 60000);
+    if (mins < 1) return '0m';
+    if (mins < 60) return mins + 'm';
+    var hrs = Math.floor(mins / 60);
+    if (hrs < 24) return hrs + 'h';
+    return Math.floor(hrs / 24) + 'd';
+  }
+  function effectiveStatus(lead){
+    if (pendingSold && String(pendingSold) === String(lead.id)) return 'sold';
+    return lead.status;
+  }
+  var PILL = {
+    new:     { cls:'pill-new',     label:'New' },
+    working: { cls:'pill-working', label:'Working on it' },
+    sold:    { cls:'pill-sold',    label:'Sold' },
+    no_sale: { cls:'pill-no_sale', label:'No sale' }
+  };
+  function bucketOf(status){
+    if (status === 'new') return 'new';
+    if (status === 'working') return 'working';
+    return 'done';
+  }
+  function counts(){
+    var c = { new:0, working:0, done:0 };
+    leads.forEach(function(l){ c[bucketOf(l.status)]++; });
+    return c;
+  }
+  function buttonsFor(lead){
+    var busy = !!saving[lead.id];
+    function btn(status, label, cls){
+      return '<button type="button" class="btn ' + cls + '" data-lead="' + esc(lead.id) +
+             '" data-status="' + status + '"' + (busy ? ' disabled' : '') + '>' +
+             (busy ? 'Saving&hellip;' : esc(label)) + '</button>';
+    }
+    if (lead.status === 'new'){
+      return btn('working','Working on it','') + btn('sold','Sold','secondary') + btn('no_sale','No sale','plain');
+    }
+    if (lead.status === 'working'){
+      return btn('sold','Sold','') + btn('no_sale','No sale','plain') + btn('new','Put back to New','secondary');
+    }
+    return btn('new','Put back to New','secondary');
+  }
+  function cardHTML(lead){
+    var pill = PILL[lead.status] || PILL.new;
+    var busy = !!saving[lead.id];
+    var ref = lead.lead_ref ? '<span class="ref">' + esc(lead.lead_ref) + '</span>' : '';
+    var phoneDigits = String(lead.buyer_phone || '').replace(/[^0-9+]/g,'');
+    var phone = lead.buyer_phone
+      ? '<a class="phone" href="tel:' + esc(phoneDigits) + '">' + esc(lead.buyer_phone) + '</a>' : '';
+    var vehicleParts = [lead.vehicle, lead.stock_number].filter(function(x){ return x && String(x).trim(); });
+    var vehicle = vehicleParts.length
+      ? '<p class="vehicle">' + esc(vehicleParts.join(' \u00b7 ')) + '</p>' : '';
+    var meta = '';
+    var when = receivedLabel(lead.received_at);
+    if (when) meta += '<span>Received ' + esc(when) + '</span>';
+    var age = ageLabel(lead.received_at);
+    if (age) meta += '<span>Age ' + esc(age) + '</span>';
+    if (lead.source) meta += '<span>' + esc(lead.source) + '</span>';
+    if (meta) meta = '<div class="meta">' + meta + '</div>';
+    var overdue = isOverdue(lead) ? '<span class="overdue">OVERDUE</span>' : '';
+    var soldLine = '';
+    if (lead.status === 'sold'){
+      soldLine = (lead.sold_price != null && String(lead.sold_price).trim() !== '')
+        ? '<p class="sold-line">Sold for: ' + esc(fmtMoney(lead.sold_price)) + '</p>'
+        : '<p class="sold-line">Sold price not entered yet</p>' +
+          '<button type="button" class="add-price-btn" data-add-price="' + esc(lead.id) + '">Add sold price</button>';
+    }
+    var soldBox = '';
+    if (soldFor && String(soldFor) === String(lead.id)){
+      var cur = (lead.sold_price != null && String(lead.sold_price).trim() !== '') ? String(lead.sold_price) : '';
+      soldBox = '<div class="sold-box"><label for="soldp-' + esc(lead.id) + '">Sold price ($)</label>' +
+        '<input id="soldp-' + esc(lead.id) + '" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Enter sold price" value="' + esc(cur) + '" />' +
+        '<div class="actions"><button type="button" class="btn" data-sold-save="' + esc(lead.id) + '">Save &amp; mark sold</button>' +
+        '<button type="button" class="btn plain" data-sold-cancel="' + esc(lead.id) + '">Cancel</button></div></div>';
+    }
+    var moveOpts = '';
+    ['new','working','sold','no_sale'].forEach(function(st){
+      if (st !== lead.status) moveOpts += '<option value="' + st + '">' + PILL[st].label + '</option>';
+    });
+    var moveRow = '<div class="move-row"><label for="move-' + esc(lead.id) + '">Move to another column</label>' +
+      '<select id="move-' + esc(lead.id) + '" data-move="' + esc(lead.id) + '"' + (busy ? ' disabled' : '') + '>' +
+      '<option value="">Choose&hellip;</option>' + moveOpts + '</select></div>';
+    var notesBox = '<div class="notes"><label for="notes-' + esc(lead.id) + '">Notes</label>' +
+      '<textarea id="notes-' + esc(lead.id) + '" data-notes="' + esc(lead.id) + '" placeholder="Add a note&hellip;">' + esc(lead.notes || '') + '</textarea>' +
+      '<div class="actions"><button type="button" class="btn secondary" data-notes-save="' + esc(lead.id) + '">Save</button></div></div>';
+    return '<article class="card" data-card="' + esc(lead.id) + '" draggable="false">' +
+      '<div class="card-top"><h3 class="buyer">' + esc(lead.buyer_name || 'Buyer') + ref + '</h3>' +
+      '<span class="pill ' + pill.cls + '">' + pill.label + '</span><span class="grip" aria-hidden="true" title="Drag to move">&#8942;&#8942;</span></div>' +
+      overdue +
+      '<div>' + phone + '</div>' +
+      vehicle + meta + soldLine +
+      '<div class="actions">' + buttonsFor(lead) + '</div>' +
+      moveRow +
+      soldBox + notesBox +
+      '<p class="save-err" data-err="' + esc(lead.id) + '" hidden>Couldn&rsquo;t save that &mdash; tap to try again.</p>' +
+      '</article>';
+  }
+  var COLUMNS = [
+    { status:'new',     label:'New',     dot:'dot-new' },
+    { status:'working', label:'Working', dot:'dot-working' },
+    { status:'sold',    label:'Sold',    dot:'dot-sold' },
+    { status:'no_sale', label:'No Sale', dot:'dot-no_sale' }
+  ];
+  function searchMatch(lead){
+    if (!searchQuery) return true;
+    var q = searchQuery.toLowerCase();
+    var fields = [lead.buyer_name, lead.stock_number, lead.vehicle];
+    for (var i = 0; i < fields.length; i++){
+      if (fields[i] && String(fields[i]).toLowerCase().indexOf(q) !== -1) return true;
+    }
+    return false;
+  }
+  function sortColumn(arr){
+    var out = arr.slice();
+    if (sortMode === 'oldest'){
+      out.sort(function(a,b){ return new Date(a.received_at) - new Date(b.received_at); });
+    } else if (sortMode === 'price'){
+      out.sort(function(a,b){
+        var pa = Number(a.sold_price); if (!isFinite(pa)) pa = -1;
+        var pb = Number(b.sold_price); if (!isFinite(pb)) pb = -1;
+        if (pb !== pa) return pb - pa;
+        return new Date(b.received_at) - new Date(a.received_at);
+      });
+    } else {
+      out.sort(function(a,b){ return new Date(b.received_at) - new Date(a.received_at); });
+    }
+    return out;
+  }
+  function columnVisible(status){
+    if (!filter) return true;
+    if (filter === 'done') return status === 'sold' || status === 'no_sale';
+    return bucketOf(status) === filter;
+  }
+  function render(){
+    var c = counts();
+    document.getElementById('countNew').textContent = c.new;
+    document.getElementById('countWorking').textContent = c.working;
+    document.getElementById('countDone').textContent = c.done;
+    document.getElementById('tileNew').setAttribute('aria-pressed', filter === 'new' ? 'true' : 'false');
+    document.getElementById('tileWorking').setAttribute('aria-pressed', filter === 'working' ? 'true' : 'false');
+    document.getElementById('tileDone').setAttribute('aria-pressed', filter === 'done' ? 'true' : 'false');
+    if (filter){
+      var names = { new:'New', working:'Working', done:'Done' };
+      elFilterNote.innerHTML = 'Showing ' + names[filter] + ' only. <button type="button" id="clearFilter">Show all</button>';
+      document.getElementById('clearFilter').addEventListener('click', function(){ filter = null; render(); });
+    } else {
+      elFilterNote.textContent = '';
+    }
+    if (!leads.length){
+      elList.innerHTML = '<div class="empty">No leads yet. When a buyer comes in on your inventory, they&rsquo;ll show up right here.</div>';
+      return;
+    }
+    var html = '<div class="kanban">';
+    COLUMNS.forEach(function(col){
+      if (!columnVisible(col.status)) return;
+      var inCol = leads.filter(function(l){ return effectiveStatus(l) === col.status; });
+      var shown = sortColumn(inCol.filter(searchMatch));
+      var countLabel = searchQuery ? (shown.length + ' of ' + inCol.length) : String(inCol.length);
+      html += '<section class="kcol" data-col="' + col.status + '">' +
+        '<h3 class="kcol-head"><span class="kcol-dot ' + col.dot + '"></span>' + col.label + ' (' + countLabel + ')</h3>';
+      if (shown.length) html += shown.map(cardHTML).join('');
+      else html += '<p class="kcol-empty">' + (searchQuery ? 'No matches in this column.' : 'Nothing here right now.') + '</p>';
+      html += '</section>';
+    });
+    html += '</div>';
+    elList.innerHTML = html;
+  }
+  var failedSaves = {};
+  function applyBoardData(data){
+    if (data && Array.isArray(data.leads)){
+      leads = data.leads.slice().sort(function(a,b){ return new Date(b.received_at) - new Date(a.received_at); });
+      return true;
+    }
+    if (data && data.ok && data.lead){
+      for (var i = 0; i < leads.length; i++){
+        if (String(leads[i].id) === String(data.lead.id)){ leads[i] = data.lead; break; }
+      }
+      leads.sort(function(a,b){ return new Date(b.received_at) - new Date(a.received_at); });
+      return true;
+    }
+    return false;
+  }
+  function lockedOut(data){
+    pin = '';
+    try { sessionStorage.removeItem(PIN_KEY); } catch (e) {}
+    showLock(data.seller, data.lockout ? 'Too many wrong tries \u2014 this board is locked for an hour.' : "That PIN doesn't match \u2014 try again.");
+  }
+  function setStatus(leadId, status, soldPrice){
+    if (saving[leadId]) return;
+    saving[leadId] = true;
+    delete failedSaves[leadId];
+    soldFor = null;
+    pendingSold = null;
+    var lockedDuringSave = false;
+    render();
+    var body = { token: token, action: 'setStatus', lead_id: leadId, status: status, pin: pin };
+    if (soldPrice !== undefined && soldPrice !== null) body.sold_price = soldPrice;
+    fetch(FN_URL, {
+      method: 'POST',
+      headers: Object.assign({}, HEADERS, { 'Content-Type': 'application/json' }),
+      body: JSON.stringify(body)
+    }).then(function(r){
+      if (!r.ok) throw new Error('save failed');
+      return r.json();
+    }).then(function(data){
+      if (data && data.locked){
+        lockedDuringSave = true;
+        lockedOut(data);
+        return;
+      }
+      if (!applyBoardData(data)) throw new Error('save failed');
+    }).catch(function(){
+      if (!lockedDuringSave) failedSaves[leadId] = true;
+    }).then(function(){
+      saving[leadId] = false;
+      if (!elApp.hidden) render();
+      if (failedSaves[leadId]){
+        var e = elList.querySelector('[data-err="' + CSS.escape(String(leadId)) + '"]');
+        if (e) e.hidden = false;
+      }
+    });
+  }
+  function setNotes(leadId, btn){
+    var ta = elList.querySelector('[data-notes="' + CSS.escape(String(leadId)) + '"]');
+    if (!ta) return;
+    var text = ta.value;
+    btn.disabled = true;
+    btn.textContent = 'Saving\u2026';
+    fetch(FN_URL, {
+      method: 'POST',
+      headers: Object.assign({}, HEADERS, { 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ token: token, action: 'setNotes', lead_id: leadId, pin: pin, notes: text })
+    }).then(function(r){
+      if (!r.ok) throw new Error('save failed');
+      return r.json();
+    }).then(function(data){
+      if (data && data.locked){
+        lockedOut(data);
+        throw new Error('locked');
+      }
+      var fullBoard = data && Array.isArray(data.leads);
+      if (!applyBoardData(data)) throw new Error('save failed');
+      if (fullBoard){
+        render();
+      } else {
+        btn.textContent = 'Saved';
+        setTimeout(function(){ btn.disabled = false; btn.textContent = 'Save'; }, 1500);
+      }
+    }).catch(function(err){
+      if (err && err.message === 'locked') return;
+      btn.disabled = false;
+      btn.textContent = 'Save';
+      var e = elList.querySelector('[data-err="' + CSS.escape(String(leadId)) + '"]');
+      if (e) e.hidden = false;
+    });
+  }
+  elList.addEventListener('click', function(ev){
+    var notesBtn = ev.target.closest('button[data-notes-save]');
+    if (notesBtn){ setNotes(notesBtn.getAttribute('data-notes-save'), notesBtn); return; }
+    var soldSave = ev.target.closest('button[data-sold-save]');
+    if (soldSave){
+      var sid = soldSave.getAttribute('data-sold-save');
+      var input = document.getElementById('soldp-' + sid);
+      var val = input ? input.value.trim() : '';
+      soldFor = null;
+      setStatus(sid, 'sold', val);
+      return;
+    }
+    var soldCancel = ev.target.closest('button[data-sold-cancel]');
+    if (soldCancel){ soldFor = null; pendingSold = null; render(); return; }
+    var addPrice = ev.target.closest('button[data-add-price]');
+    if (addPrice){ startSoldFlow(addPrice.getAttribute('data-add-price')); return; }
+    var btn = ev.target.closest('button[data-lead]');
+    if (!btn || btn.disabled) return;
+    var st = btn.getAttribute('data-status');
+    if (st === 'sold'){
+      startSoldFlow(btn.getAttribute('data-lead'));
+      return;
+    }
+    setStatus(btn.getAttribute('data-lead'), st);
+  });
+  function startSoldFlow(leadId){
+    soldFor = leadId;
+    pendingSold = leadId;
+    render();
+    var inp = document.getElementById('soldp-' + leadId);
+    if (inp) inp.focus();
+  }
+  function handleDrop(leadId, status){
+    var lead = null;
+    for (var i = 0; i < leads.length; i++){
+      if (String(leads[i].id) === String(leadId)){ lead = leads[i]; break; }
+    }
+    if (!lead) return;
+    if (effectiveStatus(lead) === status) return;
+    if (status === 'sold'){ startSoldFlow(leadId); return; }
+    setStatus(leadId, status);
+  }
+  var dragLeadId = null;
+  function clearDrag(){
+    dragLeadId = null;
+    var nodes = elList.querySelectorAll('.dragover, .dragging');
+    for (var i = 0; i < nodes.length; i++) nodes[i].classList.remove('dragover', 'dragging');
+    var cards = elList.querySelectorAll('.card');
+    for (var j = 0; j < cards.length; j++) cards[j].draggable = false;
+  }
+  elList.addEventListener('mousedown', function(ev){
+    var card = ev.target.closest('.card');
+    if (!card) return;
+    card.draggable = !!ev.target.closest('.card-top');
+  });
+  elList.addEventListener('dragstart', function(ev){
+    var card = ev.target.closest('.card');
+    if (!card) return;
+    dragLeadId = card.getAttribute('data-card');
+    try { ev.dataTransfer.setData('text/plain', dragLeadId); ev.dataTransfer.effectAllowed = 'move'; } catch (e) {}
+    card.classList.add('dragging');
+  });
+  elList.addEventListener('dragover', function(ev){
+    var col = ev.target.closest('.kcol');
+    if (!col || dragLeadId == null) return;
+    ev.preventDefault();
+    try { ev.dataTransfer.dropEffect = 'move'; } catch (e) {}
+    var cols = elList.querySelectorAll('.kcol');
+    for (var i = 0; i < cols.length; i++) cols[i].classList.toggle('dragover', cols[i] === col);
+  });
+  elList.addEventListener('dragleave', function(ev){
+    var col = ev.target.closest('.kcol');
+    if (col && ev.relatedTarget && !col.contains(ev.relatedTarget)) col.classList.remove('dragover');
+  });
+  elList.addEventListener('drop', function(ev){
+    var col = ev.target.closest('.kcol');
+    if (!col) return;
+    ev.preventDefault();
+    var id = dragLeadId;
+    try { id = ev.dataTransfer.getData('text/plain') || id; } catch (e) {}
+    clearDrag();
+    if (id != null && id !== '') handleDrop(id, col.getAttribute('data-col'));
+  });
+  elList.addEventListener('dragend', function(){ clearDrag(); });
+  elList.addEventListener('change', function(ev){
+    var sel = ev.target.closest('select[data-move]');
+    if (!sel) return;
+    if (!sel.value) return;
+    handleDrop(sel.getAttribute('data-move'), sel.value);
+  });
+  document.getElementById('searchBox').addEventListener('input', function(){
+    searchQuery = this.value.trim();
+    render();
+  });
+  document.getElementById('sortSel').addEventListener('change', function(){
+    sortMode = this.value;
+    render();
+  });
+  function csvCell(v){
+    var str = String(v == null ? '' : v);
+    if (/[",\n\r]/.test(str)) str = '"' + str.replace(/"/g, '""') + '"';
+    return str;
+  }
+  function exportCSV(){
+    var rows = [['Buyer Name','Phone','Vehicle','Stock Number','Status','Sold Price','Notes','Date Received','Lead Ref']];
+    leads.forEach(function(l){
+      var pill = PILL[l.status] || PILL.new;
+      rows.push([
+        l.buyer_name || '', l.buyer_phone || '',
+        l.vehicle || '', l.stock_number || '',
+        pill.label, (l.sold_price == null ? '' : String(l.sold_price)),
+        l.notes || '', l.received_at || '', l.lead_ref || ''
+      ]);
+    });
+    var csv = rows.map(function(r){ return r.map(csvCell).join(','); }).join('\r\n');
+    var blob = new Blob(['\ufeff' + csv], { type:'text/csv;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'seller-board-export.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  }
+  document.getElementById('exportBtn').addEventListener('click', exportCSV);
+  function wireTile(id, bucket){
+    document.getElementById(id).addEventListener('click', function(){
+      filter = (filter === bucket) ? null : bucket;
+      render();
+    });
+  }
+  wireTile('tileNew', 'new');
+  wireTile('tileWorking', 'working');
+  wireTile('tileDone', 'done');
+ function takeSnapshot(){ var btn=document.getElementById('snapshotBtn'); var source=document.getElementById('app'); if(!source||!btn){return;} btn.disabled=true; document.body.classList.add('snap'); void source.offsetWidth; var originalLabel=btn.textContent; btn.textContent='Capturing…'; try{ var w=source.scrollWidth; var h=source.scrollHeight; var clone=source.cloneNode(true); var srcNodes=[source].concat(Array.prototype.slice.call(source.querySelectorAll('*'))); var cloneNodes=[clone].concat(Array.prototype.slice.call(clone.querySelectorAll('*'))); srcNodes.forEach(function(srcNode,i){ var cs=getComputedStyle(srcNode); var style=cloneNodes[i].style; for(var j=0;j<cs.length;j++){ var prop=cs[j]; try{ style.setProperty(prop,cs.getPropertyValue(prop),cs.getPropertyPriority(prop)); }catch(e){} } if(srcNode.tagName==='TEXTAREA'){ cloneNodes[i].textContent=srcNode.value; } if(srcNode.tagName==='INPUT'){ cloneNodes[i].setAttribute('value',srcNode.value); } }); var snapRow=clone.querySelector('.snapshot-row'); if(snapRow){ snapRow.remove(); } clone.setAttribute('xmlns','http://www.w3.org/1999/xhtml'); clone.style.width=w+'px'; clone.style.height=h+'px'; var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'"><foreignObject x="0" y="0" width="'+w+'" height="'+h+'">'+new XMLSerializer().serializeToString(clone)+'</foreignObject></svg>'; var img=new Image(); img.onload=function(){ try{ var scale=2; var canvas=document.createElement('canvas'); canvas.width=w*scale; canvas.height=h*scale; var ctx=canvas.getContext('2d'); ctx.fillStyle='#f4f5f7'; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.scale(scale,scale); ctx.drawImage(img,0,0,w,h); canvas.toBlob(function(blob){ btn.disabled=false; btn.textContent=originalLabel; document.body.classList.remove('snap'); if(!blob){return;} var url=URL.createObjectURL(blob); var a=document.createElement('a'); a.href=url; a.download='board-snapshot.png'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){ URL.revokeObjectURL(url); },1000); },'image/png'); }catch(err){ btn.disabled=false; btn.textContent=originalLabel; document.body.classList.remove('snap'); } }; img.onerror=function(){ btn.disabled=false; btn.textContent=originalLabel; document.body.classList.remove('snap'); }; img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg); }catch(err){ btn.disabled=false; btn.textContent=originalLabel; document.body.classList.remove('snap'); } } document.getElementById('snapshotBtn').addEventListener('click',takeSnapshot);
+  function showBoard(data){
+    document.getElementById('sellerName').textContent = (data.seller.name || '') + "'s leads";
+    document.getElementById('sellerDealership').textContent = data.seller.dealership || '';
+    leads = data.leads.slice().sort(function(a,b){
+      return new Date(b.received_at) - new Date(a.received_at);
+    });
+    elLoading.hidden = true;
+    elLock.hidden = true;
+    elBad.hidden = true;
+    elApp.hidden = false;
+    render();
+  }
+  function unlock(){
+    var entered = elPinInput.value.trim();
+    if (!/^\d{4}$/.test(entered)){
+      elLockErr.textContent = "That PIN doesn't match \u2014 try again.";
+      elLockErr.hidden = false;
+      return;
+    }
+    elLockErr.hidden = true;
+    fetch(FN_URL, {
+      method: 'POST',
+      headers: Object.assign({}, HEADERS, { 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ token: token, action: 'unlock', pin: entered })
+    }).then(function(r){ return r.json(); }).then(function(data){
+      if (!data || data.locked){
+        elLockErr.textContent = (data && data.lockout) ? 'Too many wrong tries \u2014 this board is locked for an hour.' : "That PIN doesn't match \u2014 try again.";
+        elLockErr.hidden = false;
+        if (data && data.seller){ elLockName.textContent = (data.seller.name || '') + "'s board"; elLockCompany.textContent = data.seller.dealership || ''; }
+        return;
+      }
+      pin = entered;
+      try { sessionStorage.setItem(PIN_KEY, pin); } catch (e) {}
+      showBoard(data);
+    }).catch(function(){
+      elLockErr.textContent = "Couldn't reach the board \u2014 check your connection and try again.";
+      elLockErr.hidden = false;
+    });
+  }
+  document.getElementById('unlockBtn').addEventListener('click', unlock);
+  elPinInput.addEventListener('keydown', function(ev){ if (ev.key === 'Enter') unlock(); });
+  if (!token){
+    showBadLink();
+    return;
+  }
+  if (pin){
+    fetch(FN_URL + '?token=' + encodeURIComponent(token) + '&pin=' + encodeURIComponent(pin), { headers: HEADERS })
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        if (data && data.locked){
+          pin = '';
+          try { sessionStorage.removeItem(PIN_KEY); } catch (e) {}
+          showLock(data.seller, data.lockout ? 'Too many wrong tries \u2014 this board is locked for an hour.' : null);
+          return;
+        }
+        if (!data || !data.seller || !Array.isArray(data.leads)) throw new Error('bad token');
+        showBoard(data);
+      })
+      .catch(function(){ showBadLink(); });
+  } else {
+    fetch(FN_URL + '?token=' + encodeURIComponent(token), { headers: HEADERS })
+      .then(function(r){
+        if (!r.ok) throw new Error('bad token');
+        return r.json();
+      })
+      .then(function(data){
+        if (data && data.locked){ showLock(data.seller, null); return; }
+        if (!data || !data.seller) throw new Error('bad token');
+        showBoard(data);
+      })
+      .catch(function(){ showBadLink(); });
+  }
+})();
+</script>
+</body>
+</html>
