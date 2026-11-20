@@ -32,6 +32,9 @@ a { color: inherit; text-decoration: none; }
 .context-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: #94a3b8; margin-bottom: 6px; }
 .context-unit { font-family: "Barlow Condensed", sans-serif; font-size: 22px; font-weight: 900; text-transform: uppercase; margin-bottom: 3px; }
 .context-price { font-size: 18px; font-weight: 700; color: #f97316; }
+.context-photo { display: block; width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 10px; background: rgba(255,255,255,0.06); margin-bottom: 12px; }
+.context-meta { font-size: 13px; color: #cbd5e1; line-height: 1.6; margin-top: 6px; word-break: break-word; }
+@media (max-width: 600px) { .context-photo { aspect-ratio: 4/3; } }
 .benefits { background: #111827; border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 16px 20px; margin-bottom: 24px; list-style: none; display: flex; flex-direction: column; gap: 8px; }
 .benefits li { font-size: 15px; color: #cbd5e1; font-weight: 600; }
 .form-card { background: #111827; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; overflow: hidden; margin-bottom: 16px; }
@@ -170,9 +173,11 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
   </div>
 
   <div id="contextBox" class="context-box">
+    <img id="contextPhoto" class="context-photo" alt="" style="display:none" decoding="async">
     <div class="context-label">Applying For</div>
     <div class="context-unit" id="contextUnit"></div>
     <div class="context-price" id="contextPrice"></div>
+    <div class="context-meta" id="contextMeta" style="display:none"></div>
     <div id="context-sold" style="display:none;margin-top:8px;font-size:13px;font-weight:700;color:#fbbf24">This unit may no longer be available.</div>
     <button type="button" id="change-vehicle" style="width:auto;margin-top:10px;padding:0;border:none;background:none;color:#f97316;font-size:13px;font-weight:700;cursor:pointer;text-decoration:underline">Change vehicle</button>
   </div>
@@ -507,7 +512,7 @@ const FINANCE_CAMPAIGN = campaignFromSearch(window.location.search);
 // identity, and a valid subject may have no route at all.
 let financeSubject = { mode: 'none', torqueHub: null, external: { year:'', make:'', model:'', externalPrice:'' } };
 // mode: 'none' | 'torque_hub' | 'external'
-// torqueHub: { stock, title, listingPrice, sold } — SET ONLY BY INVENTORY RESOLUTION
+// torqueHub: { stock, title, listingPrice, sold, dealer, photo, vin, mileage, hours } — SET ONLY BY INVENTORY RESOLUTION
 // external:  { year, make, model, externalPrice } — buyer claim (5b-ii)
 let sellerContext = { seller: null, basis: 'none' };
 // basis: 'inventory_row' | 'src_map' | 'url_param' | 'buyer_selected' | 'none'
@@ -516,11 +521,14 @@ let entrySellerContext = { seller: null, basis: 'none' };   // frozen at bootstr
 let externalSellerDraft = { seller: null };                 // buyer-selected external seller; persists across mode changes
 let candidatePending = !!urlCandidateStock;                 // network fact, initialized beside the value it mirrors
 let buyerChoseSubject = false;                              // buyer authority
+// VDP-CONTEXT A: the URL unit slug and price are untrusted, so the pre-resolution hint
+// shows the stock number only. Title, price and photo come from inventory_cards.
 let entryHint = urlCandidateStock
-  ? { title: unit ? unit.replace(/-/g," ").replace(/\b\w/g, l => l.toUpperCase()) : "Stock # " + stock, price: price }
+  ? { title: "Stock # " + stock, price: '' }
   : null;
 let inventoryRows = [];
 let inventoryLoaded = false;
+let pickerGeneration = 0;   // VDP-CONTEXT A (F1): bumped on every picker selection
 // The ONLY read point for either flag. Network fact and buyer authority are never
 // consulted separately.
 function candidateHasAuthority() { return candidatePending && !buyerChoseSubject; }
@@ -541,6 +549,88 @@ function inventoryPriceText(raw) {
   return '$' + n.toLocaleString();
 }
 
+// VDP-PRIMARY-PHOTO-SHARED-BEGIN (VDP-CONTEXT A; buildVdpSlideUrl is byte-identical to vehicle.html)
+function buildVdpSlideUrl(rawUrl) {
+  if (!rawUrl || typeof rawUrl !== 'string') return rawUrl;
+
+  if (rawUrl.includes('media.sandhills.com')) {
+    var s = rawUrl;
+    s = /[?&]w=\d+/i.test(s) ? s.replace(/([?&])w=\d+/i, '$1w=1400') : s + (s.includes('?') ? '&' : '?') + 'w=1400';
+    s = /[?&]h=\d+/i.test(s) ? s.replace(/([?&])h=\d+/i, '$1h=1050') : s + '&h=1050';
+    return s;
+  }
+
+  if (rawUrl.includes('/storage/v1/object/public/') && rawUrl.indexOf('/render/image/') === -1) {
+    var sb = rawUrl.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/');
+    if (!/[?&](width|height|quality)=/i.test(sb)) {
+      sb += (sb.includes('?') ? '&' : '?') + 'width=1400&quality=78';
+    }
+    return sb;
+  }
+
+  if (rawUrl.includes('cdn05.carsforsale.com') && /\/\d+x\d+\//.test(rawUrl)) {
+    return rawUrl.replace(/\/\d+x\d+\//, '/1400x1050/');
+  }
+
+  if (rawUrl.includes('cdnmedia.endeavorsuite.com')) {
+    return /[?&]width=\d+/i.test(rawUrl)
+      ? rawUrl.replace(/([?&]width=)\d+/i, '$11400')
+      : rawUrl + (rawUrl.includes('?') ? '&' : '?') + 'width=1400';
+  }
+
+  return rawUrl;
+}
+// Same selection as vehicle.html initGallery: first photo entry that has a url.
+function primaryPhotoUrl(photos) {
+  var list = Array.isArray(photos) ? photos.filter(function (p) { return p && typeof p.url === 'string' && p.url; }) : [];
+  return list.length ? list[0].url : null;
+}
+// VDP-PRIMARY-PHOTO-SHARED-END
+const NO_PHOTO_SRC = '/photos-coming-soon.png';
+function contextFromRow(row, sold) {
+  return {
+    stock: row.stock,
+    title: [row.year, row.make, row.model, row.trim].filter(Boolean).join(' '),
+    listingPrice: row.price != null ? String(row.price) : null,
+    sold: !!sold,
+    dealer: row.dealer || null,
+    photo: primaryPhotoUrl(row.photos),
+    vin: (typeof row.vin === 'string' && row.vin.trim()) ? row.vin.trim() : null,
+    mileage: (row.mileage != null && String(row.mileage).trim()) ? String(row.mileage).trim() : null,
+    hours: (row.hours != null && String(row.hours).trim()) ? String(row.hours).trim() : null
+  };
+}
+function contextMetaLines(s) {
+  var lines = [];
+  lines.push('Stock # ' + s.stock + (s.dealer ? ' \u00b7 ' + s.dealer : ''));
+  var use = [];
+  if (s.mileage) use.push(s.mileage + (/mi|km/i.test(s.mileage) ? '' : ' mi'));
+  if (s.hours) use.push(s.hours + (/hr|hour/i.test(s.hours) ? '' : ' hrs'));
+  if (use.length) lines.push(use.join(' \u00b7 '));
+  if (s.vin) lines.push('VIN ' + s.vin);
+  return lines;
+}
+function renderContextPhoto(s) {
+  var img = document.getElementById('contextPhoto');
+  if (!img) return;
+  if (!s) { img.style.display = 'none'; img.removeAttribute('src'); return; }
+  img.onerror = function () { img.onerror = null; img.src = NO_PHOTO_SRC; };
+  img.src = s.photo ? buildVdpSlideUrl(s.photo) : NO_PHOTO_SRC;
+  img.alt = s.title || ('Stock # ' + s.stock);
+  img.style.display = 'block';
+}
+function renderContextMeta(s) {
+  var el = document.getElementById('contextMeta');
+  if (!el) return;
+  while (el.firstChild) el.removeChild(el.firstChild);
+  if (!s) { el.style.display = 'none'; return; }
+  contextMetaLines(s).forEach(function (line, i) {
+    if (i) el.appendChild(document.createElement('br'));
+    el.appendChild(document.createTextNode(line));
+  });
+  el.style.display = 'block';
+}
+
 function renderSubject() {
   const box = document.getElementById('contextBox');
   const soldEl = document.getElementById('context-sold');
@@ -548,17 +638,23 @@ function renderSubject() {
 
   if (financeSubject.mode === 'torque_hub') {
     const s = financeSubject.torqueHub;
-    document.getElementById('contextUnit').textContent = s.title;
+    document.getElementById('contextUnit').textContent = s.title || ('Stock # ' + s.stock);
     document.getElementById('contextPrice').textContent = inventoryPriceText(s.listingPrice);
     soldEl.style.display = s.sold ? 'block' : 'none';
+    renderContextPhoto(s);
+    renderContextMeta(s);
     box.style.display = 'block';
   } else if (hintMode) {
     document.getElementById('contextUnit').textContent = entryHint.title;
-    document.getElementById('contextPrice').textContent = inventoryPriceText(entryHint.price);
+    document.getElementById('contextPrice').textContent = '';
     soldEl.style.display = 'none';
+    renderContextPhoto(null);
+    renderContextMeta(null);
     box.style.display = 'block';
   } else {
     soldEl.style.display = 'none';
+    renderContextPhoto(null);
+    renderContextMeta(null);
     box.style.display = 'none';
   }
 
@@ -588,7 +684,7 @@ async function resolveCandidateStock() {
   try {
     // NO sold filter: a sold unit still satisfies financing-subject identity.
     // sold is fetched for PRESENTATION only.
-    const url = SB_URL + '/rest/v1/inventory_cards?select=stock,year,make,model,trim,price,dealer,sold&stock=eq.'
+    const url = SB_URL + '/rest/v1/inventory_cards?select=stock,year,make,model,trim,price,dealer,sold,photos,vin,mileage,hours&stock=eq.'
                 + encodeURIComponent(urlCandidateStock) + '&limit=1';
     const r = await fetch(url, { headers: SB_HDRS });
     if (!r.ok) return;
@@ -597,12 +693,7 @@ async function resolveCandidateStock() {
     const row = rows[0];
     if (!candidateHasAuthority()) return;
     financeSubject.mode = 'torque_hub';
-    financeSubject.torqueHub = {
-      stock: row.stock,
-      title: [row.year, row.make, row.model, row.trim].filter(Boolean).join(' '),
-      listingPrice: row.price != null ? String(row.price) : null,
-      sold: !!row.sold
-    };
+    financeSubject.torqueHub = contextFromRow(row, row.sold);
     sellerContext = row.dealer
       ? { seller: row.dealer, basis: 'inventory_row' }
       : { seller: null, basis: 'none' };
@@ -650,9 +741,11 @@ const LENDER_FORM_CONFIGS = {
     }
   },
   // L002 (HST -319): Wheelhouse Lease and Finance, Ash's own Jotform credit application,
-  // embedded with the lender's permission. Nothing from Torque Hub is passed to it (empty
-  // fieldMap, no URL parameters): the buyer types every answer, including SSN, date of birth
-  // and income, into the lender's form, so Torque Hub never receives or stores them. The
+  // embedded with the lender's permission. No buyer data is passed to it (empty fieldMap):
+  // the buyer types every answer, including SSN, date of birth and income, into the lender's
+  // form, so Torque Hub never receives or stores them. VDP-CONTEXT C (Owner YES): the only
+  // URL parameter is refPrefill - the server-built, non-PII vehicle_ref (title + stock) for
+  // the form's "What type of equipment" field (Jotform unique name whatType, field 129). The
   // form collects its own business details, so the Torque Hub business step is skipped.
   // No soft-pull claim: the form asks for consent to obtain a credit report.
   L002: {
@@ -661,6 +754,7 @@ const LENDER_FORM_CONFIGS = {
     formUrl: "https://form.jotform.com/211335844728156",
     jotformId: "211335844728156",
     fieldMap: {},
+    refPrefill: { param: "whatType", source: "vehicle_ref" },
     skipBusinessInfo: true,
     embedCopy: {
       title: "Finish Your Application",
@@ -745,16 +839,40 @@ function onPickerSelect(stockValue) {
   if (!hasUsableStock(row)) return;
   buyerChoseSubject = true;
   financeSubject.mode = 'torque_hub';
-  financeSubject.torqueHub = {
-    stock: row.stock,
-    title: [row.year, row.make, row.model, row.trim].filter(Boolean).join(' '),
-    listingPrice: row.price != null ? String(row.price) : null,
-    sold: false
-  };
+  financeSubject.torqueHub = contextFromRow(row, false);
+  pickerGeneration += 1;
+  enrichPickedSubject({ ref: financeSubject.torqueHub, gen: pickerGeneration, stock: row.stock, dealer: row.dealer || null });
   sellerContext = row.dealer
     ? { seller: row.dealer, basis: 'inventory_row' }
     : { seller: null, basis: 'none' };
   renderSubject();
+}
+
+// VDP-CONTEXT A (F1 recut): the picker list stays light (no photos). After a pick, fetch
+// the one row's photo/VIN/mileage/hours. The response is applied ONLY if this exact pick is
+// still active: same selection object, same monotonic generation, and the returned row's
+// stock (and dealer, when known) match it. Any re-pick - even of the same stock - starts a
+// new generation, so an older response can never overwrite the current unit.
+async function enrichPickedSubject(sel) {
+  try {
+    var url = SB_URL + '/rest/v1/inventory_cards?select=stock,dealer,photos,vin,mileage,hours&stock=eq.'
+      + encodeURIComponent(sel.stock) + (sel.dealer ? '&dealer=eq.' + encodeURIComponent(sel.dealer) : '') + '&limit=2';
+    const r = await fetch(url, { headers: SB_HDRS });
+    if (!r.ok) return;
+    const rows = await r.json();
+    if (!Array.isArray(rows) || rows.length !== 1) return;
+    const row = rows[0];
+    if (!row || row.stock !== sel.stock) return;
+    if (sel.dealer && row.dealer !== sel.dealer) return;
+    if (sel.gen !== pickerGeneration) return;
+    if (financeSubject.mode !== 'torque_hub' || financeSubject.torqueHub !== sel.ref) return;
+    const th = sel.ref;
+    const extra = contextFromRow(row, th.sold);
+    th.photo = extra.photo; th.vin = extra.vin; th.mileage = extra.mileage; th.hours = extra.hours;
+    renderSubject();
+  } catch (e) {
+    console.warn('picked subject enrichment failed:', e);
+  }
 }
 
 function onChooseExternal() {
@@ -1154,8 +1272,13 @@ function revealLenderEmbed() {
     .filter(function (k) { return vals[k] != null && vals[k] !== ""; })
     .map(function (k) { return cfg.fieldMap[k] + "=" + encodeURIComponent(vals[k]); })
     .join("&");
+  // VDP-CONTEXT C: refPrefill adds ONE parameter, taken only from the server response.
+  const refValue = (cfg.refPrefill && res && typeof res[cfg.refPrefill.source] === "string")
+    ? res[cfg.refPrefill.source].trim().slice(0, 120) : "";
+  const refParam = refValue ? cfg.refPrefill.param + "=" + encodeURIComponent(refValue) : "";
+  const allParams = [params, refParam].filter(Boolean).join("&");
   const iframe = document.createElement("iframe");
-  iframe.src = cfg.formUrl + (params ? "?" + params : "");
+  iframe.src = cfg.formUrl + (allParams ? "?" + allParams : "");
   iframe.style.cssText = "width:100%;min-height:1600px;border:0;background:#fff;border-radius:10px;";
   iframe.title = "Credit Application";
   if (cfg.embedCopy) {
@@ -1166,7 +1289,7 @@ function revealLenderEmbed() {
     const fb = document.getElementById("lender-embed-fallback");
     fb.textContent = c.fallbackLead;
     const a = document.createElement("a");
-    a.href = cfg.formUrl;
+    a.href = cfg.formUrl + (refParam ? "?" + refParam : "");
     a.target = "_blank";
     a.rel = "noopener noreferrer";
     a.textContent = c.fallbackLink;

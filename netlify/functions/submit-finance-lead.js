@@ -30,6 +30,65 @@ function getSourceLabel(source) {
 // Accepts: null/undefined/empty (→ ok:true value:null), '$70,000.00' / '70000' / '70,000.50'.
 // Rejects: '70k', 'call for price', anything that isn't a plain dollar amount.
 // Non-numeric MUST be rejected — never coerced silently to null.
+// VDP-CONTEXT B: unit context for a RESOLVED stock comes only from the inventory row.
+// Client listing_title is never used for a resolved stock. Primary photo = first photos
+// entry with a url (the same rule as vehicle.html). Plain-text values only.
+const VDP_BASE = 'https://hub.torquedma.com/vehicle.html?stock=';
+function oneLine(v) {
+  if (v === null || v === undefined) return '';
+  return String(v).replace(/[\u0000-\u001f\u007f]+/g, ' ').replace(/\s+/g, ' ').trim();
+}
+function buildUnitContext(inv, stock) {
+  const title = [inv.year, inv.make, inv.model, inv.trim].map(oneLine).filter(Boolean).join(' ');
+  const photos = Array.isArray(inv.photos) ? inv.photos.filter(function (p) { return p && typeof p.url === 'string' && p.url; }) : [];
+  const photoUrl = photos.length && /^https:\/\//i.test(photos[0].url) ? oneLine(photos[0].url) : null;
+  const status = oneLine(inv.status).toLowerCase();
+  return {
+    title: title || ('Stock ' + oneLine(stock)),
+    stock: oneLine(stock),
+    vin: oneLine(inv.vin) || null,
+    mileage: oneLine(inv.mileage) || null,
+    hours: oneLine(inv.hours) || null,
+    photoUrl,
+    vdpUrl: VDP_BASE + encodeURIComponent(oneLine(stock)),
+    sold: !!inv.sold,
+    notPublic: !!status && status !== 'published'
+  };
+}
+// VDP-CONTEXT C: non-PII vehicle reference returned to the page for the Wheelhouse
+// "What type of equipment" prefill. Built only from the resolved inventory row and the
+// stock; never contains buyer data or VIN. Capped at 120 characters.
+// F2 recut (Chief 2 -324 / Chief 1 disclosure policy): emitted ONLY when the unit is
+// publicly listed (the same predicate as the public inventory_cards view: status exactly
+// 'published', sold or unsold), the stock matched exactly one inventory row, and the
+// matched route is one of the eleven Ash dealer routes L003-L013 (PPS/L002, L001 and
+// unmapped routes get no key: fail-closed). Otherwise the key is omitted entirely.
+const VEHICLE_REF_MAX = 120;
+const WHEELHOUSE_PREFILL_ROUTES = new Set(['L003', 'L004', 'L005', 'L006', 'L007', 'L008',
+  'L009', 'L010', 'L011', 'L012', 'L013']);
+function vehicleRefEligible(e) {
+  return !!(e && e.inventoryState === 'resolved' && e.rawRowCount === 1 && e.inv
+    && e.inv.status === 'published'
+    && e.routeResolved === true && e.routeBasis === 'matched'
+    && typeof e.routeCode === 'string' && WHEELHOUSE_PREFILL_ROUTES.has(e.routeCode));
+}
+function vehicleRef(u) {
+  if (!u) return null;
+  const ref = oneLine(`${u.title} — Stock ${u.stock} — Torque Hub`);
+  return ref.length > VEHICLE_REF_MAX ? ref.slice(0, VEHICLE_REF_MAX - 1) + '…' : ref;
+}
+function unitContextLines(u) {
+  if (!u) return [];
+  return [
+    u.vin     ? `VIN: ${u.vin}`         : null,
+    u.mileage ? `Mileage: ${u.mileage}` : null,
+    u.hours   ? `Hours: ${u.hours}`     : null,
+    u.sold    ? 'Listing status: SOLD - may no longer be available' : (u.notPublic ? 'Listing status: not public (Draft)' : null),
+    `Listing: ${u.vdpUrl}`,
+    u.photoUrl ? `Photo: ${u.photoUrl}` : 'Photo: none on file',
+  ];
+}
+
 function normalizePrice(v) {
   if (v === null || v === undefined) return { ok: true, value: null };
   const raw = String(v).trim();
@@ -129,6 +188,7 @@ exports.handler = async (event) => {
   let routeResolved = false;        // lender-routing validity (replaces stockRouteResolved)
   let listingPriceSnapshot = null;
   let resolvedListingId = null;     // canonical inventory.id — retained for persistence
+  let unitCtx = null;               // VDP-CONTEXT B: server-derived unit context (resolved stock only)
 
   // Identity inputs (035, amended 036/037). Client stock and dealer are HINTS; the
   // inventory row is the authority, and client dealer text never selects a row.
@@ -153,14 +213,16 @@ exports.handler = async (event) => {
     ? payload.dealer_name.trim() : null;
   let inventoryState = 'none';
   let inv = null;
+  let invRawRowCount = 0;           // F2: raw rows returned for the stock (limit 2), before the dealer filter
   if (stockIn) {
     try {
       const { data: invRows, error: invErr } = await supabase
         .from('inventory')
-        .select('id, dealer, sold, price')
+        .select('id, dealer, sold, price, status, year, make, model, trim, vin, mileage, hours, photos')
         .eq('stock', stockIn)
         .limit(2);
       if (invErr) throw invErr;
+      invRawRowCount = Array.isArray(invRows) ? invRows.length : 0;
       const rows = Array.isArray(invRows) ? invRows.filter(function (r) { return r && r.dealer; }) : [];
       if (rows.length === 1) { inv = rows[0]; inventoryState = 'resolved'; }
       else if (rows.length === 0) { inventoryState = 'no_match'; }
@@ -187,6 +249,7 @@ exports.handler = async (event) => {
     resolvedDealerName = inv.dealer;
     resolvedListingId = inv.id || null;
     stockSold = !!inv.sold;
+    unitCtx = buildUnitContext(inv, stockIn);
     const lp = normalizePrice(inv.price);
     listingPriceSnapshot = lp.ok ? lp.value : null;
     try {
@@ -307,7 +370,7 @@ exports.handler = async (event) => {
     customer_phone: customer_phone.trim(),
     customer_email: payload.customer_email || null,
     stock:          stockIn || null,
-    unit_title:     payload.listing_title  || null,
+    unit_title:     unitCtx ? unitCtx.title : (payload.listing_title || null),
     dealer_name:    dealerNameOut,
     external_vehicle_year:  stockExists ? null : (extYear  || null),
     external_vehicle_make:  stockExists ? null : (extMake  || null),
@@ -398,6 +461,8 @@ exports.handler = async (event) => {
     const customerName = customer_name.trim();
     const subject      = `${formLabel} — ${customerName}`;
     const formatMoney  = (n) => (n == null ? '' : '$' + Number(n).toLocaleString('en-US'));
+    const unitTitleOut = unitCtx ? unitCtx.title : (payload.listing_title || null);
+    const ctxLines     = unitContextLines(unitCtx);
 
     // ── internal notification (safety net — always fires) ──────────────────
     try {
@@ -410,7 +475,7 @@ exports.handler = async (event) => {
         `Source: ${formLabel}`,
         `Source detail: ${source}`,
         dealerNameOut         ? `Dealer: ${dealerNameOut}`            : null,
-        payload.listing_title ? `Unit: ${payload.listing_title}`      : null,
+        unitTitleOut ? `Unit: ${unitTitleOut}` : null,
         payload.stock_number  ? `Stock: ${payload.stock_number}`      : null,
         // Guarded on hasCompleteExternalUnit, not merely !stockExists: today the gate
         // guarantees these are populated, but the line should be correct by expression
@@ -418,6 +483,7 @@ exports.handler = async (event) => {
         (!stockExists && hasCompleteExternalUnit) ? `Unit: ${extYear} ${extMake} ${extModel} (not listed on Torque Hub)` : null,
         (!stockExists && hasCompleteExternalUnit) ? `Approx. Price: ${formatMoney(extPrice.value)}` : null,
         (stockExists && listingPriceSnapshot !== null) ? `Listing Price: ${formatMoney(listingPriceSnapshot)}` : null,
+        ...ctxLines,
         payload.credit_score  ? `Credit: ${payload.credit_score}`     : null,
         payload.lender        ? `Lender: ${payload.lender}`           : null,
         payload.rep           ? `Rep: ${payload.rep}`                 : null,
@@ -459,7 +525,7 @@ exports.handler = async (event) => {
           `Source: ${formLabel}`,
           `Source detail: ${source}`,
           dealerNameOut         ? `Dealer: ${dealerNameOut}`            : null,
-          payload.listing_title ? `Unit: ${payload.listing_title}`      : null,
+          unitTitleOut ? `Unit: ${unitTitleOut}` : null,
           payload.stock_number  ? `Stock: ${payload.stock_number}`      : null,
           // Guarded on hasCompleteExternalUnit, not merely !stockExists: today the gate
           // guarantees these are populated, but the line should be correct by expression
@@ -467,6 +533,7 @@ exports.handler = async (event) => {
           (!stockExists && hasCompleteExternalUnit) ? `Unit: ${extYear} ${extMake} ${extModel} (not listed on Torque Hub)` : null,
           (!stockExists && hasCompleteExternalUnit) ? `Approx. Price: ${formatMoney(extPrice.value)}` : null,
           (stockExists && listingPriceSnapshot !== null) ? `Listing Price: ${formatMoney(listingPriceSnapshot)}` : null,
+          ...ctxLines,
           payload.credit_score  ? `Credit: ${payload.credit_score}`     : null,
           resolvedLender        ? `Lender: ${resolvedLender}`           : null,
           payload.rep           ? `Rep: ${payload.rep}`                 : null,
@@ -477,7 +544,7 @@ exports.handler = async (event) => {
         const lenderOpts = {
           from:    'Torque Hub <finance@torquedma.com>',
           to:      lenderEmail,
-          subject: `Finance Lead — ${customerName}`,
+          subject: unitCtx ? `Finance Lead — ${unitCtx.title} (${unitCtx.stock}) — ${customerName}` : `Finance Lead — ${customerName}`,
           text:    lenderLines.join('\n'),
         };
         if (payload.customer_email) lenderOpts.replyTo = payload.customer_email;
@@ -499,16 +566,16 @@ exports.handler = async (event) => {
           `Phone: ${customer_phone.trim()}`,
           payload.customer_email ? `Email: ${payload.customer_email}`   : null,
           dealerNameOut         ? `Dealer: ${dealerNameOut}`            : null,
-          payload.listing_title ? `Unit: ${payload.listing_title}`      : null,
+          unitTitleOut ? `Unit: ${unitTitleOut}` : null,
           payload.stock_number  ? `Stock: ${payload.stock_number}`      : null,
           payload.message       ? `Message: ${payload.message}`         : null,
           sourceUrlOut          ? `Source URL: ${sourceUrlOut}`         : null,
         ].filter(line => line !== null);
         let dealerSubject;
-        if (payload.listing_title && payload.stock_number) {
-          dealerSubject = `New Finance Lead — ${payload.listing_title} (${payload.stock_number})`;
-        } else if (payload.listing_title) {
-          dealerSubject = `New Finance Lead — ${payload.listing_title}`;
+        if (unitTitleOut && payload.stock_number) {
+          dealerSubject = `New Finance Lead — ${unitTitleOut} (${payload.stock_number})`;
+        } else if (unitTitleOut) {
+          dealerSubject = `New Finance Lead — ${unitTitleOut}`;
         } else {
           dealerSubject = `New Finance Lead — ${customerName}`;
         }
@@ -554,5 +621,9 @@ exports.handler = async (event) => {
     }
   }
 
-  return { statusCode: 200, headers, body: JSON.stringify({ success: true, lead_id: leadId, dealer_code: dealerCode, route_code: routeCode }) };
+  const okBody = { success: true, lead_id: leadId, dealer_code: dealerCode, route_code: routeCode };
+  if (unitCtx && vehicleRefEligible({ inventoryState, rawRowCount: invRawRowCount, inv, routeResolved, routeBasis, routeCode })) {
+    okBody.vehicle_ref = vehicleRef(unitCtx);
+  }
+  return { statusCode: 200, headers, body: JSON.stringify(okBody) };
 };
