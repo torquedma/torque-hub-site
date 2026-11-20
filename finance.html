@@ -311,6 +311,7 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
         <h3 id="lender-embed-title" style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;text-transform:uppercase;color:#86efac;text-align:center;margin:18px 0 10px">One More Step</h3>
         <p id="lender-embed-intro" style="color:#94a3b8;text-align:center;margin-bottom:14px;font-size:13px">Complete your secure credit application below.</p>
         <p id="lender-embed-note" style="color:#86efac;text-align:center;font-size:12px;font-style:italic;margin-bottom:14px">H.I.L. Financial starts with a soft credit check that will not affect your credit score.</p>
+        <p id="lender-embed-prefill-note" style="display:none;color:#fbbf24;text-align:center;font-size:13px;margin-bottom:14px"></p>
         <p id="lender-embed-fallback" style="display:none;color:#94a3b8;text-align:center;font-size:13px;margin-bottom:14px"></p>
         <div id="lender-embed-frame"></div>
       </div>
@@ -722,11 +723,15 @@ const LENDER_FORM_CONFIGS = {
     lenderName: "H.I.L. Financial",
     provider: "formstack",
     formUrl: "https://twaddle.formstack.com/forms/vehiclenetwork",
+    // A value may feed more than one form field (array). FIN-PREFILL A (Chief 1 / Chief 2 -329
+    // non-borrower path): the lender's visible Seller Information page (dealer, equipment, price
+    // estimate) is prefilled from the resolved financing subject, editable. No new buyer PII.
     fieldMap: {
       source:        "field196509669",
-      dealer:        "field196509670",
+      dealer:        ["field196509670", "field157837213"],
       stock_number:  "field196509673",
-      vehicle_title: "field196509672",
+      vehicle_title: ["field196509672", "field157943120"],
+      vehicle_price: "field157943199",
       buyer_name:    "field196509676",
       buyer_email:   "field196509677",
       buyer_phone:   "field196509678",
@@ -738,7 +743,9 @@ const LENDER_FORM_CONFIGS = {
       business_city:    "field157805832-city",
       business_state:   "field157805832-state",
       business_zip:     "field157805832-zip"
-    }
+    },
+    // -330 F1: the notice names only the visible Seller Information fields actually filled in.
+    prefillNotice: { dealer: "seller", vehicle_title: "equipment", vehicle_price: "price estimate" }
   },
   // L002 (HST -319): Wheelhouse Lease and Finance, Ash's own Jotform credit application,
   // embedded with the lender's permission. No buyer data is passed to it (empty fieldMap):
@@ -1144,7 +1151,10 @@ function submitFinance() {
     buyer_name:    name,
     buyer_email:   email,
     buyer_phone:   phone,
-    business_name: business || null
+    business_name: business || null,
+    // FIN-PREFILL A / -330 F2: only the buyer's own approximate price for an external unit (the lender field
+    // is "Price (estimate)"). A Torque Hub unit's price is not sent: it cannot be re-verified at handoff.
+    vehicle_price: financeSubject.mode === 'external' ? String(financeSubject.external.externalPrice || "").trim() : ""
   };
 
   const handlePhase1Failure = () => {
@@ -1268,15 +1278,16 @@ function revealLenderEmbed() {
   if (!pendingLender) return;
   const { res, canonical, cfg } = pendingLender;
   const vals = Object.assign({}, canonical, pendingLender.business || {}, { lead_id: res.lead_id });
-  const params = Object.keys(cfg.fieldMap)
-    .filter(function (k) { return vals[k] != null && vals[k] !== ""; })
-    .map(function (k) { return cfg.fieldMap[k] + "=" + encodeURIComponent(vals[k]); })
-    .join("&");
+  const params = [];
+  Object.keys(cfg.fieldMap).forEach(function (k) {
+    if (vals[k] == null || vals[k] === "") return;
+    [].concat(cfg.fieldMap[k]).forEach(function (f) { params.push(f + "=" + encodeURIComponent(vals[k])); });
+  });
   // VDP-CONTEXT C: refPrefill adds ONE parameter, taken only from the server response.
   const refValue = (cfg.refPrefill && res && typeof res[cfg.refPrefill.source] === "string")
     ? res[cfg.refPrefill.source].trim().slice(0, 120) : "";
   const refParam = refValue ? cfg.refPrefill.param + "=" + encodeURIComponent(refValue) : "";
-  const allParams = [params, refParam].filter(Boolean).join("&");
+  const allParams = params.concat(refParam ? [refParam] : []).join("&");
   const iframe = document.createElement("iframe");
   iframe.src = cfg.formUrl + (allParams ? "?" + allParams : "");
   iframe.style.cssText = "width:100%;min-height:1600px;border:0;background:#fff;border-radius:10px;";
@@ -1296,6 +1307,16 @@ function revealLenderEmbed() {
     a.style.cssText = "color:#f97316;font-weight:700;text-decoration:underline";
     fb.appendChild(a);
     fb.style.display = "block";
+  }
+  const filled = cfg.prefillNotice
+    ? Object.keys(cfg.prefillNotice).filter(function (k) { return vals[k] != null && vals[k] !== ""; }).map(function (k) { return cfg.prefillNotice[k]; })
+    : [];
+  if (filled.length) {
+    const list = filled.length === 1 ? filled[0]
+      : filled.slice(0, -1).join(", ") + (filled.length > 2 ? "," : "") + " and " + filled[filled.length - 1];
+    const pn = document.getElementById("lender-embed-prefill-note");
+    pn.textContent = "We filled in the " + list + " from your Torque Hub request. Check " + (filled.length === 1 ? "it" : "them") + " before you submit.";
+    pn.style.display = "block";
   }
   if (cfg.provider === "jotform") attachJotformResize(iframe, cfg.jotformId);
   document.getElementById("lender-embed-frame").appendChild(iframe);
@@ -1362,7 +1383,9 @@ function submitBusinessInfo() {
       }
     } catch (e) { console.warn('Meta SubmitApplication event failed:', e); }
 
-    pendingLender.business = { business_type, time_in_business, business_street, business_city, business_state, business_zip };
+    pendingLender.business = { business_type, time_in_business,
+      business_street: business_street2 ? business_street + " " + business_street2 : business_street,
+      business_city, business_state, business_zip };
     revealLenderEmbed();
   }).catch(() => {
     btn.disabled = false;
