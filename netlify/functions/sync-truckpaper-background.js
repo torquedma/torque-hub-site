@@ -429,6 +429,65 @@ const FROZEN_DEALERS = new Set([
   // account.
 ]);
 
+// 2026-11-18 SELLER-SOLD / PRICE-WITHDRAWN (Chief 1 -702 B + Owner SOLD override; recut per Chief 2 -314 / Chief 1
+// -314 adjudication). DeBary marks a sold unit by adding a "SOLD" line to its notes and replacing the price with
+// "Call for price" while keeping the listing in its feed. Applies ONLY to dealers in SELLER_SOLD_DEALERS and ONLY to
+// an existing LIVE (sold=false) row that is PUBLISHED, matched by this feed:
+//   strict SOLD marker AND no source price -> sold=true (status kept -> public "No Longer Listed"); sold_type NULL;
+//                                             sold_at / sold_date never written; price stays withdrawn ('').
+//   strict marker but source still priced  -> status draft (review hold), not sold.
+//   ambiguous SOLD text (any price)        -> status draft (review hold), not sold.
+//   no marker and no source price          -> status draft (review hold), not sold. Missing price is never SOLD.
+// Existing DRAFT rows are never changed by this rule (a marker on a Draft is logged for review only).
+// A NEW item with a strict marker and no price is not inserted. Already-sold rows (the five protected DeBary rows,
+// the six -705 rows) are never matched: the live lookup is sold=false.
+// Write-time guard (compare-and-swap, Chief 2 -315): a decided UPDATE writes ONLY the decision columns
+// (sold/sold_type/price for SOLD; status/price for a hold) - never the broad feed payload - and carries the exact
+// row id, dealer, identity key, sold=false, status=published AND the price and updated_at read at lookup.
+// updated_at is stamped by trg_inventory_stamp_updated_at on any change to price/year/make/model/trim/mileage/hours/
+// engine/transmission/drivetrain/category/subcategory/condition/sold, so an intervening Admin/Fresh edit of any of
+// those makes the CAS miss; description/photos/VIN etc. are not written by a decided UPDATE, so they cannot be lost.
+// Outcomes: exactly 1 row returned = APPLIED; a well-formed empty list = CONFLICT (nothing written); anything else
+// (error, >1 row, missing/malformed data) = UNKNOWN: outcome not proven, logged at STOP severity, counted as an
+// error, and every later decided write in this run is skipped (no retry, no rollback). No audit DDL.
+const SELLER_SOLD_DEALERS = new Set(['DeBary Truck Sales']);
+const SELLER_SOLD_TYPE = null;
+// Marker grammar, evaluated per line and per " * " banner segment after stripping leading bullets/asterisks:
+//   STRICT    : SOLD | SOLD! (any number of !) alone on the segment, provided the next non-empty segment does not
+//               begin with "AS IS"/"AS-IS"; or SOLD/SOLD! followed by whitespace and a model year 19xx/20xx
+//               ("SOLD! 2019 Hino 268 ...", "SOLD 2016 Freightliner ...").
+//   AMBIGUOUS : any other segment that begins with the word SOLD followed by punctuation or text, e.g. "SOLD! AS IS",
+//               "SOLD?", "SOLD:", "SOLD/TRADE", "SOLD - CALL", and a standalone SOLD followed by an "AS IS" segment.
+//   NONE      : no segment begins with uppercase SOLD; plain "SOLD AS IS"/"SOLD AS-IS" as-is disclosures; "Sold"/"sold"
+//               in prose; RESOLD; SOLDIER; "being sold as is".
+// STRICT wins only if no segment is AMBIGUOUS; any AMBIGUOUS segment makes the whole text AMBIGUOUS.
+function classifySellerSoldMarker(text) {
+  if (typeof text !== 'string' || !text) return 'none';
+  const segs = text.split(/\r?\n|\s\*\s/).map(x => x.replace(/^[\s*•\-–—]+/, '').replace(/\s+$/, '')).filter(Boolean);
+  let strict = false, ambiguous = false;
+  for (let i = 0; i < segs.length; i++) {
+    const t = segs[i];
+    if (!/^SOLD(?![A-Za-z0-9])/.test(t)) continue;
+    if (/^SOLD[\s-]+AS[\s-]+IS\b/.test(t)) continue;                       // as-is disclosure, not a sale
+    if (/^SOLD!*$/.test(t)) {
+      const next = segs[i + 1] || '';
+      if (/^AS[\s-]+IS\b/i.test(next)) ambiguous = true; else strict = true;
+      continue;
+    }
+    if (/^SOLD!*\s+(?:19|20)\d{2}\b/.test(t)) { strict = true; continue; }
+    ambiguous = true;
+  }
+  return ambiguous ? 'ambiguous' : (strict ? 'strict' : 'none');
+}
+exports.classifySellerSoldMarker = classifySellerSoldMarker;
+// Applies the CAS predicates of a decided write and asks for the affected row ids back.
+function sellerCas(q, d) {
+  q = q.eq('id', d.rowId).eq('status', d.expect.status);
+  q = d.expect.price === null ? q.is('price', null) : q.eq('price', d.expect.price);
+  q = d.expect.updated_at === null ? q.is('updated_at', null) : q.eq('updated_at', d.expect.updated_at);
+  return q.select('id');
+}
+
 // ADJUDICATED EXCLUSIONS — identity-specific, decided by hand, one reason
 // per entry. These identities are DEALER-LIVE and correctly discovered, but
 // are deliberately withheld from ordinary ingestion by a human ruling.
@@ -684,7 +743,7 @@ exports.handler = async (event) => {
   // Get existing rows (stock + source_listing_id for dual-key upsert)
   const { data: existing } = await supabase
     .from('inventory')
-    .select('stock,source_listing_id,subcategory_locked,model_locked,vin_locked,source_url,provenance,vin,condition,mileage')
+    .select('id,stock,source_listing_id,subcategory_locked,model_locked,vin_locked,source_url,provenance,vin,condition,mileage,status,price,updated_at')
     .eq('dealer', dealer)
     .eq('sold', false);
 
@@ -738,6 +797,11 @@ exports.handler = async (event) => {
   const incomingByPlatform = {};            // platform -> count of incoming items
   const incomingStocksByPlatform = {};      // platform -> Set of incoming stocks
   let synced = 0, errors = 0, resurrected = 0;
+  const sellerSold = {
+    attempted: { sold: 0, price_withdrawn_hold: 0, marker_with_price_hold: 0, ambiguous_marker_hold: 0 },
+    applied:   { sold: 0, price_withdrawn_hold: 0, marker_with_price_hold: 0, ambiguous_marker_hold: 0 },
+    conflict: 0, unknown: 0, halted_skipped: 0, insert_skipped: 0, draft_marker_review: 0, halted: false,
+  };
 
   // Derive platform from a source URL, mirroring the source_type logic below.
   // Returns 'machinerytrader' | 'truckpaper' | 'tractorhouse' | 'other'.
@@ -883,6 +947,44 @@ exports.handler = async (event) => {
         const matchedExistingStock = matchedExistingRow ? matchedExistingRow.stock : null;
         const isExisting = matchedExistingStock ? true : existingStocks.has(stock);
         const lookupStock = matchedExistingStock || stock;
+
+        // 2026-11-18 SELLER-SOLD / PRICE-WITHDRAWN (see SELLER_SOLD_DEALERS above). Decide only; the write is guarded below.
+        let sellerDecision = null;
+        if (SELLER_SOLD_DEALERS.has(dealer)) {
+          const priceWithdrawn = unit.price === '';
+          const marker = classifySellerSoldMarker(rawDescription);
+          const liveRow = !isResurrection ? (liveMatchedRow || (isExisting ? existingByStock.get(lookupStock) : null)) : null;
+          if (!isExisting && !isResurrection && marker === 'strict' && priceWithdrawn) {
+            sellerSold.insert_skipped++;
+            console.log(`[SELLER-SOLD-SKIP-INSERT] ${stock} (${dealer}) listing_id=${incomingListingId || 'none'}: strict SOLD marker, no price; not inserted`);
+            return;
+          }
+          if (liveRow && liveRow.status === 'draft' && marker !== 'none') {
+            sellerSold.draft_marker_review++;
+            console.log(`[SELLER-SOLD-DRAFT-REVIEW] ${lookupStock} (${dealer}): ${marker} SOLD marker on a Draft row; no automatic change`);
+          }
+          if (liveRow && liveRow.status === 'published' && liveRow.id) {
+            let kind = null;
+            if (marker === 'strict' && priceWithdrawn) kind = 'sold';
+            else if (marker === 'ambiguous') kind = 'ambiguous_marker_hold';
+            else if (marker === 'strict') kind = 'marker_with_price_hold';
+            else if (priceWithdrawn) kind = 'price_withdrawn_hold';
+            if (kind && sellerSold.halted) {
+              sellerSold.halted_skipped++;
+              console.error(`[SELLER-SOLD-HALTED-SKIP] ${lookupStock} (${dealer}) ${kind}: an earlier decided write had an UNKNOWN outcome; no write for this item this run`);
+              return;
+            }
+            if (kind) {
+              const payload = kind === 'sold'
+                ? { sold: true, sold_type: SELLER_SOLD_TYPE, price: unit.price }
+                : { status: 'draft', price: unit.price };
+              sellerDecision = { kind, rowId: liveRow.id, payload,
+                expect: { status: 'published', price: liveRow.price === undefined ? null : liveRow.price, updated_at: liveRow.updated_at === undefined ? null : liveRow.updated_at } };
+              sellerSold.attempted[kind]++;
+              console.log(`[SELLER-SOLD-ATTEMPT] ${lookupStock} (${dealer}) ${kind} (marker=${marker}, price_withdrawn=${priceWithdrawn})`);
+            }
+          }
+        }
 
         // Field-lock deletes must run BEFORE the provenance stamp so provFactSubset excludes
         // locked/dropped fields — keeps provenance consistent with the persisted row.
@@ -1083,10 +1185,33 @@ exports.handler = async (event) => {
             }
           } else if (matchedExistingStock && incomingListingId) {
             // Match by source_listing_id (stable Sandhills ID, robust against stock-derivation changes)
-            result = await supabase.from('inventory').update(unit).eq('source_listing_id', incomingListingId).eq('dealer', dealer).eq('sold', false);
+            let q = supabase.from('inventory').update(sellerDecision ? sellerDecision.payload : unit).eq('source_listing_id', incomingListingId).eq('dealer', dealer).eq('sold', false);
+            if (sellerDecision) q = sellerCas(q, sellerDecision);
+            result = await q;
           } else {
             // Legacy fallback: match by stock
-            result = await supabase.from('inventory').update(unit).eq('stock', stock).eq('dealer', dealer).eq('sold', false);
+            let q = supabase.from('inventory').update(sellerDecision ? sellerDecision.payload : unit).eq('stock', stock).eq('dealer', dealer).eq('sold', false);
+            if (sellerDecision) q = sellerCas(q, sellerDecision);
+            result = await q;
+          }
+          // SELLER-SOLD write outcome. APPLIED only on no error AND a returned list of exactly one row; CONFLICT only on
+          // a well-formed empty list (PostgREST: no row matched, nothing written); everything else is UNKNOWN.
+          if (sellerDecision) {
+            const data = result ? result.data : undefined;
+            if (!(result && result.error) && Array.isArray(data) && data.length === 1) {
+              sellerSold.applied[sellerDecision.kind]++;
+              console.log(`[SELLER-SOLD-APPLIED] ${lookupStock} (${dealer}) ${sellerDecision.kind}`);
+            } else if (!(result && result.error) && Array.isArray(data) && data.length === 0) {
+              sellerSold.conflict++;
+              console.warn(`[SELLER-SOLD-CONFLICT] ${lookupStock} (${dealer}) ${sellerDecision.kind}: 0 rows matched id/dealer/sold=false/status/price/updated_at; row changed since lookup; nothing written`);
+              result = { data: [], error: { message: 'seller_sold_conflict_0_rows' } };   // counted in errors, never as synced
+            } else {
+              sellerSold.unknown++;
+              sellerSold.halted = true;
+              const why = (result && result.error) ? `error: ${result.error.message}` : (Array.isArray(data) ? `${data.length} rows returned` : 'no row list returned');
+              console.error(`[SELLER-SOLD-UNKNOWN] STOP ${lookupStock} (${dealer}) ${sellerDecision.kind}: outcome NOT proven (${why}); not counted applied; later decided writes in this run are skipped; no retry`);
+              result = { data, error: { message: 'seller_sold_unknown_outcome' } };
+            }
           }
         } else {
           // S1: a lifecycle dealer's NEW row is INSERTed as DRAFT (never via the DB default).
@@ -1173,7 +1298,7 @@ exports.handler = async (event) => {
     markedSold++;
   }
 
-  const result = { synced, errors, resurrected, markedSold, total: items.length, dealer };
+  const result = { synced, errors, resurrected, markedSold, total: items.length, dealer, sellerSold };
   if (lifecycleDealer && !dryRun) {
     result.lifecycle = lifecycleCounts;
     if (!lifecycleCounts.clean) {
