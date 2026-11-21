@@ -284,8 +284,8 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
       <div id="business-info" style="display:none;">
         <h3 style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;text-transform:uppercase;color:#86efac;text-align:center;margin:18px 0 6px">Business Information</h3>
         <p style="color:#94a3b8;text-align:center;margin-bottom:6px;font-size:14px">Tell us about the business applying for financing.</p>
-        <p style="color:#86efac;text-align:center;font-size:12px;font-style:italic;margin-bottom:16px">Financing starts with a soft credit check that will not affect your credit score.</p>
-        <p style="color:#64748b;text-align:center;margin-bottom:16px;font-size:12px">This helps route your request correctly and keeps you from repeating this information inside the lender application.</p>
+        <p id="business-soft-check" style="display:none;color:#86efac;text-align:center;font-size:12px;font-style:italic;margin-bottom:16px">Financing starts with a soft credit check that will not affect your credit score.</p>
+        <p style="color:#64748b;text-align:center;margin-bottom:16px;font-size:12px">These details help fill in your lender application so you don't have to enter them again. Review them on the lender's form.</p>
         <select id="f-business-type" style="width:100%;margin-bottom:10px">
           <option value="">Type of Business</option>
           <option value="Sole Proprietorship">Sole Proprietorship</option>
@@ -763,15 +763,18 @@ const LENDER_FORM_CONFIGS = {
     },
     // -330 F1: the notice names only the visible Seller Information fields actually filled in.
     prefillNotice: { owner_name_first: "owner name", owner_phone: "cell phone", dealer: "seller", vehicle_title: "equipment",
-      listing_price: "price as listed when you submitted", price_estimate: "price estimate" }
+      listing_price: "price as listed when you submitted", price_estimate: "price estimate" },
+    // Only H.I.L. makes the soft-credit-check statement on the Torque Hub business step.
+    softCheckClaim: true
   },
   // L002 (HST -319): Wheelhouse Lease and Finance, Ash's own Jotform credit application,
   // embedded with the lender's permission. No buyer data is passed to it (empty fieldMap):
   // the buyer types every answer, including SSN, date of birth and income, into the lender's
   // form, so Torque Hub never receives or stores them. VDP-CONTEXT C (Owner YES): the only
   // URL parameter is refPrefill - the server-built, non-PII vehicle_ref (title + stock) for
-  // the form's "What type of equipment" field (Jotform unique name whatType, field 129). The
-  // form collects its own business details, so the Torque Hub business step is skipped.
+  // the form's "What type of equipment" field (Jotform unique name whatType, field 129).
+  // FIN-SINGLE-ENTRY v4 (Chief 1): the Torque Hub business step is shown only to an owner-Yes buyer
+  // who named a business, so its address can fill the Employer Address; everyone else skips it as before.
   // No soft-pull claim: the form asks for consent to obtain a credit report.
   L002: {
     lenderName: "Wheelhouse Lease and Finance",
@@ -786,12 +789,25 @@ const LENDER_FORM_CONFIGS = {
       buyer_email:        "email",
       business_name:      "businessName",
       employer_name:      "presentEmployer29",
+      // v4: Employer/Business phone (q94, number field: 10 digits) and Employer Address (q92) only on an
+      // owner Yes with a named business. Years/months with the Company (q89) and Ownership % (q178) are
+      // never sent: Torque Hub holds only a time-in-business range and no ownership share.
+      employer_phone:      "phoneNumber",
+      employer_addr_line1: "address[addr_line1]",
+      employer_addr_line2: "address[addr_line2]",
+      employer_city:       "address[city]",
+      employer_state:      "address[state]",
+      employer_zip:        "address[postal]",
       down_payment_label: "howMuch"
     },
     prefillNotice: { name_first: "name", buyer_phone: "phone", buyer_email: "email", business_name: "business name",
-      employer_name: "present employer", down_payment_label: "down payment" },
+      employer_name: "present employer", employer_phone: "employer/business phone", employer_addr_line1: "employer address",
+      down_payment_label: "down payment" },
     refPrefill: { param: "whatType", source: "vehicle_ref", label: "equipment type" },
-    skipBusinessInfo: true,
+    businessStepWhen: "owner_with_business",
+    // -335 F1/F2: the Wheelhouse business details live only in this page for the lender prefill: no
+    // update-finance-lead call (nothing stored) and no Meta SubmitApplication (no lender application yet).
+    businessStepHandoffOnly: true,
     embedCopy: {
       title: "Finish Your Application",
       intro: "Torque Hub received your financing request. Your credit application is not complete until you submit Wheelhouse Lease and Finance's application form below.",
@@ -1286,12 +1302,21 @@ function showSuccess() {
   document.getElementById("form-success").scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
+// L001 always asks for business details. A config with businessStepWhen "owner_with_business" asks only
+// when the buyer answered owner Yes and named a business (otherwise nothing from the step could be used).
+function businessStepNeeded(cfg, canonical) {
+  if (!cfg.businessStepWhen) return true;
+  const c = canonical || {};
+  return cfg.businessStepWhen === "owner_with_business" && c.owner_confirmed === true && String(c.business_name || "").trim() !== "";
+}
+
 function handleLeadCreated(res, canonical) {
   const cfg = (res && res.route_code) ? LENDER_FORM_CONFIGS[res.route_code] : null;
   if (!cfg) { showSuccess(); return; }
   pendingLender = { res, canonical, cfg, receivedAt: Date.now() };
   document.getElementById("form-inner").style.display = "none";
-  if (cfg.skipBusinessInfo) { revealLenderEmbed(); return; }
+  if (!businessStepNeeded(cfg, canonical)) { revealLenderEmbed(); return; }
+  document.getElementById("business-soft-check").style.display = cfg.softCheckClaim === true ? "block" : "none";
   document.getElementById("business-info").style.display = "block";
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -1332,10 +1357,21 @@ function snapshotAgeMs(asOf, nowMs) {
 // Every lender value comes from what the buyer typed on Torque Hub or from the server response.
 // Owner/guarantor and employer values exist only when the buyer answered Yes. A Torque Hub unit's
 // price comes only from the server (verified at submission); an external unit uses the buyer's estimate.
+// v4: the Jotform Employer/Business phone is a number field: exactly 10 digits (a leading US 1 dropped).
+function phoneDigits10(v) {
+  let d = String(v || "").replace(/\D/g, "");
+  if (d.length === 11 && d.charAt(0) === "1") d = d.slice(1);
+  return d.length === 10 ? d : "";
+}
+
 function prefillValues(canonical, business, res, priceAgeMs, nowMs) {
   const c = canonical || {};
   const n = splitName(c.buyer_name);
   const owner = c.owner_confirmed === true;
+  // v4 employer semantics: owner Yes ("this is my current business ... its contact details") AND a named business.
+  const employer = owner && String(c.business_name || "").trim() !== "";
+  const b = business || {};
+  const addr = employer && b.business_street_line1 && b.business_city && b.business_state && b.business_zip;
   const within = function (ms) { return typeof ms === "number" && ms >= 0 && ms <= PRICE_MAX_AGE_MS; };
   const fresh = within(priceAgeMs) && within(snapshotAgeMs(res && res.vehicle_price_as_of, nowMs));
   const listed = (fresh && res && typeof res.vehicle_price === "string" && /^\d{1,9}(\.\d{1,2})?$/.test(res.vehicle_price)) ? res.vehicle_price : "";
@@ -1348,6 +1384,12 @@ function prefillValues(canonical, business, res, priceAgeMs, nowMs) {
     company_phone: owner ? (c.buyer_phone || "") : "",
     company_email: owner ? (c.buyer_email || "") : "",
     employer_name: owner ? (c.business_name || "") : "",
+    employer_phone: employer ? phoneDigits10(c.buyer_phone) : "",
+    employer_addr_line1: addr ? b.business_street_line1 : "",
+    employer_addr_line2: addr ? (b.business_street_line2 || "") : "",
+    employer_city: addr ? b.business_city : "",
+    employer_state: addr ? b.business_state : "",
+    employer_zip: addr ? b.business_zip : "",
     listing_price: listed,
     price_estimate: listed ? "" : (c.vehicle_price || "")
   });
@@ -1432,6 +1474,16 @@ function submitBusinessInfo() {
 
   if (!pendingLender) { showSuccess(); return; }
 
+  const handoff = { business_type, time_in_business,
+    business_street: business_street2 ? business_street + " " + business_street2 : business_street,
+    business_street_line1: business_street, business_street_line2: business_street2,
+    business_city, business_state, business_zip };
+  if (pendingLender.cfg && pendingLender.cfg.businessStepHandoffOnly === true) {
+    pendingLender.business = handoff;
+    revealLenderEmbed();
+    return;
+  }
+
   // One id per business-info attempt. The button stays disabled unless the
   // .catch below re-enables it, so one acceptance emits exactly one id.
   const applicationEventId = newEventId();
@@ -1466,9 +1518,7 @@ function submitBusinessInfo() {
       }
     } catch (e) { console.warn('Meta SubmitApplication event failed:', e); }
 
-    pendingLender.business = { business_type, time_in_business,
-      business_street: business_street2 ? business_street + " " + business_street2 : business_street,
-      business_city, business_state, business_zip };
+    pendingLender.business = handoff;
     revealLenderEmbed();
   }).catch(() => {
     btn.disabled = false;
