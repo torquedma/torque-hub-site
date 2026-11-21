@@ -31,8 +31,8 @@ function getSourceLabel(source) {
 // Rejects: '70k', 'call for price', anything that isn't a plain dollar amount.
 // Non-numeric MUST be rejected — never coerced silently to null.
 // VDP-CONTEXT B: unit context for a RESOLVED stock comes only from the inventory row.
-// Client listing_title is never used for a resolved stock. Primary photo = first photos
-// entry with a url (the same rule as vehicle.html). Plain-text values only.
+// Client listing_title is never used for a resolved stock. Plain-text values only.
+// Owner 2026-11-21: lead emails carry the Listing link, not a photo URL.
 const VDP_BASE = 'https://hub.torquedma.com/vehicle.html?stock=';
 function oneLine(v) {
   if (v === null || v === undefined) return '';
@@ -40,8 +40,6 @@ function oneLine(v) {
 }
 function buildUnitContext(inv, stock) {
   const title = [inv.year, inv.make, inv.model, inv.trim].map(oneLine).filter(Boolean).join(' ');
-  const photos = Array.isArray(inv.photos) ? inv.photos.filter(function (p) { return p && typeof p.url === 'string' && p.url; }) : [];
-  const photoUrl = photos.length && /^https:\/\//i.test(photos[0].url) ? oneLine(photos[0].url) : null;
   const status = oneLine(inv.status).toLowerCase();
   return {
     title: title || ('Stock ' + oneLine(stock)),
@@ -49,7 +47,6 @@ function buildUnitContext(inv, stock) {
     vin: oneLine(inv.vin) || null,
     mileage: oneLine(inv.mileage) || null,
     hours: oneLine(inv.hours) || null,
-    photoUrl,
     vdpUrl: VDP_BASE + encodeURIComponent(oneLine(stock)),
     sold: !!inv.sold,
     notPublic: !!status && status !== 'published'
@@ -110,7 +107,6 @@ function unitContextLines(u) {
     u.hours   ? `Hours: ${u.hours}`     : null,
     u.sold    ? 'Listing status: SOLD - may no longer be available' : (u.notPublic ? 'Listing status: not public (Draft)' : null),
     `Listing: ${u.vdpUrl}`,
-    u.photoUrl ? `Photo: ${u.photoUrl}` : 'Photo: none on file',
   ];
 }
 
@@ -243,7 +239,7 @@ exports.handler = async (event) => {
     try {
       const { data: invRows, error: invErr } = await supabase
         .from('inventory')
-        .select('id, dealer, sold, price, status, year, make, model, trim, vin, mileage, hours, photos')
+        .select('id, dealer, sold, price, status, year, make, model, trim, vin, mileage, hours')
         .eq('stock', stockIn)
         .limit(2);
       if (invErr) throw invErr;

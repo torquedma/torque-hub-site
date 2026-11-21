@@ -81,7 +81,7 @@ const internal = (w) => toAddr(w, 'leads@torquedma.com')[0];
 test('B-1 inventory select carries the context columns', async () => {
   const w = await post(P({ stock_number: 'SRS-111801', source: 'torque_hub_listing' }));
   assert.equal(w.res.statusCode, 200);
-  assert.equal(w.selects[0], 'id, dealer, sold, price, status, year, make, model, trim, vin, mileage, hours, photos');
+  assert.equal(w.selects[0], 'id, dealer, sold, price, status, year, make, model, trim, vin, mileage, hours');
 });
 
 test('B-2 (T4) spoofed client listing_title is ignored for a resolved stock: persisted and emailed title come from inventory', async () => {
@@ -92,40 +92,41 @@ test('B-2 (T4) spoofed client listing_title is ignored for a resolved stock: per
   assert.ok(internal(w).text.includes('Unit: John Deere 4760 Tractor'));
 });
 
-test('B-3 (T5) Ash email: subject = title (stock) — buyer; Hours, Listing link and exact primary Photo URL; Listing Price kept', async () => {
+test('B-3 (T5) Ash email: subject = title (stock) — buyer; Hours and Listing link; NO photo URL (Owner 11-21); Listing Price kept', async () => {
   const w = await post(P({ stock_number: 'SRS-111801', source: 'torque_hub_listing' }));
   const ash = toAddr(w, 'ash@example.test');
   assert.equal(ash.length, 1);
   assert.equal(ash[0].subject, 'Finance Lead — John Deere 4760 Tractor (SRS-111801) — Synthetic Buyer');
   const t = ash[0].text.split('\n');
   for (const line of ['Unit: John Deere 4760 Tractor', 'Stock: SRS-111801', 'Listing Price: $42,500', 'Hours: 8,609.1',
-    'Listing: https://hub.torquedma.com/vehicle.html?stock=SRS-111801', 'Photo: ' + PHOTO]) assert.ok(t.includes(line), line);
+    'Listing: https://hub.torquedma.com/vehicle.html?stock=SRS-111801']) assert.ok(t.includes(line), line);
+  assert.ok(!t.some((l) => /^Photo:/.test(l)) && !ash[0].text.includes(PHOTO), 'no Photo line, no photo URL anywhere');
   assert.ok(!t.some((l) => /^VIN:|^Mileage:/.test(l)), 'absent fields omitted');
-  assert.ok(internal(w).text.includes('Photo: ' + PHOTO), 'internal email carries the same context');
+  assert.ok(internal(w).text.includes('Listing: https://hub.torquedma.com/vehicle.html?stock=SRS-111801') && !internal(w).text.includes(PHOTO) && !/\nPhoto:/.test(internal(w).text), 'internal email: Listing link, no photo');
   assert.equal(w.body.route_code, 'L012');
 });
 
-test('B-4 VIN + mileage present; no photos -> "Photo: none on file"; subject and route L004', async () => {
+test('B-4 VIN + mileage present; no Photo line; subject and route L004', async () => {
   const w = await post(P({ stock_number: 'DAV-032411', source: 'torque_hub_vdp_nav' }));
   const t = toAddr(w, 'ash@example.test')[0].text.split('\n');
-  assert.ok(t.includes('VIN: 1GB4KZC80DF100001') && t.includes('Mileage: 187,000') && t.includes('Photo: none on file'));
+  assert.ok(t.includes('VIN: 1GB4KZC80DF100001') && t.includes('Mileage: 187,000') && !t.some((l) => l.startsWith('Photo:')));
   assert.ok(!t.some((l) => l.startsWith('Hours:')));
   assert.equal(w.body.route_code, 'L004');
 });
 
-test('B-5 sold unit flagged; non-https photo not emailed; L001 lender + dealer copy keep working with server title', async () => {
+test('B-5 sold unit flagged; no photo line; L001 lender + dealer copy keep working with server title', async () => {
   const w = await post(P({ stock_number: 'ATC-100', listing_title: 'Spoofed', source: 'torque_hub_listing' }));
   assert.equal(w.body.route_code, 'L001');
   const l1 = toAddr(w, 'lender1@example.test')[0];
   assert.ok(l1.text.includes('Listing status: SOLD - may no longer be available'));
-  assert.ok(l1.text.includes('Photo: none on file'), 'http:// photo rejected');
+  assert.ok(!/(^|\n)Photo:/.test(l1.text), 'no Photo line');
   assert.equal(toAddr(w, 'dealer1@example.test')[0].subject, 'New Finance Lead — 2019 Synthetic Truck (ATC-100)');
 });
 
-test('B-6 Draft stock: routes as today, flagged not public; missing photos -> none on file', async () => {
+test('B-6 Draft stock: routes as today, flagged not public; no Photo line', async () => {
   const w = await post(P({ stock_number: 'DBT-9999', source: 'torque_hub_listing' }));
   const t = toAddr(w, 'ash@example.test')[0].text;
-  assert.ok(t.includes('Listing status: not public (Draft)') && t.includes('Photo: none on file'));
+  assert.ok(t.includes('Listing status: not public (Draft)') && !/(^|\n)Photo:/.test(t));
 });
 
 test('B-7 control characters in inventory text are flattened; malformed photos field is safe', async () => {
@@ -133,7 +134,7 @@ test('B-7 control characters in inventory text are flattened; malformed photos f
   assert.equal(w.inserts[0].unit_title, '2015 Line Break Model X');
   const ash = toAddr(w, 'ash@example.test')[0];
   assert.ok(!/[\u0000-\u0008\u000b-\u001f]/.test(ash.subject));
-  assert.ok(ash.text.includes('Photo: none on file'));
+  assert.ok(!/(^|\n)Photo:/.test(ash.text));
 });
 
 test('B-8 invariants kept: dealer contradiction 409 (nothing saved/sent); unresolved stock keeps today\'s path; no route = internal only', async () => {
