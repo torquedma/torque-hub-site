@@ -146,7 +146,7 @@ test('C-3 Ash routes: whatType comes only from the server value; no other parame
   // customer_* keys, which are not fieldMap keys, so whatType stays the ONLY parameter here.
   // v4: + owner-gated employer phone/address keys (covered by finance-lender-embed V4-*); this harness has no owner Yes.
   assert.deepEqual(Object.keys(embedUrl('L002', res).C.L002.fieldMap), ['name_first', 'name_last', 'buyer_phone', 'buyer_email', 'business_name', 'employer_name',
-    'employer_phone', 'employer_addr_line1', 'employer_addr_line2', 'employer_city', 'employer_state', 'employer_zip', 'down_payment_label']);
+    'employer_phone', 'employer_addr_line1', 'employer_addr_line2', 'employer_city', 'employer_state', 'employer_zip', 'employer_tenure', 'down_payment_label']);
 });
 
 test('C-4 special characters are URL-encoded and round-trip exactly; client-side title never used', async () => {

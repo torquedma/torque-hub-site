@@ -32,6 +32,11 @@ const INVENTORY = [
   row({ id: 'a8', stock: 'ATC-DUP', price: '10000' }), row({ id: 'a9', stock: 'ATC-DUP', price: '11000', dealer: '' }),
   row({ id: 'a10', stock: 'ATC-NULLST', price: '10000', status: null }),
   row({ id: 'a11', stock: 'ATC-SOLDNULL', price: '10000', sold: null }), row({ id: 'a12', stock: 'ATC-SOLDUNDEF', price: '10000', sold: undefined }),
+  row({ id: 'a13', stock: 'ATC-NOTITLE', price: '10000', year: '', make: '', model: '', trim: '' }),
+  row({ id: 'a14', stock: 'ATC SP', price: '10000' }),
+  row({ id: 'a15', stock: 'ATC-LONG', price: '10000', model: 'M'.repeat(120) }),
+  row({ id: 'a16', stock: 'ATC-HAS', price: '10000', model: 'Truck Stock ATC-HAS' }),
+  row({ id: 'a17', stock: 'ATC-CTRL', price: '10000', model: 'Tru\u0007ck', trim: 'LT' }),
   row({ id: 'w1', stock: 'DAV-1', dealer: 'Davenport Motors', price: '25500' })
 ];
 const ROUTES = [
@@ -100,5 +105,32 @@ test('SS-4 omitted: Wheelhouse route, unknown stock, external unit, replayed sub
 test('SS-5 vehicle_price is a plain numeric string; vehicle_price_as_of the only other new key', async () => {
   const w = await post(P({ stock_number: 'ATC-OK' }));
   assert.match(w.body.vehicle_price, /^\d{1,9}(\.\d{1,2})?$/);
-  assert.deepEqual(Object.keys(w.body).sort(), ['dealer_code', 'lead_id', 'route_code', 'success', 'vehicle_price', 'vehicle_price_as_of']);
+  assert.deepEqual(Object.keys(w.body).sort(), ['dealer_code', 'equipment_label', 'equipment_stock', 'lead_id', 'route_code', 'success', 'vehicle_price', 'vehicle_price_as_of']);
+});
+
+// FIN v4.3 A (Chief 1 -338): authoritative H.I.L. Equipment value from the same eligible inventory row.
+const hasEq = (b) => Object.prototype.hasOwnProperty.call(b, 'equipment_label') || Object.prototype.hasOwnProperty.call(b, 'equipment_stock');
+
+test('SS-6 L001 unique published unsold unit -> equipment_label "<row title> — Stock <stock>" and equipment_stock from that row', async () => {
+  let w = await post(P({ stock_number: 'ATC-OK' }));
+  assert.equal(w.body.equipment_label, '2019 Synthetic Truck \u2014 Stock ATC-OK'); assert.equal(w.body.equipment_stock, 'ATC-OK');
+  w = await post(P({ stock_number: 'ATC-OK', listing_title: 'Spoofed Title', dealer_name: ATC, equipment_label: 'X', equipment_stock: 'Y' }));
+  assert.equal(w.body.equipment_label, '2019 Synthetic Truck \u2014 Stock ATC-OK', 'client title / fields ignored');
+  w = await post(P({ stock_number: 'ATC-BLANK' }));
+  assert.equal(has(w.body), false, 'no price'); assert.equal(w.body.equipment_stock, 'ATC-BLANK', 'identity does not depend on a price');
+  w = await post(P({ stock_number: 'ATC-HAS' }));
+  assert.equal(w.body.equipment_label, '2019 Synthetic Truck Stock ATC-HAS', 'no duplicate suffix');
+  w = await post(P({ stock_number: 'ATC-CTRL' }));
+  assert.equal(w.body.equipment_label, '2019 Synthetic Tru ck LT \u2014 Stock ATC-CTRL', 'control characters flattened (oneLine)');
+});
+
+test('SS-7 no equipment keys: sold / sold null / draft / null status / ambiguous / no title / unsafe stock / over-long / Wheelhouse / unknown / external', async () => {
+  for (const s of ['ATC-SOLD', 'ATC-SOLDNULL', 'ATC-SOLDUNDEF', 'ATC-DRAFT', 'ATC-NULLST', 'ATC-DUP', 'ATC-NOTITLE', 'ATC SP', 'ATC-LONG', 'DAV-1', 'NOPE']) {
+    const w = await post(P({ stock_number: s }));
+    assert.equal(hasEq(w.body), false, s);
+  }
+  const w = await post(P({ external_vehicle_year: '2018', external_vehicle_make: 'S', external_vehicle_model: 'H', external_vehicle_price: '15000', dealer_name: ATC }));
+  assert.equal(hasEq(w.body), false, 'external');
+  const c = await post(P({ stock_number: 'ATC-OK', dealer_name: 'Davenport Motors' }));
+  assert.equal(c.res.statusCode, 409, 'dealer mismatch is still an identity conflict (no lead, no label)'); assert.equal(hasEq(c.body), false);
 });

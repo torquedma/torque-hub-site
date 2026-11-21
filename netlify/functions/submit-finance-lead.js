@@ -76,11 +76,26 @@ function vehicleRefEligible(e) {
 // inventory row at submission. Only for exactly one matching row that is publicly published and unsold,
 // with a valid positive numeric price, on the L001 route (the only lender form with a price field).
 // sold must be exactly false (null/unknown -> omitted). 'published' is the public inventory_cards predicate.
-function vehiclePriceEligible(e) {
+function l001UnitEligible(e) {
   return !!(e && e.inventoryState === 'resolved' && e.rawRowCount === 1 && e.inv
     && e.inv.status === 'published' && e.inv.sold === false
-    && e.routeResolved === true && e.routeBasis === 'matched' && e.routeCode === 'L001'
-    && typeof e.price === 'number' && isFinite(e.price) && e.price > 0);
+    && e.routeResolved === true && e.routeBasis === 'matched' && e.routeCode === 'L001');
+}
+function vehiclePriceEligible(e) {
+  return l001UnitEligible(e) && typeof e.price === 'number' && isFinite(e.price) && e.price > 0;
+}
+// FIN v4.3 A (Chief 1 -338): authoritative H.I.L. visible Equipment value, "<title> — Stock <stock>", built ONLY
+// from the same unique, published, unsold, L001-matched inventory row as the price above (l001UnitEligible).
+// The stock is the one that row was matched on. No real title, an unsafe stock or an over-long value -> null
+// (the page then keeps its title-only value). An existing "Stock <stock>" in the title is not repeated.
+const EQUIPMENT_STOCK_SAFE = /^[A-Za-z0-9][A-Za-z0-9-]{0,39}$/;
+function equipmentRef(inv, stock) {
+  if (!inv) return null;
+  const title = [inv.year, inv.make, inv.model, inv.trim].map(oneLine).filter(Boolean).join(' ');
+  const s = oneLine(stock);
+  if (!title || !EQUIPMENT_STOCK_SAFE.test(s)) return null;
+  const label = title.toLowerCase().indexOf(('stock ' + s).toLowerCase()) !== -1 ? title : title + ' \u2014 Stock ' + s;
+  return label.length > VEHICLE_REF_MAX ? null : { label, stock: s };
 }
 function vehicleRef(u) {
   if (!u) return null;
@@ -638,6 +653,10 @@ exports.handler = async (event) => {
   if (unitCtx && vehiclePriceEligible({ inventoryState, rawRowCount: invRawRowCount, inv, routeResolved, routeBasis, routeCode, price: listingPriceSnapshot })) {
     okBody.vehicle_price = String(listingPriceSnapshot);
     okBody.vehicle_price_as_of = new Date().toISOString();   // -332 F3: a snapshot at submission, not a live price
+  }
+  if (unitCtx && l001UnitEligible({ inventoryState, rawRowCount: invRawRowCount, inv, routeResolved, routeBasis, routeCode })) {
+    const eq = equipmentRef(inv, stockIn);
+    if (eq) { okBody.equipment_label = eq.label; okBody.equipment_stock = eq.stock; }
   }
   return { statusCode: 200, headers, body: JSON.stringify(okBody) };
 };

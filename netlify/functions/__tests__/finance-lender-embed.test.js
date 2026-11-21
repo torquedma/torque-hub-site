@@ -33,7 +33,7 @@ test('LE-1: exactly L001, L002 and the eleven Ash codes; L001 Formstack config =
     lenderName: 'H.I.L. Financial', provider: 'formstack', formUrl: 'https://twaddle.formstack.com/forms/vehiclenetwork',
     fieldMap: {
       source: 'field196509669', dealer: ['field196509670', 'field157837213'], stock_number: 'field196509673',
-      vehicle_title: ['field196509672', 'field157943120'], listing_price: 'field157943199', price_estimate: 'field157943199',
+      vehicle_title: 'field196509672', equipment_label: 'field157943120', listing_price: 'field157943199', price_estimate: 'field157943199',
       buyer_name: 'field196509676', buyer_email: 'field196509677', buyer_phone: 'field196509678',
       lead_id: 'field196509679',
       contact_name_first: 'field157805831-first', contact_name_last: 'field157805831-last',
@@ -43,7 +43,7 @@ test('LE-1: exactly L001, L002 and the eleven Ash codes; L001 Formstack config =
       business_street: 'field157805832-address', business_city: 'field157805832-city',
       business_state: 'field157805832-state', business_zip: 'field157805832-zip'
     },
-    prefillNotice: { owner_name_first: 'owner name', owner_phone: 'cell phone', dealer: 'seller', vehicle_title: 'equipment',
+    prefillNotice: { owner_name_first: 'owner name', owner_phone: 'cell phone', dealer: 'seller', equipment_label: 'equipment',
       listing_price: 'price as listed when you submitted', price_estimate: 'price estimate' },
     softCheckClaim: true
   });
@@ -63,9 +63,10 @@ test('LE-2: L002 is the Wheelhouse Jotform with single-entry prefill, owner-only
     buyer_phone: 'phoneNumber185[full]', buyer_email: 'email', business_name: 'businessName', employer_name: 'presentEmployer29',
     employer_phone: 'phoneNumber', employer_addr_line1: 'address[addr_line1]', employer_addr_line2: 'address[addr_line2]',
     employer_city: 'address[city]', employer_state: 'address[state]', employer_zip: 'address[postal]',
-    down_payment_label: 'howMuch' }, 'only values the buyer already gave Torque Hub (employer values only via the owner Yes)');
+    employer_tenure: 'yearsmonthsWith', down_payment_label: 'howMuch' }, 'only values the buyer already gave Torque Hub (employer values only via the owner Yes)');
   assert.equal(L.refPrefill.label, 'equipment type');
   assert.equal(L.businessStepWhen, 'owner_with_business');
+  assert.equal(L.businessTenureExact, true); assert.equal(configs().L001.businessTenureExact, undefined, 'H.I.L. keeps the range');
   assert.equal(L.softCheckClaim, undefined, 'Wheelhouse makes no soft-check claim');
   assert.ok(!/skipBusinessInfo/.test(FIN), 'old skip flag deleted');
   const copy = Object.values(L.embedCopy).join(' ');
@@ -214,10 +215,10 @@ const T0 = 1795000000000;                       // flow() clock start = response
 const AS_OF = new Date(T0).toISOString();       // server snapshot stamped at the same instant
 
 test('SE-1 L001 owner Yes: principal name/cell, contact name, company phone/email, seller page, verified price; exact params', () => {
-  const r = flow('L001', CANON, BIZ, { vehicle_price: '25500', vehicle_price_as_of: AS_OF });
+  const r = flow('L001', CANON, BIZ, { vehicle_price: '25500', vehicle_price_as_of: AS_OF, equipment_label: '2019 Synthetic Truck \u2014 Stock ATC-000001', equipment_stock: 'ATC-000001' });
   assert.deepEqual(Object.fromEntries(r.q), {
     field196509669: 'torque_hub_listing', field196509670: 'Auto Connection 210 LLC', field157837213: 'Auto Connection 210 LLC',
-    field196509673: 'ATC-000001', field196509672: '2019 Synthetic Truck', field157943120: '2019 Synthetic Truck', field157943199: '25500',
+    field196509673: 'ATC-000001', field196509672: '2019 Synthetic Truck', field157943120: '2019 Synthetic Truck \u2014 Stock ATC-000001', field157943199: '25500',
     field196509676: 'Pat Q Tester', field196509677: 'pat@example.test', field157836336: 'pat@example.test',
     field196509678: '(000) 555-0100', field157836335: '(000) 555-0100', field196509679: 'lead-synthetic-1',
     'field157805831-first': 'Pat Q', 'field157805831-last': 'Tester',
@@ -453,15 +454,16 @@ test('V4-5 q92 address: business-step address only, all-or-nothing, suite as lin
   assert.ok(!decodeURIComponent(r.iframe.src).includes('address76'), 'residence field never touched');
 });
 
-test('V4-6 q89 / q178: no time-in-business range and no ownership value ever reaches Wheelhouse (no false precision)', () => {
+test('V4-6 q89 / q178: no business-age range ever reaches Wheelhouse; q89 only from exact years+months; never ownership', () => {
   const L = configs().L002;
   const fields = Object.values(L.fieldMap).flat().join(' ');
-  for (const bad of ['yearsmonthsWith', 'q89', 'ownership', 'q178', 'howLong', 'address76']) assert.ok(!fields.includes(bad), bad);
+  for (const bad of ['ownership', 'q178', 'howLong', 'address76']) assert.ok(!fields.includes(bad), bad);
+  assert.equal(L.fieldMap.employer_tenure, 'yearsmonthsWith', 'q89 mapped only from employer_tenure');
   assert.ok(!('time_in_business' in L.fieldMap) && !('business_type' in L.fieldMap));
   for (const t of ['Less than 1 year', '1-2 years', '3-5 years', '5-10 years', '10+ years']) {
     const r = flow('L012', CANON, Object.assign({}, BIZW, { time_in_business: t }), {});
     assert.ok(!r.q.some(([, v]) => v === t), t + ' not sent');
-    assert.ok(!r.q.some(([k]) => /yearsmonths|ownership/i.test(k)), t);
+    assert.ok(!r.q.some(([k]) => /yearsmonths|ownership/i.test(k)), t + ' no tenure without exact entry');
     assert.ok(!/years|ownership/i.test(r.note), t + ' notice names neither');
   }
 });
@@ -531,7 +533,7 @@ async function bizFlow(code, canonical, fields) {
   const stepShown = els['business-info'] && els['business-info'].style.display === 'block';
   if (stepShown) { ctx.submit(); for (let i = 0; i < 5; i++) await new Promise((r) => setImmediate(r)); }
   const iframe = made.find((e) => e.tag === 'iframe');
-  return { stepShown, fetches, fbqs, iframe, q: iframe ? Object.fromEntries(new URL(iframe.src).searchParams.entries()) : null };
+  return { stepShown, fetches, fbqs, iframe, els, q: iframe ? Object.fromEntries(new URL(iframe.src).searchParams.entries()) : null };
 }
 
 test('V4-10 -335 F1/F2: Wheelhouse L002-L013 owner Yes: no update-finance-lead call, no Meta event; q94/q92 still prefilled', async () => {
@@ -591,4 +593,114 @@ test('V4-14 -336 copy: business-step explainer is the approved universal wording
   assert.ok(!/helps route your request/.test(FIN), 'old wording removed');
   assert.ok(biz.includes('<p id="business-soft-check" style="display:none;') && biz.includes('>Financing starts with a soft credit check that will not affect your credit score.</p>'));
   assert.equal((FIN.match(/These details help fill in your lender application/g) || []).length, 1, 'one explainer, shared by both lenders');
+});
+
+// FIN v4.3 (Chief 1 two-fix bundle). A: H.I.L. visible Equipment carries "<title> — Stock <stock>" only for a
+// server-verified unit. B: Wheelhouse asks exact years + months worked at the business (replacing the range) and
+// prefills q89 only from that. Synthetic values only.
+const EQ = 'field157943120', HIDDEN_TITLE = 'field196509672', HIDDEN_STOCK = 'field196509673';
+const h1 = (canon, res, biz, ms) => Object.fromEntries(flow('L001', C2(canon || {}), biz || BIZ, res || {}, ms).q);
+const SRV_LABEL = '2019 Synthetic Truck \u2014 Stock ATC-000001';
+const V = { vehicle_price: '45000', vehicle_price_as_of: AS_OF, equipment_label: SRV_LABEL, equipment_stock: 'ATC-000001' };
+
+test('V43-1 (-338) server label for the submitted stock -> visible Equipment; hidden title, hidden stock, seller, price unchanged', () => {
+  const m = h1({}, V);
+  assert.equal(m[EQ], SRV_LABEL);
+  assert.equal(m[HIDDEN_TITLE], '2019 Synthetic Truck', 'hidden title field keeps the plain title');
+  assert.equal(m[HIDDEN_STOCK], 'ATC-000001', 'hidden stock field unchanged');
+  assert.equal(m.field157837213, 'Auto Connection 210 LLC'); assert.equal(m.field157943199, '45000');
+  const r = flow('L001', CANON, BIZ, V);
+  assert.ok(r.note.includes('seller, equipment, and price as listed when you submitted'), 'notice unchanged');
+  assert.equal(r.q.filter(([k]) => k === EQ).length, 1, 'one Equipment value');
+  // the label is the server's, even if the page-held title differs
+  assert.equal(h1({ vehicle_title: 'Stale Client Title' }, V)[EQ], SRV_LABEL);
+});
+
+test('V43-2 (-338) no server label / stock mismatch / malformed label / price-only -> title only, never a client-built suffix', () => {
+  const base = { vehicle_price: '45000', vehicle_price_as_of: AS_OF };
+  for (const extra of [{}, { equipment_label: SRV_LABEL }, { equipment_stock: 'ATC-000001' }, { equipment_label: '', equipment_stock: 'ATC-000001' },
+    { equipment_label: SRV_LABEL, equipment_stock: 'ATC-000002' }, { equipment_label: SRV_LABEL, equipment_stock: 'atc-000001' },
+    { equipment_label: SRV_LABEL, equipment_stock: '' }, { equipment_label: 42, equipment_stock: 'ATC-000001' },
+    { equipment_label: SRV_LABEL + '\n', equipment_stock: 'ATC-000001', _ok: true }, { equipment_label: 'X\u0007Y \u2014 Stock ATC-000001', equipment_stock: 'ATC-000001' },
+    { equipment_label: 'x'.repeat(121), equipment_stock: 'ATC-000001' }]) {
+    const res = Object.assign({}, base, extra); const ok = !!extra._ok; delete res._ok;
+    assert.equal(h1({}, res)[EQ], ok ? SRV_LABEL : '2019 Synthetic Truck', JSON.stringify(extra));
+  }
+  assert.equal(h1({ stock_number: '' }, V)[EQ], '2019 Synthetic Truck', 'page has no stock -> no match -> title only');
+  assert.equal(h1({ vehicle_title: '' }, {})[EQ], undefined, 'no title, no label -> nothing');
+  const ext = h1({ stock_number: '', vehicle_title: '2015 Peterbilt 389', vehicle_price: '30000' }, {});
+  assert.equal(ext[EQ], '2015 Peterbilt 389'); assert.equal(ext.field157943199, '30000', 'external estimate unchanged');
+  // the server label does not depend on price freshness; the price still does
+  const stale = h1({}, V, BIZ, 20 * 60 * 1000);
+  assert.equal(stale[EQ], SRV_LABEL); assert.equal(stale.field157943199, undefined, 'stale price still omitted');
+  // no client-side builder remains
+  assert.ok(!/STOCK_SAFE/.test(FIN) && !/"\\u2014 Stock "|\u2014 Stock " \+/.test(slice('function equipmentLabel(', 'function prefillValues(')), 'page never builds the suffix itself');
+});
+
+test('V43-3 server label special characters encode and round-trip; no extra parameter', () => {
+  const lab = "2018 Kenworth T880 Dump & Plow #2 50% 'Tri' \u2014 Stock DAV-0324-1";
+  const r = flow('L001', C2({ vehicle_title: 'x', stock_number: 'DAV-0324-1' }), BIZ, { equipment_label: lab, equipment_stock: 'DAV-0324-1' });
+  const m = Object.fromEntries(r.q);
+  assert.equal(m[EQ], lab);
+  assert.equal(new Set(r.q.map(([k]) => k)).size, r.q.length);
+});
+
+test('V43-4 Wheelhouse exact tenure: typed years+months -> q89 text; named in notice; no Meta, no lead update', async () => {
+  for (const [y, mo, want] of [['3', '4', '3 years 4 months'], ['1', '1', '1 year 1 month'], ['0', '6', '0 years 6 months'], ['12', '0', '12 years 0 months'], ['0', '0', '0 years 0 months'], [' 7 ', '11', '7 years 11 months']]) {
+    for (const code of ['L002', 'L012']) {
+      const r = await bizFlow(code, CANON, { 'f-tenure-years': y, 'f-tenure-months': mo, 'f-time-in-business': '' });
+      assert.ok(r.iframe, code + ' ' + want);
+      assert.equal(r.q.yearsmonthsWith, want, code);
+      assert.equal(r.fetches.length, 0, 'handoff only'); assert.equal(r.fbqs.length, 0, 'no Meta');
+    }
+  }
+  const n = flow('L012', CANON, Object.assign({}, BIZW, { tenure: { state: 'ok', years: 3, months: 4 } }), {});
+  assert.ok(n.note.includes('employer address, years/months with the company, and down payment.'), n.note);
+  assert.ok(!flow('L012', CANON, BIZW, {}).note.includes('years/months'), 'not named when not sent');
+});
+
+test('V43-5 tenure negatives: blank = omitted (handoff not blocked); partial/invalid = error, no handoff; owner No / no business = no step, no q89', async () => {
+  const blank = await bizFlow('L012', CANON, { 'f-tenure-years': '', 'f-tenure-months': '', 'f-time-in-business': '' });
+  assert.ok(blank.iframe, 'blank tenure does not block'); assert.equal(blank.q.yearsmonthsWith, undefined);
+  assert.equal(blank.q.phoneNumber, '0005550100', 'other employer values still filled');
+  for (const [y, mo] of [['3', ''], ['', '4'], ['3.5', '2'], ['-1', '2'], ['100', '0'], ['3', '12'], ['abc', '1'], ['3', '4.0'], ['1e1', '0']]) {
+    const r = await bizFlow('L012', CANON, { 'f-tenure-years': y, 'f-tenure-months': mo });
+    assert.equal(r.iframe, undefined, y + '/' + mo + ' no handoff'); assert.equal(r.fetches.length, 0); assert.equal(r.fbqs.length, 0);
+    assert.ok(/whole years \(0-99\) and months \(0-11\)/.test(r.els['phase-2-error'].textContent), y + '/' + mo);
+  }
+  for (const canon of [C2({ owner_confirmed: false }), C2({ business_name: '' })]) {
+    const r = await bizFlow('L012', canon, { 'f-tenure-years': '3', 'f-tenure-months': '4' });
+    assert.equal(r.stepShown, false); assert.equal(r.q.yearsmonthsWith, undefined);
+  }
+  const pv = flow('L012', CANON, null, {}).ctx.pv;   // gate inside prefillValues too
+  for (const canon of [C2({ owner_confirmed: false }), C2({ business_name: ' ' })])
+    assert.equal(pv(canon, Object.assign({}, BIZW, { tenure: { state: 'ok', years: 3, months: 4 } }), {}, 0, T0).employer_tenure, '');
+  for (const t of [undefined, null, { state: 'blank' }, { state: 'invalid' }, '3 years 4 months'])
+    assert.equal(pv(CANON, Object.assign({}, BIZW, { tenure: t }), {}, 0, T0).employer_tenure, '', JSON.stringify(t));
+});
+
+test('V43-6 conditional UX: Wheelhouse shows years+months and hides the range; H.I.L. keeps the required range unchanged', async () => {
+  const w = await bizFlow('L012', CANON, { 'f-tenure-years': '', 'f-tenure-months': '' });
+  assert.equal(w.els['f-time-in-business'].style.display, 'none'); assert.equal(w.els['f-tenure-wrap'].style.display, 'block');
+  const h = await bizFlow('L001', CANON, {});
+  assert.equal(h.els['f-time-in-business'].style.display, ''); assert.equal(h.els['f-tenure-wrap'].style.display, 'none');
+  const hNoRange = await bizFlow('L001', CANON, { 'f-time-in-business': '', 'f-tenure-years': '3', 'f-tenure-months': '4' });
+  assert.equal(hNoRange.fetches.length, 0, 'H.I.L. still requires the range'); assert.equal(hNoRange.iframe, undefined);
+  assert.equal(hNoRange.els['phase-2-error'].textContent, 'Please complete all business fields.');
+  const hOk = await bizFlow('L001', CANON, { 'f-tenure-years': '3', 'f-tenure-months': '4' });
+  assert.equal(hOk.fetches[0].body.time_in_business, '3-5 years', 'H.I.L. stores the range as before');
+  assert.ok(!('tenure' in hOk.fetches[0].body) && hOk.q.yearsmonthsWith === undefined, 'tenure never sent to H.I.L. or stored');
+  assert.equal(hOk.q.field157805830, '3-5 years');
+});
+
+test('V43-7 static: tenure inputs have no default value, bounded; exact-tenure only with handoff-only; no storage/console in tenure code', () => {
+  const wrap = slice('<div id="f-tenure-wrap"', '<input type="text" id="f-business-street"');
+  assert.ok(wrap.includes('How long have you worked at this business? (optional)'));
+  assert.ok(/id="f-tenure-years"[^>]*min="0" max="99" step="1"/.test(wrap) && /id="f-tenure-months"[^>]*min="0" max="11" step="1"/.test(wrap));
+  assert.ok(!/value=/.test(wrap), 'no preset values');
+  assert.ok(wrap.includes('style="display:none;'), 'hidden by default');
+  const C = configs();
+  for (const k of Object.keys(C)) if (C[k].businessTenureExact) assert.equal(C[k].businessStepHandoffOnly, true, k + ' exact tenure is handoff-only');
+  const code = slice('function parseTenure(', 'function prefillValues(');
+  assert.ok(!/fetch|fbq|gtag|Storage|console|cookie/.test(code));
 });

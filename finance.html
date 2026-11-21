@@ -302,6 +302,13 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
           <option value="5-10 years">5-10 years</option>
           <option value="10+ years">10+ years</option>
         </select>
+        <div id="f-tenure-wrap" style="display:none;margin-bottom:10px">
+          <label for="f-tenure-years" style="display:block;color:#cbd5e1;font-size:14px;margin-bottom:6px">How long have you worked at this business? (optional)</label>
+          <div style="display:flex;gap:10px">
+            <input type="number" id="f-tenure-years" placeholder="Years" min="0" max="99" step="1" inputmode="numeric" style="flex:1">
+            <input type="number" id="f-tenure-months" placeholder="Months (0-11)" min="0" max="11" step="1" inputmode="numeric" style="flex:1">
+          </div>
+        </div>
         <input type="text" id="f-business-street" placeholder="Street Address" style="width:100%;margin-bottom:10px">
         <input type="text" id="f-business-street2" placeholder="Suite / Unit (optional)" style="width:100%;margin-bottom:10px">
         <input type="text" id="f-business-city" placeholder="City" style="width:100%;margin-bottom:10px">
@@ -736,7 +743,9 @@ const LENDER_FORM_CONFIGS = {
       source:        "field196509669",
       dealer:        ["field196509670", "field157837213"],
       stock_number:  "field196509673",
-      vehicle_title: ["field196509672", "field157943120"],
+      vehicle_title:   "field196509672",
+      // v4.3 A: visible Equipment = title + " — Stock <stock>" when the server verified the unit (see equipmentLabel).
+      equipment_label: "field157943120",
       listing_price:  "field157943199",
       price_estimate: "field157943199",
       buyer_name:    "field196509676",
@@ -762,7 +771,7 @@ const LENDER_FORM_CONFIGS = {
       business_zip:     "field157805832-zip"
     },
     // -330 F1: the notice names only the visible Seller Information fields actually filled in.
-    prefillNotice: { owner_name_first: "owner name", owner_phone: "cell phone", dealer: "seller", vehicle_title: "equipment",
+    prefillNotice: { owner_name_first: "owner name", owner_phone: "cell phone", dealer: "seller", equipment_label: "equipment",
       listing_price: "price as listed when you submitted", price_estimate: "price estimate" },
     // Only H.I.L. makes the soft-credit-check statement on the Torque Hub business step.
     softCheckClaim: true
@@ -790,24 +799,28 @@ const LENDER_FORM_CONFIGS = {
       business_name:      "businessName",
       employer_name:      "presentEmployer29",
       // v4: Employer/Business phone (q94, number field: 10 digits) and Employer Address (q92) only on an
-      // owner Yes with a named business. Years/months with the Company (q89) and Ownership % (q178) are
-      // never sent: Torque Hub holds only a time-in-business range and no ownership share.
+      // owner Yes with a named business.
       employer_phone:      "phoneNumber",
       employer_addr_line1: "address[addr_line1]",
       employer_addr_line2: "address[addr_line2]",
       employer_city:       "address[city]",
       employer_state:      "address[state]",
       employer_zip:        "address[postal]",
+      // v4.3 B: Years/months with the Company (q89) only from the exact years + months the buyer typed on the
+      // Wheelhouse business step (never from the business-age range). Ownership % (q178) is never sent.
+      employer_tenure:     "yearsmonthsWith",
       down_payment_label: "howMuch"
     },
     prefillNotice: { name_first: "name", buyer_phone: "phone", buyer_email: "email", business_name: "business name",
       employer_name: "present employer", employer_phone: "employer/business phone", employer_addr_line1: "employer address",
-      down_payment_label: "down payment" },
+      employer_tenure: "years/months with the company", down_payment_label: "down payment" },
     refPrefill: { param: "whatType", source: "vehicle_ref", label: "equipment type" },
     businessStepWhen: "owner_with_business",
     // -335 F1/F2: the Wheelhouse business details live only in this page for the lender prefill: no
     // update-finance-lead call (nothing stored) and no Meta SubmitApplication (no lender application yet).
     businessStepHandoffOnly: true,
+    // v4.3 B: this step asks exact years + months worked at the business instead of the time-in-business range.
+    businessTenureExact: true,
     embedCopy: {
       title: "Finish Your Application",
       intro: "Torque Hub received your financing request. Your credit application is not complete until you submit Wheelhouse Lease and Finance's application form below.",
@@ -1317,6 +1330,8 @@ function handleLeadCreated(res, canonical) {
   document.getElementById("form-inner").style.display = "none";
   if (!businessStepNeeded(cfg, canonical)) { revealLenderEmbed(); return; }
   document.getElementById("business-soft-check").style.display = cfg.softCheckClaim === true ? "block" : "none";
+  document.getElementById("f-time-in-business").style.display = cfg.businessTenureExact === true ? "none" : "";
+  document.getElementById("f-tenure-wrap").style.display = cfg.businessTenureExact === true ? "block" : "none";
   document.getElementById("business-info").style.display = "block";
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -1364,6 +1379,32 @@ function phoneDigits10(v) {
   return d.length === 10 ? d : "";
 }
 
+// v4.3 B: exact tenure the buyer typed. Both boxes must be filled: whole years 0-99 and months 0-11.
+// Both blank = not given (no default zero). Anything else is invalid.
+function parseTenure(yearsText, monthsText) {
+  const y = String(yearsText == null ? "" : yearsText).trim(), m = String(monthsText == null ? "" : monthsText).trim();
+  if (y === "" && m === "") return { state: "blank" };
+  if (!/^\d{1,2}$/.test(y) || !/^\d{1,2}$/.test(m) || Number(m) > 11) return { state: "invalid" };
+  return { state: "ok", years: Number(y), months: Number(m) };
+}
+function tenureText(t) {
+  if (!t || t.state !== "ok") return "";
+  return t.years + (t.years === 1 ? " year " : " years ") + t.months + (t.months === 1 ? " month" : " months");
+}
+
+// v4.3 A (-338): the visible H.I.L. Equipment value comes from the server: equipment_label is built by
+// submit-finance-lead only from the unique, published, unsold, L001-matched inventory row, together with the
+// stock it matched (equipment_stock). It is used only if that stock is the one this page submitted and the
+// value is a short single line. Otherwise the page keeps its title-only value (no stock attached).
+function equipmentLabel(c, res) {
+  const title = String((c && c.vehicle_title) || "").trim();
+  const stock = String((c && c.stock_number) || "").trim();
+  const label = (res && typeof res.equipment_label === "string") ? res.equipment_label.trim() : "";
+  const sStock = (res && typeof res.equipment_stock === "string") ? res.equipment_stock : "";
+  if (label && label.length <= 120 && !/[\u0000-\u001f\u007f]/.test(label) && sStock !== "" && sStock === stock) return label;
+  return title;
+}
+
 function prefillValues(canonical, business, res, priceAgeMs, nowMs) {
   const c = canonical || {};
   const n = splitName(c.buyer_name);
@@ -1390,6 +1431,8 @@ function prefillValues(canonical, business, res, priceAgeMs, nowMs) {
     employer_city: addr ? b.business_city : "",
     employer_state: addr ? b.business_state : "",
     employer_zip: addr ? b.business_zip : "",
+    employer_tenure: employer ? tenureText(b.tenure) : "",
+    equipment_label: equipmentLabel(c, res),
     listing_price: listed,
     price_estimate: listed ? "" : (c.vehicle_price || "")
   });
@@ -1458,10 +1501,18 @@ function submitBusinessInfo() {
   const business_city    = document.getElementById("f-business-city").value.trim();
   const business_state   = document.getElementById("f-business-state").value;
   const business_zip     = document.getElementById("f-business-zip").value.trim();
+  // v4.3 B: Wheelhouse asks exact years + months (optional) instead of the time-in-business range.
+  const exactTenure = !!(pendingLender && pendingLender.cfg && pendingLender.cfg.businessTenureExact === true);
+  const tenure = exactTenure ? parseTenure(document.getElementById("f-tenure-years").value, document.getElementById("f-tenure-months").value) : null;
 
   const errEl = document.getElementById("phase-2-error");
-  if (!business_type || !time_in_business || !business_street || !business_city || !business_state || !business_zip) {
+  if (!business_type || (!exactTenure && !time_in_business) || !business_street || !business_city || !business_state || !business_zip) {
     errEl.textContent = "Please complete all business fields.";
+    errEl.style.display = "block";
+    return;
+  }
+  if (tenure && tenure.state === "invalid") {
+    errEl.textContent = "For time at this business, enter whole years (0-99) and months (0-11), or leave both blank.";
     errEl.style.display = "block";
     return;
   }
@@ -1479,6 +1530,7 @@ function submitBusinessInfo() {
     business_street_line1: business_street, business_street_line2: business_street2,
     business_city, business_state, business_zip };
   if (pendingLender.cfg && pendingLender.cfg.businessStepHandoffOnly === true) {
+    if (exactTenure) { handoff.time_in_business = ""; handoff.tenure = tenure; }
     pendingLender.business = handoff;
     revealLenderEmbed();
     return;
