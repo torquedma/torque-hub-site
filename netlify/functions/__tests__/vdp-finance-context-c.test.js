@@ -69,7 +69,7 @@ function embedUrl(routeCode, res) {
   const els = {}; const el = (id) => els[id] || (els[id] = { style: {}, textContent: '', children: [], appendChild(c) { this.children.push(c); }, scrollIntoView() {} });
   const made = [];
   const ctx = { document: { getElementById: el, createElement: (t) => { const e = { tag: t, style: {}, children: [], appendChild(c) { this.children.push(c); } }; made.push(e); return e; } },
-    window: { scrollTo() {}, addEventListener() {} }, encodeURIComponent, Object, Math, parseInt, console };
+    window: { scrollTo() {}, addEventListener() {} }, encodeURIComponent, Object, Math, parseInt, console, Date };
   vm.runInNewContext(slice('const LENDER_FORM_CONFIGS = {', '\nlet pendingLender') + '\nlet pendingLender = null;\n'
     + slice('function showSuccess()', 'function submitBusinessInfo()') + '\nthis.go = handleLeadCreated; this.C = LENDER_FORM_CONFIGS;', ctx);
   ctx.go(Object.assign({ lead_id: 'lead-1', route_code: routeCode }, res),
@@ -133,7 +133,7 @@ test('C-2 vehicle_ref capped at 120 characters', async () => {
   assert.ok(body.vehicle_ref.length <= 120 && body.vehicle_ref.endsWith('…'));
 });
 
-test('C-3 Ash routes: iframe gets exactly ONE parameter, whatType, from the server value; fieldMap empty', () => {
+test('C-3 Ash routes: whatType comes only from the server value; no other parameter without buyer-entered fieldMap keys', () => {
   const res = { vehicle_ref: 'John Deere 4760 Tractor — Stock SRS-111801 — Torque Hub' };
   const expected = 'https://form.jotform.com/211335844728156?whatType=' + encodeURIComponent(res.vehicle_ref);
   for (const code of ['L003', 'L004', 'L008', 'L012', 'L013']) {
@@ -142,7 +142,9 @@ test('C-3 Ash routes: iframe gets exactly ONE parameter, whatType, from the serv
     const q = new URL(r.src).searchParams;
     assert.deepEqual([...q.keys()], ['whatType'], code); assert.equal(q.get('whatType'), res.vehicle_ref);
   }
-  assert.equal(Object.keys(embedUrl('L002', res).C.L002.fieldMap).length, 0, 'fieldMap still empty: no buyer data path');
+  // FIN-SINGLE-ENTRY: L002 fieldMap carries buyer-entered keys (covered by finance-lender-embed SE-*). This harness passes
+  // customer_* keys, which are not fieldMap keys, so whatType stays the ONLY parameter here.
+  assert.deepEqual(Object.keys(embedUrl('L002', res).C.L002.fieldMap), ['name_first', 'name_last', 'buyer_phone', 'buyer_email', 'business_name', 'employer_name', 'down_payment_label']);
 });
 
 test('C-4 special characters are URL-encoded and round-trip exactly; client-side title never used', async () => {

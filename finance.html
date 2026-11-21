@@ -209,6 +209,12 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
           <option>Not sure</option>
         </select>
         <input type="text" id="f-business" placeholder="Business Name (optional)">
+        <select id="f-owner" required>
+          <option value="">Are you the business owner applying for this loan?</option>
+          <option value="yes">Yes: I'm the owner/principal applying, this is my current business, and my phone and email above are its contact details</option>
+          <option value="no">No</option>
+        </select>
+        <p id="f-owner-help" style="font-size:12px;color:#94a3b8;margin:-4px 0 10px">Yes lets us fill the lender's owner, employer and business phone/email fields with what you entered here. You can change anything on the lender's form. No leaves those fields for you to complete.</p>
         <select id="f-revenue">
           <option value="" disabled selected>Estimated Monthly Business Revenue</option>
           <option>Under $5,000</option>
@@ -731,11 +737,22 @@ const LENDER_FORM_CONFIGS = {
       dealer:        ["field196509670", "field157837213"],
       stock_number:  "field196509673",
       vehicle_title: ["field196509672", "field157943120"],
-      vehicle_price: "field157943199",
+      listing_price:  "field157943199",
+      price_estimate: "field157943199",
       buyer_name:    "field196509676",
       buyer_email:   "field196509677",
       buyer_phone:   "field196509678",
       lead_id:       "field196509679",
+      // FIN-SINGLE-ENTRY (-332): hidden business Contact Name always (the person contacting us); Principal
+      // Ownership name/cell and hidden Company Phone/Email only on the owner Yes, which confirms the buyer
+      // is the owner applying and that the phone/email entered are the business's contact details.
+      contact_name_first: "field157805831-first",
+      contact_name_last:  "field157805831-last",
+      owner_name_first:   "field157836339-first",
+      owner_name_last:    "field157836339-last",
+      owner_phone:        "field157836480",
+      company_phone:      "field157836335",
+      company_email:      "field157836336",
       business_type:    "field157836337",
       business_name:    "field157805829",
       time_in_business: "field157805830",
@@ -745,7 +762,8 @@ const LENDER_FORM_CONFIGS = {
       business_zip:     "field157805832-zip"
     },
     // -330 F1: the notice names only the visible Seller Information fields actually filled in.
-    prefillNotice: { dealer: "seller", vehicle_title: "equipment", vehicle_price: "price estimate" }
+    prefillNotice: { owner_name_first: "owner name", owner_phone: "cell phone", dealer: "seller", vehicle_title: "equipment",
+      listing_price: "price as listed when you submitted", price_estimate: "price estimate" }
   },
   // L002 (HST -319): Wheelhouse Lease and Finance, Ash's own Jotform credit application,
   // embedded with the lender's permission. No buyer data is passed to it (empty fieldMap):
@@ -760,8 +778,19 @@ const LENDER_FORM_CONFIGS = {
     provider: "jotform",
     formUrl: "https://form.jotform.com/211335844728156",
     jotformId: "211335844728156",
-    fieldMap: {},
-    refPrefill: { param: "whatType", source: "vehicle_ref" },
+    // FIN-SINGLE-ENTRY: details the buyer already gave Torque Hub; Present Employer only on an owner Yes.
+    fieldMap: {
+      name_first:         "name[first]",
+      name_last:          "name[last]",
+      buyer_phone:        "phoneNumber185[full]",
+      buyer_email:        "email",
+      business_name:      "businessName",
+      employer_name:      "presentEmployer29",
+      down_payment_label: "howMuch"
+    },
+    prefillNotice: { name_first: "name", buyer_phone: "phone", buyer_email: "email", business_name: "business name",
+      employer_name: "present employer", down_payment_label: "down payment" },
+    refPrefill: { param: "whatType", source: "vehicle_ref", label: "equipment type" },
     skipBusinessInfo: true,
     embedCopy: {
       title: "Finish Your Application",
@@ -1066,7 +1095,10 @@ function submitFinance() {
   const revenue = document.getElementById("f-revenue").value.trim();
 
   if (!name) { alert("Please enter your name."); return; }
+  // FIN-SINGLE-ENTRY: owner answer gates the owner/guarantor and employer prefills (Chief 1 directive).
+  const ownerAnswer = document.getElementById("f-owner").value;
   if (phoneDigits.length !== 10) { alert("Please enter a valid 10-digit phone number."); return; }
+  if (ownerAnswer !== "yes" && ownerAnswer !== "no") { alert("Please tell us whether you're the business owner applying for this loan."); return; }
 
   if (financeSubject.mode === 'none') {
     alert('Please select the vehicle you want to finance, or choose "Something else / not listed".');
@@ -1152,6 +1184,8 @@ function submitFinance() {
     buyer_email:   email,
     buyer_phone:   phone,
     business_name: business || null,
+    owner_confirmed: ownerAnswer === "yes",
+    down_payment_label: downPayment ? document.getElementById("f-down-payment").selectedOptions[0].text : "",
     // FIN-PREFILL A / -330 F2: only the buyer's own approximate price for an external unit (the lender field
     // is "Price (estimate)"). A Torque Hub unit's price is not sent: it cannot be re-verified at handoff.
     vehicle_price: financeSubject.mode === 'external' ? String(financeSubject.external.externalPrice || "").trim() : ""
@@ -1255,7 +1289,7 @@ function showSuccess() {
 function handleLeadCreated(res, canonical) {
   const cfg = (res && res.route_code) ? LENDER_FORM_CONFIGS[res.route_code] : null;
   if (!cfg) { showSuccess(); return; }
-  pendingLender = { res, canonical, cfg };
+  pendingLender = { res, canonical, cfg, receivedAt: Date.now() };
   document.getElementById("form-inner").style.display = "none";
   if (cfg.skipBusinessInfo) { revealLenderEmbed(); return; }
   document.getElementById("business-info").style.display = "block";
@@ -1274,10 +1308,57 @@ function attachJotformResize(iframe, formId) {
   });
 }
 
+// FIN-SINGLE-ENTRY: buyer's name split for first/last fields (last word = last name, keeping a trailing
+// Jr/Sr/II/III/IV with it; one word = first only). A convenience the buyer reviews, not a legal name.
+const NAME_SUFFIXES = /^(jr|sr|ii|iii|iv|v)\.?$/i;
+function splitName(full) {
+  const parts = String(full || "").trim().split(/\s+/).filter(Boolean);
+  if (parts.length < 2) return { first: parts[0] || "", last: "" };
+  const k = (parts.length >= 3 && NAME_SUFFIXES.test(parts[parts.length - 1])) ? 2 : 1;
+  return { first: parts.slice(0, -k).join(" "), last: parts.slice(-k).join(" ") };
+}
+
+// -332/-333 F3: the server price is a snapshot read at submission and stamped vehicle_price_as_of (UTC ISO).
+// It is used only if that stamp is valid, not in the future and at most this old at the lender handoff,
+// AND the response itself arrived no more than this long ago. Anything else -> omitted (fail closed).
+const PRICE_MAX_AGE_MS = 15 * 60 * 1000;
+const ISO_UTC = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z$/;
+function snapshotAgeMs(asOf, nowMs) {
+  if (typeof asOf !== "string" || !ISO_UTC.test(asOf) || typeof nowMs !== "number") return -1;
+  const t = Date.parse(asOf);
+  return isFinite(t) ? nowMs - t : -1;
+}
+
+// Every lender value comes from what the buyer typed on Torque Hub or from the server response.
+// Owner/guarantor and employer values exist only when the buyer answered Yes. A Torque Hub unit's
+// price comes only from the server (verified at submission); an external unit uses the buyer's estimate.
+function prefillValues(canonical, business, res, priceAgeMs, nowMs) {
+  const c = canonical || {};
+  const n = splitName(c.buyer_name);
+  const owner = c.owner_confirmed === true;
+  const within = function (ms) { return typeof ms === "number" && ms >= 0 && ms <= PRICE_MAX_AGE_MS; };
+  const fresh = within(priceAgeMs) && within(snapshotAgeMs(res && res.vehicle_price_as_of, nowMs));
+  const listed = (fresh && res && typeof res.vehicle_price === "string" && /^\d{1,9}(\.\d{1,2})?$/.test(res.vehicle_price)) ? res.vehicle_price : "";
+  return Object.assign({}, c, business || {}, {
+    lead_id: res ? res.lead_id : "",
+    name_first: n.first, name_last: n.last,
+    contact_name_first: n.first, contact_name_last: n.last,
+    owner_name_first: owner ? n.first : "", owner_name_last: owner ? n.last : "",
+    owner_phone: owner ? (c.buyer_phone || "") : "",
+    company_phone: owner ? (c.buyer_phone || "") : "",
+    company_email: owner ? (c.buyer_email || "") : "",
+    employer_name: owner ? (c.business_name || "") : "",
+    listing_price: listed,
+    price_estimate: listed ? "" : (c.vehicle_price || "")
+  });
+}
+
 function revealLenderEmbed() {
   if (!pendingLender) return;
   const { res, canonical, cfg } = pendingLender;
-  const vals = Object.assign({}, canonical, pendingLender.business || {}, { lead_id: res.lead_id });
+  const now = Date.now();
+  const age = typeof pendingLender.receivedAt === "number" ? now - pendingLender.receivedAt : -1;
+  const vals = prefillValues(canonical, pendingLender.business, res, age, now);
   const params = [];
   Object.keys(cfg.fieldMap).forEach(function (k) {
     if (vals[k] == null || vals[k] === "") return;
@@ -1292,6 +1373,7 @@ function revealLenderEmbed() {
   iframe.src = cfg.formUrl + (allParams ? "?" + allParams : "");
   iframe.style.cssText = "width:100%;min-height:1600px;border:0;background:#fff;border-radius:10px;";
   iframe.title = "Credit Application";
+  iframe.referrerPolicy = "no-referrer";   // -332 P1: send the lender no Torque Hub page URL
   if (cfg.embedCopy) {
     const c = cfg.embedCopy;
     document.getElementById("lender-embed-title").textContent = c.title;
@@ -1311,11 +1393,12 @@ function revealLenderEmbed() {
   const filled = cfg.prefillNotice
     ? Object.keys(cfg.prefillNotice).filter(function (k) { return vals[k] != null && vals[k] !== ""; }).map(function (k) { return cfg.prefillNotice[k]; })
     : [];
+  if (refParam && cfg.refPrefill.label) filled.push(cfg.refPrefill.label);
   if (filled.length) {
     const list = filled.length === 1 ? filled[0]
       : filled.slice(0, -1).join(", ") + (filled.length > 2 ? "," : "") + " and " + filled[filled.length - 1];
     const pn = document.getElementById("lender-embed-prefill-note");
-    pn.textContent = "We filled in the " + list + " from your Torque Hub request. Check " + (filled.length === 1 ? "it" : "them") + " before you submit.";
+    pn.textContent = "To save you retyping, Torque Hub filled in " + cfg.lenderName + "'s form with details from your Torque Hub request: " + list + ". Check " + (filled.length === 1 ? "it" : "them") + " before you submit.";
     pn.style.display = "block";
   }
   if (cfg.provider === "jotform") attachJotformResize(iframe, cfg.jotformId);

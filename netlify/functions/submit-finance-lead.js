@@ -72,6 +72,16 @@ function vehicleRefEligible(e) {
     && e.routeResolved === true && e.routeBasis === 'matched'
     && typeof e.routeCode === 'string' && WHEELHOUSE_PREFILL_ROUTES.has(e.routeCode));
 }
+// FIN-SINGLE-ENTRY: verified listing price for the H.I.L. (L001) "Price (estimate)" field, read from the
+// inventory row at submission. Only for exactly one matching row that is publicly published and unsold,
+// with a valid positive numeric price, on the L001 route (the only lender form with a price field).
+// sold must be exactly false (null/unknown -> omitted). 'published' is the public inventory_cards predicate.
+function vehiclePriceEligible(e) {
+  return !!(e && e.inventoryState === 'resolved' && e.rawRowCount === 1 && e.inv
+    && e.inv.status === 'published' && e.inv.sold === false
+    && e.routeResolved === true && e.routeBasis === 'matched' && e.routeCode === 'L001'
+    && typeof e.price === 'number' && isFinite(e.price) && e.price > 0);
+}
 function vehicleRef(u) {
   if (!u) return null;
   const ref = oneLine(`${u.title} — Stock ${u.stock} — Torque Hub`);
@@ -624,6 +634,10 @@ exports.handler = async (event) => {
   const okBody = { success: true, lead_id: leadId, dealer_code: dealerCode, route_code: routeCode };
   if (unitCtx && vehicleRefEligible({ inventoryState, rawRowCount: invRawRowCount, inv, routeResolved, routeBasis, routeCode })) {
     okBody.vehicle_ref = vehicleRef(unitCtx);
+  }
+  if (unitCtx && vehiclePriceEligible({ inventoryState, rawRowCount: invRawRowCount, inv, routeResolved, routeBasis, routeCode, price: listingPriceSnapshot })) {
+    okBody.vehicle_price = String(listingPriceSnapshot);
+    okBody.vehicle_price_as_of = new Date().toISOString();   // -332 F3: a snapshot at submission, not a live price
   }
   return { statusCode: 200, headers, body: JSON.stringify(okBody) };
 };
