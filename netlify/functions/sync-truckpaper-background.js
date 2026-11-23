@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const { createClient } = require('@supabase/supabase-js');
 const { generateDescription } = require('./lib/generate-description.generated');
 const { CANONICAL_SUBCATEGORIES, SUBCATEGORY_ALIASES, canonicalize } = require('./lib/taxonomy.generated.js');
@@ -192,6 +193,43 @@ function reorderDbtPhotos(photos, dealer, sourceUrl) {
   const third = photos[2];
   const middle = photos.slice(1, 2).concat(photos.slice(3)); // indices 1, then 3..end
   return [third].concat(middle).concat([originalFirst]);
+}
+
+// 2026-11-23 (Chief 1 DeBary photo removal ruling): exact-identity exclusion of the 17 DeBary branded photos
+// removed from Torque Hub (Fresh -757 manifest). Identity = md5 of the photo's exact stored URL string, so only these
+// 17 URLs can ever match; an ordinary photo is never removed. Hero (index 0) is never removed and a gallery is never
+// emptied. A NEW branded photo with a NEW URL is NOT caught by this list.
+const DBT_BRANDED_PHOTO_URL_MD5 = new Set([
+  'c02d5e1efa3946e78812bcfbec02c969',
+  '121f478662b4dd22f6acff75965c9513',
+  'af2fa0aaf95eaa526cd78a764ab07e5f',
+  'f61062411deeed777b42ef464ad0ca30',
+  '9b1bd73850436af7a03d61d4e0086960',
+  '1f74aa281fb79ff343e46e585f25a011',
+  '27deb5d4cb7c83fe3a80efaff1a7a7e7',
+  '7542c87dafbb084c7321b4fa2bdb55f5',
+  '87d4a97a9263f9542c706f63c1728db0',
+  'f191f27cf998f41e9f52d96fe3b0346c',
+  '79cf42ce001a555b5f2e4088028fb5b6',
+  'ef8e6f268470d9e4c2a91d1d3004e50b',
+  '57d842050a4999811e85d2ad99b2e25d',
+  'c52f571d87a422997e71fc37535d3ca0',
+  '8b0473da55c5b994308e8b9e58220d9e',
+  'f72bb8b42c0414e7db4ea64b3c088ed3',
+  'e6ccb7476c213cfcbfc76f0f64a5f453',
+]);
+function photoUrlOf(p) {
+  if (typeof p === 'string') return p;
+  return p && typeof p.url === 'string' ? p.url : null;
+}
+function excludeDbtBrandedPhotos(photos, dealer) {
+  if (dealer !== 'DeBary Truck Sales' || !Array.isArray(photos) || photos.length < 2) return photos;
+  const kept = photos.filter(function(p, i) {
+    if (i === 0) return true;
+    const u = photoUrlOf(p);
+    return !(u && DBT_BRANDED_PHOTO_URL_MD5.has(crypto.createHash('md5').update(u, 'utf8').digest('hex')));
+  });
+  return kept.length === photos.length ? photos : kept;
 }
 
 function normalizeStockNumber(rawStock, dealerName, sourceListingId) {
@@ -480,6 +518,8 @@ function classifySellerSoldMarker(text) {
   return ambiguous ? 'ambiguous' : (strict ? 'strict' : 'none');
 }
 exports.classifySellerSoldMarker = classifySellerSoldMarker;
+exports.excludeDbtBrandedPhotos = excludeDbtBrandedPhotos;
+exports.DBT_BRANDED_PHOTO_URL_MD5 = DBT_BRANDED_PHOTO_URL_MD5;
 // Applies the CAS predicates of a decided write and asks for the affected row ids back.
 function sellerCas(q, d) {
   q = q.eq('id', d.rowId).eq('status', d.expect.status);
@@ -924,6 +964,7 @@ exports.handler = async (event) => {
 
         unit.photos = stripSandhillsJunkPhotos(unit.photos);
         unit.photos = reorderDbtPhotos(unit.photos, dealer, item.source_url);
+        unit.photos = excludeDbtBrandedPhotos(unit.photos, dealer);
 
         // Determine upsert path: prefer (dealer, source_listing_id) when present, fall back to (dealer, stock)
         const incomingListingId = item.source_listing_id || null;
