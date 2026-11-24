@@ -66,7 +66,7 @@ function buildCardThumb(rawUrl) {
     const sb = rawUrl.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/');
     return /[?&](width|height|resize)=/i.test(sb)
       ? sb
-      : sb + (sb.indexOf('?') !== -1 ? '&' : '?') + 'width=400&height=300&resize=cover';
+      : sb + (sb.indexOf('?') !== -1 ? '&' : '?') + 'width=400&height=300&resize=contain';
   }
   // Sandhills CDN: ?w= / ?h= params.
   if (rawUrl.indexOf('media.sandhills.com') !== -1) {

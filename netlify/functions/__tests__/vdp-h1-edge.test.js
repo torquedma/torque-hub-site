@@ -146,7 +146,23 @@ function unCat(b, label) {
     .replace(DESC_NEW, () => DESC_OLD)
     .replace(CAT_LI_RE, '');
 }
-const toBaseShape = (b, s, label) => reDiag(unCat(unHyd(b.replace(H1_RE, () => '<div class="vdp-headline-title" id="hl-title">' + BASE_TITLE[s] + '</div>')), label));
+// SITE-PHOTO-CONTAIN (Chief 1 PHOTO CONTAIN ruling, HST patch 1bd69bd8): the VDP gallery, thumbs and similar cards
+// switch object-fit cover -> contain, the hover scale and the redundant mobile override are removed, and the storage
+// slide/thumb render URLs request resize=contain. H-8 writes each exact change back, so the rest must still match base.
+const CONTAIN_PAIRS = [
+  ['.gallery-slide img { width: 100%; height: 100%; object-fit: contain; display: block; }\n',
+   '.gallery-slide img { width: 100%; height: 100%; object-fit: cover; display: block; }\n    .gallery-main:hover .gallery-slide img { transform: scale(1.02); transition: transform 0.3s; }\n'],
+  ['.thumb img { width: 100%; height: 100%; object-fit: contain; background: var(--panel-2); }', '.thumb img { width: 100%; height: 100%; object-fit: cover; }'],
+  ['.sim-img img { width: 100%; height: 100%; object-fit: contain; }', '.sim-img img { width: 100%; height: 100%; object-fit: cover; }'],
+  ['      .gallery-main { aspect-ratio: auto; height: 240px; }\n    }', '      .gallery-main { aspect-ratio: auto; height: 240px; }\n      .gallery-slide img { object-fit: contain; }\n    }'],
+  ["'width=1400&quality=78&resize=contain'", "'width=1400&quality=78'"],
+  ["'width=200&height=150&resize=contain&quality=70'", "'width=200&height=150&resize=cover&quality=70'"],
+];
+function unContain(b) {
+  for (const [nu, old] of CONTAIN_PAIRS) { assert.equal(count(b, nu), 1, 'contain write-back target once: ' + nu.slice(0, 40)); b = b.split(nu).join(old); }
+  return b;
+}
+const toBaseShape = (b, s, label) => reDiag(unCat(unHyd(unContain(b.replace(H1_RE, () => '<div class="vdp-headline-title" id="hl-title">' + BASE_TITLE[s] + '</div>'))), label));
 // The H-11 invariant for a rendered listing: one H1, inside the headline strip, and no headline DIV left behind.
 function headlineProblem(body) {
   if (count(body, '<h1') !== 1 || count(body, '</h1>') !== 1) return 'h1 count ' + count(body, '<h1');
@@ -239,7 +255,7 @@ test('H-8: parity with the 18685c03 base output (only the headline tag and its t
   const nf = await render('?stock=NONE-0000');
   assert.equal(count(nf.body, HYD_NEW), 1, 'the changed hydration line is present once');
   assert.equal(count(nf.body, DIAG_ANCHOR), 1, 'the write-back anchor occurs once');
-  assert.equal(sha(reDiag(unCat(unHyd(nf.body), ''))), BASE_SHA256['404'], '404 is byte-identical to base apart from that line, the removed diagnostic and the VDP-CAT-001 badge removal');
+  assert.equal(sha(reDiag(unCat(unHyd(unContain(nf.body)), ''))), BASE_SHA256['404'], '404 is byte-identical to base apart from that line, the removed diagnostic and the VDP-CAT-001 badge removal');
 });
 
 test('H-9: coupling - the template target occurs exactly once and the edge replaces it exactly once', () => {

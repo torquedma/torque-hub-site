@@ -48,7 +48,7 @@ window.InventoryEngine = (function () {
     if (rawUrl.includes('/storage/v1/object/public/') && rawUrl.indexOf('/render/image/') === -1) {
       var sb = rawUrl.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/');
       if (!/[?&](width|height|resize)=/i.test(sb)) {
-        sb += (sb.includes('?') ? '&' : '?') + 'width=400&height=300&resize=cover';
+        sb += (sb.includes('?') ? '&' : '?') + 'width=400&height=300&resize=contain';
       }
       return sb;
     }

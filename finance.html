@@ -32,7 +32,7 @@ a { color: inherit; text-decoration: none; }
 .context-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: #94a3b8; margin-bottom: 6px; }
 .context-unit { font-family: "Barlow Condensed", sans-serif; font-size: 22px; font-weight: 900; text-transform: uppercase; margin-bottom: 3px; }
 .context-price { font-size: 18px; font-weight: 700; color: #f97316; }
-.context-photo { display: block; width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 10px; background: rgba(255,255,255,0.06); margin-bottom: 12px; }
+.context-photo { display: block; width: 100%; aspect-ratio: 16/9; object-fit: contain; border-radius: 10px; background: rgba(255,255,255,0.06); margin-bottom: 12px; }
 .context-meta { font-size: 13px; color: #cbd5e1; line-height: 1.6; margin-top: 6px; word-break: break-word; }
 @media (max-width: 600px) { .context-photo { aspect-ratio: 4/3; } }
 .benefits { background: #111827; border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 16px 20px; margin-bottom: 24px; list-style: none; display: flex; flex-direction: column; gap: 8px; }
@@ -577,7 +577,7 @@ function buildVdpSlideUrl(rawUrl) {
   if (rawUrl.includes('/storage/v1/object/public/') && rawUrl.indexOf('/render/image/') === -1) {
     var sb = rawUrl.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/');
     if (!/[?&](width|height|quality)=/i.test(sb)) {
-      sb += (sb.includes('?') ? '&' : '?') + 'width=1400&quality=78';
+      sb += (sb.includes('?') ? '&' : '?') + 'width=1400&quality=78&resize=contain';
     }
     return sb;
   }
