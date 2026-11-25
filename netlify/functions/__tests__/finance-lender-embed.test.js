@@ -704,3 +704,23 @@ test('V43-7 static: tenure inputs have no default value, bounded; exact-tenure o
   const code = slice('function parseTenure(', 'function prefillValues(');
   assert.ok(!/fetch|fbq|gtag|Storage|console|cookie/.test(code));
 });
+
+// FIN-HOWMUCH-PLUS (Chief 1 TH-CHIEF1-20261125-FIN-HOWMUCH-PLUS-DISPLAY-BOUNDED-OFFLINE-FIX, Option A): Jotform text
+// prefill turns "+" into a space, so the one plus-labelled down-payment choice is relabelled; stored values unchanged.
+test('HM-1 down-payment choices: exact value/label pairs; 10000+ shows "$10,000 or more"; no visible label contains "+"', () => {
+  const sel = slice('<select id="f-down-payment">', '</select>');
+  const pairs = [...sel.matchAll(/<option value="([^"]*)">([^<]*)<\/option>/g)].map((m) => [m[1], m[2]]);
+  assert.deepEqual(pairs, [['', 'Estimated Down Payment'], ['0', '$0 \u2014 No money down'], ['1000-2500', '$1,000 - $2,500'],
+    ['2500-5000', '$2,500 - $5,000'], ['5000-10000', '$5,000 - $10,000'], ['10000+', '$10,000 or more']]);
+  for (const [, label] of pairs) assert.ok(!label.includes('+'), label);
+  assert.ok(FIN.includes('down_payment:    downPayment || null,'), 'stored canonical value is still the option VALUE (10000+)');
+});
+
+test('HM-2 Wheelhouse howMuch carries the new label; H.I.L. URL has no down-payment field; note unchanged', () => {
+  const r = flow('L002', C2({ down_payment_label: '$10,000 or more' }), BIZW, {});
+  assert.deepEqual(r.q.find(([k]) => k === 'howMuch'), ['howMuch', '$10,000 or more']);
+  assert.ok(new URL(r.iframe.src).search.includes('howMuch=%2410%2C000%20or%20more'), 'encoded with no plus sign');
+  assert.ok(r.note.includes('down payment'));
+  const h = flow('L001', C2({ down_payment_label: '$10,000 or more' }), BIZ, {});
+  assert.ok(!h.q.some(([k, v]) => /howMuch/.test(k) || v === '$10,000 or more'), 'H.I.L. receives no down-payment value');
+});
