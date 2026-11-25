@@ -321,7 +321,7 @@ test('SE-9 special characters encode and round-trip; injection cannot add a para
 });
 
 test('SE-10 Phase 1: owner question present and required; answer kept in the page only (not sent to the server)', () => {
-  assert.ok(FIN.includes('<select id="f-owner" required>') && FIN.includes('<option value="yes">Yes: I\'m the owner/principal applying, this is my current business, and my phone and email above are its contact details</option>') && FIN.includes('<option value="no">No</option>'));
+  assert.ok(FIN.includes('<select id="f-owner" required aria-describedby="f-owner-help">') && FIN.includes('<option value="yes">Yes, I\'m the owner/principal applying</option>') && FIN.includes('<strong style="color:#f8fafc">If you choose Yes:</strong> you confirm this is your current business and that the phone and email above are its contact details') && FIN.includes('<option value="no">No</option>'));
   assert.ok(FIN.includes('Are you the business owner applying for this loan?'));
   assert.ok(FIN.includes('if (ownerAnswer !== "yes" && ownerAnswer !== "no") { alert('), 'must be answered');
   const canon = slice('const canonical = {', '\n  };');
@@ -343,7 +343,7 @@ test('SE-12 owner Yes with no business name: no employer / Company Name; help te
   assert.ok(!r.q.some(([k]) => k === 'presentEmployer29' || k === 'businessName'));
   const l1 = flow('L001', C2({ business_name: '' }), Object.assign({}, BIZ), {});
   assert.ok(!l1.q.some(([k]) => k === 'field157805829'));
-  assert.ok(FIN.includes('<p id="f-owner-help"') && FIN.includes('No leaves those fields for you to complete.'));
+  assert.ok(FIN.includes('<p id="f-owner-help"') && FIN.includes('If you choose No:</strong> you complete those fields yourself.'));
 });
 
 test('SE-13 -332 P1: iframe sends no referrer; no analytics call or log line touches the lender URL or prefill values', () => {
@@ -723,4 +723,23 @@ test('HM-2 Wheelhouse howMuch carries the new label; H.I.L. URL has no down-paym
   assert.ok(r.note.includes('down payment'));
   const h = flow('L001', C2({ down_payment_label: '$10,000 or more' }), BIZ, {});
   assert.ok(!h.q.some(([k, v]) => /howMuch/.test(k) || v === '$10,000 or more'), 'H.I.L. receives no down-payment value');
+});
+
+// FIN-UI-COPY (Chief 1 finance page audit): white fields, shorter copy, no approval-speed promises; disclosures kept.
+test('UI-1 white fields with dark text; simplified headings/buttons; no approval-speed promise; required disclosures kept', () => {
+  assert.ok(/input, select \{[^}]*background: #ffffff;[^}]*color: #0f172a;/.test(FIN), 'white field, dark text');
+  assert.ok(FIN.includes('select option { background: #ffffff; color: #0f172a; }') && FIN.includes('input:-webkit-autofill'), 'dropdown + autofill styled');
+  assert.ok(FIN.includes('>Finance Your Equipment</h1>') && FIN.includes('<h2>Get Started</h2>'));
+  assert.ok(FIN.includes('onclick="submitFinance()">Continue</button>') && FIN.includes('btn.textContent = "Continue";'));
+  assert.ok(FIN.includes('onclick="submitBusinessInfo()">Continue to Lender</button>') && FIN.includes('btn.textContent = "Continue to Lender";'));
+  assert.ok(!/fast approval|approvals happen|minutes to a few hours|same day|\d+ minutes/i.test(FIN), 'no approval-speed or completion-time promise anywhere');
+  assert.ok(FIN.includes('<h2>Get Started</h2>\n      <p>Quick application.</p>'), 'form subhead');
+  assert.ok(/<p id="f-owner-help" style="font-size:14px;[^"]*color:#cbd5e1;/.test(FIN), 'owner help readable');
+  assert.ok(FIN.includes('.trust { text-align: center; font-size: 13px; color: #a8b4c6;'), 'disclosure contrast');
+  assert.ok(!FIN.includes('flex-wrap:nowrap;overflow-x:auto') && FIN.includes('<div style="display:flex;gap:8px;flex-wrap:wrap">'), 'category pills wrap on mobile');
+  for (const d of ['>Starting your request does not check your credit</li>', '>Submitting this request does not run a credit check.</p>',
+    'If a lender needs a hard credit pull, you should be notified first.', 'Approval is not guaranteed', 'If you choose No:</strong> you complete those fields yourself.'])
+    assert.ok(FIN.includes(d), d);
+  for (const id of ['f-name', 'f-phone', 'f-email', 'f-credit', 'f-business', 'f-owner', 'f-revenue', 'f-down-payment', 'f-timeframe', 'subject-search'])
+    assert.ok(FIN.includes('id="' + id + '"'), 'field kept: ' + id);
 });
