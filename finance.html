@@ -202,10 +202,10 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
         <input type="text" id="f-business" placeholder="Business Name (optional)">
         <select id="f-owner" required aria-describedby="f-owner-help">
           <option value="">Are you the business owner applying for this loan?</option>
-          <option value="yes">Yes, I'm the owner/principal applying</option>
+          <option value="yes">Yes — it's my current business, and the phone and email above are its contact info</option>
           <option value="no">No</option>
         </select>
-        <p id="f-owner-help" style="font-size:14px;line-height:1.5;color:#cbd5e1;margin:8px 2px 14px"><strong style="color:#f8fafc">If you choose Yes:</strong> you confirm this is your current business and that the phone and email above are its contact details, so we can fill the lender's owner, employer and business phone/email fields. You can change anything on the lender's form. <strong style="color:#f8fafc">If you choose No:</strong> you complete those fields yourself.</p>
+        <p id="f-owner-help" style="font-size:14px;line-height:1.5;color:#cbd5e1;margin:8px 2px 14px">If you select Yes, we'll use the information you provided to help fill out your financing application. You can review and edit it before submitting.</p>
         <select id="f-revenue">
           <option value="" disabled selected>Estimated Monthly Business Revenue</option>
           <option>Under $5,000</option>
@@ -225,9 +225,9 @@ src="https://www.facebook.com/tr?id=1710916626441974&ev=PageView&noscript=1"
           <input type="text" id="ext-make" placeholder="Make" autocomplete="off">
           <input type="text" id="ext-model" placeholder="Model" autocomplete="off">
           <input type="number" id="ext-price" min="0" step="1" placeholder="Approx. Purchase Price ($)">
-          <button type="button" id="back-to-inventory" style="width:auto;margin-top:2px;padding:0;border:none;background:none;color:#f97316;font-size:13px;font-weight:700;cursor:pointer;text-align:left;text-decoration:underline">Back to inventory</button>
+          <button type="button" id="back-to-inventory" style="width:auto;margin:12px 0 18px;padding:0;border:none;background:none;color:#f97316;font-size:13px;font-weight:700;cursor:pointer;text-align:left;text-decoration:underline">Back to inventory</button>
         </div>
-        <button type="button" id="subject-external-btn" style="width:auto;padding:0;border:none;background:none;color:#f97316;font-size:14px;font-weight:700;cursor:pointer;text-align:left;text-decoration:underline">Something else / not listed</button>
+        <button type="button" id="subject-external-btn" style="width:auto;margin:10px 0 18px;padding:0;border:none;background:none;color:#f97316;font-size:13px;font-weight:700;cursor:pointer;text-align:left;text-decoration:underline">Not listed? Enter it manually</button>
         <select id="f-dealer-select" style="display:none">
           <option value="" disabled selected>Seller</option>
         </select>
@@ -587,7 +587,7 @@ function renderSubject() {
 
   document.getElementById('subject-picker').style.display = (financeSubject.mode === 'none' && !hintMode) ? 'block' : 'none';
   document.getElementById('subject-external').style.display = (financeSubject.mode === 'external') ? 'block' : 'none';
-  document.getElementById('subject-external-btn').style.display = (financeSubject.mode === 'external') ? 'none' : 'block';
+  document.getElementById('subject-external-btn').style.display = (financeSubject.mode === 'none') ? 'block' : 'none';
 
   const sel = document.getElementById('f-dealer-select');
   const disp = document.getElementById('f-dealer-display');
@@ -876,7 +876,7 @@ function renderPickerResults() {
   box.textContent = '';
   if (!inventoryLoaded) { status.textContent = 'Loading inventory...'; box.style.display = 'none'; return; }
   if (inventoryRows.length === 0) {
-    status.textContent = 'No inventory results are available right now. You can still choose Something else / not listed.';
+    status.textContent = 'No inventory results are available right now. You can still use "Not listed? Enter it manually" below.';
     box.style.display = 'none'; return;
   }
   if (!q) { status.textContent = 'Start typing to find your unit.'; box.style.display = 'none'; return; }
@@ -885,7 +885,7 @@ function renderPickerResults() {
     return t.indexOf(q) !== -1;
   }).slice(0, 50);
   if (rows.length === 0) {
-    status.textContent = 'No matches. Try fewer words, or choose Something else / not listed.';
+    status.textContent = 'No matches. Try fewer words, or use "Not listed? Enter it manually" below.';
     box.style.display = 'none'; return;
   }
   status.textContent = '';
@@ -1043,7 +1043,7 @@ function submitFinance() {
   if (ownerAnswer !== "yes" && ownerAnswer !== "no") { alert("Please tell us whether you're the business owner applying for this loan."); return; }
 
   if (financeSubject.mode === 'none') {
-    alert('Please select the vehicle you want to finance, or choose "Something else / not listed".');
+    alert('Please select the vehicle you want to finance, or choose "Not listed? Enter it manually".');
     return;
   }
   if (financeSubject.mode === 'external') {

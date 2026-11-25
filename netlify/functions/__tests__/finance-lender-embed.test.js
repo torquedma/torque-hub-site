@@ -321,7 +321,7 @@ test('SE-9 special characters encode and round-trip; injection cannot add a para
 });
 
 test('SE-10 Phase 1: owner question present and required; answer kept in the page only (not sent to the server)', () => {
-  assert.ok(FIN.includes('<select id="f-owner" required aria-describedby="f-owner-help">') && FIN.includes('<option value="yes">Yes, I\'m the owner/principal applying</option>') && FIN.includes('<strong style="color:#f8fafc">If you choose Yes:</strong> you confirm this is your current business and that the phone and email above are its contact details') && FIN.includes('<option value="no">No</option>'));
+  assert.ok(FIN.includes('<select id="f-owner" required aria-describedby="f-owner-help">') && FIN.includes('<option value="yes">Yes — it\'s my current business, and the phone and email above are its contact info</option>') && FIN.includes('If you select Yes, we\'ll use the information you provided to help fill out your financing application. You can review and edit it before submitting.') && FIN.includes('<option value="no">No</option>'));
   assert.ok(FIN.includes('Are you the business owner applying for this loan?'));
   assert.ok(FIN.includes('if (ownerAnswer !== "yes" && ownerAnswer !== "no") { alert('), 'must be answered');
   const canon = slice('const canonical = {', '\n  };');
@@ -343,7 +343,7 @@ test('SE-12 owner Yes with no business name: no employer / Company Name; help te
   assert.ok(!r.q.some(([k]) => k === 'presentEmployer29' || k === 'businessName'));
   const l1 = flow('L001', C2({ business_name: '' }), Object.assign({}, BIZ), {});
   assert.ok(!l1.q.some(([k]) => k === 'field157805829'));
-  assert.ok(FIN.includes('<p id="f-owner-help"') && FIN.includes('If you choose No:</strong> you complete those fields yourself.'));
+  assert.ok(FIN.includes('<p id="f-owner-help"') && FIN.includes('You can review and edit it before submitting.'));
 });
 
 test('SE-13 -332 P1: iframe sends no referrer; no analytics call or log line touches the lender URL or prefill values', () => {
@@ -738,8 +738,30 @@ test('UI-1 white fields with dark text; simplified headings/buttons; no approval
   assert.ok(FIN.includes('.trust { text-align: center; font-size: 13px; color: #a8b4c6;'), 'disclosure contrast');
   assert.ok(!FIN.includes('flex-wrap:nowrap;overflow-x:auto') && FIN.includes('<div style="display:flex;gap:8px;flex-wrap:wrap">'), 'category pills wrap on mobile');
   for (const d of ['>Starting your request does not check your credit</li>', '>Submitting this request does not run a credit check.</p>',
-    'If a lender needs a hard credit pull, you should be notified first.', 'Approval is not guaranteed', 'If you choose No:</strong> you complete those fields yourself.'])
+    'If a lender needs a hard credit pull, you should be notified first.', 'Approval is not guaranteed', 'the phone and email above are its contact info</option>'])
     assert.ok(FIN.includes(d), d);
   for (const id of ['f-name', 'f-phone', 'f-email', 'f-credit', 'f-business', 'f-owner', 'f-revenue', 'f-down-payment', 'f-timeframe', 'subject-search'])
     assert.ok(FIN.includes('id="' + id + '"'), 'field kept: ' + id);
+});
+
+test('UI-2 manual-entry link shows only while searching inventory; external flow and handlers unchanged', () => {
+  assert.ok(FIN.includes('>Not listed? Enter it manually</button>') && !FIN.includes('Something else'), 'relabelled');
+  assert.ok(FIN.includes("document.getElementById('subject-external-btn').style.display = (financeSubject.mode === 'none') ? 'block' : 'none';"), 'shown only in picker mode');
+  assert.ok(FIN.includes("document.getElementById('subject-external-btn').addEventListener('click', onChooseExternal);")
+    && FIN.includes("document.getElementById('change-vehicle').addEventListener('click', onBackToInventory);")
+    && FIN.includes("financeSubject.mode = 'external';"), 'handlers unchanged; Change vehicle still reaches the picker');
+  for (const id of ['subject-external', 'ext-year', 'ext-make', 'ext-model', 'ext-price', 'back-to-inventory', 'f-dealer-select'])
+    assert.ok(FIN.includes('id="' + id + '"'), 'external field kept: ' + id);
+});
+
+test('UI-3 owner question: Yes affirms current business + business contact info; No path and owner_confirmed semantics unchanged', () => {
+  const m = FIN.match(/<select id="f-owner" required aria-describedby="f-owner-help">([\s\S]*?)<\/select>/);
+  assert.ok(m, 'owner select present, required, described by help');
+  const opts = [...m[1].matchAll(/<option([^>]*)>([^<]*)<\/option>/g)].map(x => [x[1].trim(), x[2]]);
+  assert.deepEqual(opts.map(o => o[1]), ['Are you the business owner applying for this loan?',
+    'Yes — it\'s my current business, and the phone and email above are its contact info', 'No']);
+  assert.deepEqual(opts.slice(1).map(o => o[0]), ['value="yes"', 'value="no"'], 'option values unchanged');
+  assert.ok(FIN.includes('owner_confirmed: ownerAnswer === "yes",'), 'only Yes confirms');
+  assert.ok(FIN.includes('if (ownerAnswer !== "yes" && ownerAnswer !== "no")'), 'an answer is still required');
+  assert.ok(FIN.includes('<p id="f-owner-help"') && FIN.includes('If you select Yes, we\'ll use the information you provided to help fill out your financing application. You can review and edit it before submitting.</p>'));
 });
